@@ -1,0 +1,314 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1325,
+      "max": [
+        188.51509094238281,
+        77.475509643554688,
+        19.32696533203125
+      ],
+      "min": [
+        -184.41653442382812,
+        -64.8173828125,
+        -19.32696533203125
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 15900,
+      "componentType": 5126,
+      "count": 1325,
+      "max": [
+        0.99074512720108032,
+        0.98710709810256958,
+        1
+      ],
+      "min": [
+        -0.8451269268989563,
+        -0.9915539026260376,
+        -0.99966424703598022
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 1325,
+      "max": [
+        1,
+        0.39384561777114868,
+        0.99941200017929077,
+        1
+      ],
+      "min": [
+        -0.38707676529884338,
+        -0.57423001527786255,
+        -0.99941200017929077,
+        -1
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1325,
+      "max": [
+        0.96380066871643066,
+        0.94531905651092529
+      ],
+      "min": [
+        0.031683355569839478,
+        0.036293089389801025
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 10600,
+      "componentType": 5126,
+      "count": 1325,
+      "max": [
+        0.96380066871643066,
+        0.94531905651092529
+      ],
+      "min": [
+        0.031683355569839478,
+        0.036293089389801025
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 6831,
+      "max": [
+        1324
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "Yimit (https://sketchfab.com/yimit)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/fish-c4328d6c1ae445198abc1a3d4c1e2570",
+      "title": "Fish"
+    },
+    "generator": "Sketchfab-5.10.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 27324,
+      "byteOffset": 0,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 21200,
+      "byteOffset": 27324,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 31800,
+      "byteOffset": 48524,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 21200,
+      "byteOffset": 80324,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 101524,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/02_-_Default_baseColor.jpeg"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "name": "02_-_Default",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "baseColorTexture": {
+          "index": 0,
+          "texCoord": 0
+        },
+        "metallicFactor": 0.21512957320000001,
+        "roughnessFactor": 0.1175685976
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Line01_02 - Default_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4
+          },
+          "indices": 5,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "name": "RootNode (gltf orientation matrix)",
+      "rotation": [
+        -0.70710678118654746,
+        -0,
+        -0,
+        0.70710678118654757
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.58489441871643066,
+        0,
+        -0.81110942363739014,
+        0,
+        0.81110942363739014,
+        0,
+        0.58489441871643066,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        19.510677337646484,
+        -39.473724365234375,
+        -0.22308598458766937,
+        1
+      ],
+      "name": "RootNode (model correction matrix)"
+    },
+    {
+      "children": [
+        3
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "name": "e3cbdc8bed7a412b8bc239299b476f5b.fbx"
+    },
+    {
+      "children": [
+        4
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        5
+      ],
+      "matrix": [
+        0.022903174344699996,
+        -0.00042578019541568223,
+        -0.022120554176682138,
+        0,
+        -0.022124493664470623,
+        -0.00056004756040113418,
+        -0.02289647331981259,
+        0,
+        -8.2894054337756255e-05,
+        0.03183647116038843,
+        -0.00069862064789240168,
+        0,
+        -2.4931693077087402,
+        -13.328807830810547,
+        26.226158142089844,
+        1
+      ],
+      "name": "Line01"
+    },
+    {
+      "mesh": 0,
+      "name": "Line01_02 - Default_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "OSG_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ]
+}
+

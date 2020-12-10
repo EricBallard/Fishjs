@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <div class =container> </div>
 
-    <script src="three.min.js"></script>
-    <script type="module" src="OrbitControls.js"></script>
-    <script type="module" src="index.js"></script>
+<head>
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <!-- FPS Counter -->
+    <div class="fpscounter">
+        <h5 id="fps">
+            FPS: 0
+        </h5>
+    </div>
+    
+    <!-- Core -->
+    <script type="module" src="/js/index.js"></script>
 </body>
+
 </html>
