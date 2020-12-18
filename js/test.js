@@ -10,6 +10,8 @@ import {
 } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/loaders/FBXLoader.js';
 
 // Native Utils
+import * as Boids from  '/js/boid.js';
+
 import {
     createMaterialArray
 } from '/js/skybox.js';
@@ -19,7 +21,10 @@ import {
 } from '/js/particles.js';
 
 // 3D Graphics
-let scene, camera, renderer, controls, myReq;
+var scene, camera, renderer, controls, frame;
+
+// Boid data
+var boids = [];
 
 // Stats & Info
 var fps, framesRendered, secondTracker = null;
@@ -59,7 +64,7 @@ function initialize() {
     controls.enabled = true;
 
     controls.enablePan = false;
-    controls.autoRotate = true;
+    //controls.autoRotate = true;
     controls.rotateSpeed = 0.45;
     controls.autoRotateSpeed = 0.30;
 
@@ -97,24 +102,36 @@ function loadAnimatedModel() {
     //idle.play();
 
     var geometry = new THREE.BoxGeometry(50, 50, 50);
-        var material = new THREE.MeshBasicMaterial({
+    var material = new THREE.MeshBasicMaterial({
         color: 0x999999
     });
 
     //loader.load("fish.fbx", (model) => {
-        for (let added = 0; added < 10; added++) {
-            var cube = new THREE.Mesh(geometry, material);
+    for (let added = 0; added < 10; added++) {
+        var cube = new THREE.Mesh(geometry, material);
 
-            const x = Math.round(100 + (Math.random() * 1000));
-            const y = Math.round(100 + (Math.random() * 1000));
-            const z = Math.round(100 + Math.random() * 1000);
+        const x = Math.round(100 + (Math.random() * 1000));
+        const y = Math.round(100 + (Math.random() * 1000));
+        const z = Math.round(100 + Math.random() * 1000);
 
-            cube.position.set(x, y, z);
-            cube.receiveShadow = true;
-            cube.castShadow = true;
-            scene.add(cube);
-        }
-   // });
+        cube.position.set(x, y, z);
+        cube.receiveShadow = true;
+        cube.castShadow = true;
+        scene.add(cube);
+
+        // Create boid object
+        var boid = new Boids.Entity({
+            x: x,
+            y: y,
+            z: z,
+            obj: cube
+        });
+
+    
+        // Store boid in array
+        boids.push(boid);
+    }
+    // });
 }
 
 function countFPS() {
@@ -138,8 +155,12 @@ function animate() {
 
     // Render scene
     renderer.render(scene, camera);
-    myReq = window.requestAnimationFrame(() => {
-        //this.man.applyMatrix4(new THREE.Matrix4().makeTranslation(-1, 0, 0));
+    frame = window.requestAnimationFrame(() => {       
+        // Update fishses' position
+        Boids.update({
+            threejs: THREE,
+            flock: boids
+        });
 
         // FPS counter
         countFPS();
