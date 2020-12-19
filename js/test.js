@@ -10,7 +10,7 @@ import {
 } from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/loaders/FBXLoader.js';
 
 // Native Utils
-import * as Boids from  '/js/boid.js';
+import * as Boids from '/js/boid.js';
 
 import {
     createMaterialArray
@@ -29,11 +29,13 @@ var boids = [];
 // Stats & Info
 var fps, framesRendered, secondTracker = null;
 
+var xTracker, yTracker, zTracker;
+
 function initialize() {
     // Create scene and camera
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 60, 25000);
-    camera.position.set(1200, -200, 2000);
+    camera.position.set(-1100, -500, -1000);
 
     // Configure renderer and add to DOM
     renderer = new THREE.WebGLRenderer({
@@ -80,6 +82,9 @@ function initialize() {
 
     // Register fps counter
     fps = document.getElementById('fps');
+    xTracker = document.getElementById('x');
+    yTracker = document.getElementById('y');
+    zTracker = document.getElementById('z');
 
     loadAnimatedModel();
 
@@ -107,12 +112,12 @@ function loadAnimatedModel() {
     });
 
     //loader.load("fish.fbx", (model) => {
-    for (let added = 0; added < 10; added++) {
+    for (let added = 0; added < 50; added++) {
         var cube = new THREE.Mesh(geometry, material);
 
-        const x = Math.round(100 + (Math.random() * 1000));
-        const y = Math.round(100 + (Math.random() * 1000));
-        const z = Math.round(100 + Math.random() * 1000);
+        const x = Math.round(50 * added + (Math.random() * 1000));
+        const y = Math.round(50 * added + (Math.random() * 1000));
+        const z = Math.round(50 * added + Math.random() * 1000);
 
         cube.position.set(x, y, z);
         cube.receiveShadow = true;
@@ -124,10 +129,11 @@ function loadAnimatedModel() {
             x: x,
             y: y,
             z: z,
-            obj: cube
+            obj: cube,
+            threejs: THREE
         });
 
-    
+
         // Store boid in array
         boids.push(boid);
     }
@@ -140,13 +146,22 @@ function countFPS() {
     const newSecond = now - secondTracker > 1000;
 
     if (newSecond) {
+        // Update Camera Tracker
+        xTracker.innerText = "X: " + camera.position.x;
+        yTracker.innerText = "Y: " + camera.position.y;
+        zTracker.innerText = "Z: " + camera.position.z;
+
+        // Update FPS
         fps.innerText = "FPS: " + framesRendered;
         secondTracker = now;
         framesRendered = 1;
     } else {
         framesRendered += 1;
-        renderer.render(scene, camera);
     }
+
+
+
+    renderer.render(scene, camera);
 }
 
 function animate() {
@@ -155,15 +170,16 @@ function animate() {
 
     // Render scene
     renderer.render(scene, camera);
-    frame = window.requestAnimationFrame(() => {       
+    frame = window.requestAnimationFrame(() => {
+        // FPS counter
+        countFPS();
+
+        //if (framesRendered <= 5)
         // Update fishses' position
         Boids.update({
             threejs: THREE,
             flock: boids
         });
-
-        // FPS counter
-        countFPS();
 
         // Loop
         animate();
