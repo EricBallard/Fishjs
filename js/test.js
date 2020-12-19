@@ -29,8 +29,6 @@ var boids = [];
 // Stats & Info
 var fps, framesRendered, secondTracker = null;
 
-var xTracker, yTracker, zTracker;
-
 function initialize() {
     // Create scene and camera
     scene = new THREE.Scene();
@@ -82,9 +80,6 @@ function initialize() {
 
     // Register fps counter
     fps = document.getElementById('fps');
-    xTracker = document.getElementById('x');
-    yTracker = document.getElementById('y');
-    zTracker = document.getElementById('z');
 
     loadAnimatedModel();
 
@@ -112,12 +107,12 @@ function loadAnimatedModel() {
     });
 
     //loader.load("fish.fbx", (model) => {
-    for (let added = 0; added < 50; added++) {
+    for (let added = 0; added < 500; added++) {
         var cube = new THREE.Mesh(geometry, material);
 
-        const x = Math.round(50 * added + (Math.random() * 1000));
-        const y = Math.round(50 * added + (Math.random() * 1000));
-        const z = Math.round(50 * added + Math.random() * 1000);
+        const x = Math.round((Math.random() * 1000) + (added * 2.5));
+        const y = Math.round((Math.random() * 1000) + (added * 2.5));
+        const z = Math.round((Math.random() * 1000) + (added * 2.5));
 
         cube.position.set(x, y, z);
         cube.receiveShadow = true;
@@ -146,11 +141,6 @@ function countFPS() {
     const newSecond = now - secondTracker > 1000;
 
     if (newSecond) {
-        // Update Camera Tracker
-        xTracker.innerText = "X: " + camera.position.x;
-        yTracker.innerText = "Y: " + camera.position.y;
-        zTracker.innerText = "Z: " + camera.position.z;
-
         // Update FPS
         fps.innerText = "FPS: " + framesRendered;
         secondTracker = now;

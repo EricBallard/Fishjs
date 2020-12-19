@@ -2,6 +2,15 @@ function getSeed() {
     return Math.random() * (Math.random() * 20);
 }
 
+function setMagnitude(params) {
+    const vector = params.vector;
+    const magnitude = params.magnitude;
+    const direction = Math.atan2(vector.y, vector.x, vector.z);
+    vector.x = Math.cos(direction) * magnitude;
+    vector.y = Math.sin(direction) * magnitude;
+    vector.z = Math.tan(direction) * magnitude;
+}
+
 const perception = 150;
 
 export class Entity {
@@ -14,7 +23,8 @@ export class Entity {
         // Momentum
         this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed());
 
-        this.maxForce = 0.05;
+        this.maxSpeed = 4;
+        this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
     }
 
@@ -27,9 +37,7 @@ export class Entity {
     align(THREE, boids) {
         const alignment = this.getAlignment(THREE, boids);
         this.acceleration = alignment;
-
-                //console.log("X: " + alignment.x + " Y: " + alignment.y + " Z: " + alignment.z);
-
+        //console.log("X: " + alignment.x + " Y: " + alignment.y + " Z: " + alignment.z);
     }
 
     getAlignment(THREE, boids) {
@@ -43,8 +51,8 @@ export class Entity {
 
             if (other.obj.position.distanceTo(position) <= perception) {
                 perceivedVelocity.x += other.velocity.x;
-                perceivedVelocity.y +=  other.velocity.y;
-                perceivedVelocity.z +=  other.velocity.z;
+                perceivedVelocity.y += other.velocity.y;
+                perceivedVelocity.z += other.velocity.z;
                 othersInPerception += 1;
             }
         }
@@ -54,6 +62,11 @@ export class Entity {
             perceivedVelocity.x = (perceivedVelocity.x / othersInPerception);
             perceivedVelocity.y = (perceivedVelocity.y / othersInPerception);
             perceivedVelocity.z = (perceivedVelocity.z / othersInPerception);
+
+            setMagnitude({
+                vector: perceivedVelocity, 
+                magnitude: this.maxSpeed
+            });
 
             const vx = perceivedVelocity.x - this.velocity.x;
             perceivedVelocity.x = (vx < 0.00 ? 0.00 : vx);
@@ -78,6 +91,7 @@ export class Entity {
 
 }
 
+
 export function update(params) {
     const THREE = params.threejs;
     const boids = params.flock;
@@ -85,5 +99,7 @@ export function update(params) {
     for (let boid of boids) {
         boid.align(THREE, boids);
         boid.update(THREE);
+
+        
     }
 }
