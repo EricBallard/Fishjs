@@ -37,7 +37,7 @@ export class Entity {
 
         if (pos.x >= 2450 || pos.x <= -2450) {
             const vx = this.velocity.x;
-            this.velocity .x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
+            this.velocity.x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
         }
 
         if (pos.y >= 2450 || pos.y <= -2450) {
@@ -55,6 +55,9 @@ export class Entity {
         // Update momentum
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
         this.velocity.add(this.acceleration);
+
+        // Rotate object based on velocity
+        //this.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0),  THREE.Math.radToDeg(0.0004));
     }
 
     align(boids) {
@@ -119,6 +122,5 @@ export function update(boids) {
 
         boid.align(boids);
         boid.update();
-
     }
 }

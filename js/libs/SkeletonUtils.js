@@ -9,7 +9,7 @@ import {
 	Vector2,
 	Vector3,
 	VectorKeyframeTrack
-} from "/js/threejs/three.module.js";
+} from "/js/libs/three.module.js";
 
 var SkeletonUtils = {
 

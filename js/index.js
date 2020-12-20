@@ -1,7 +1,7 @@
 // Threejs util
 import {
     SkeletonUtils
-} from "/js/threejs/SkeletonUtils.js";
+} from "/js/libs/SkeletonUtils.js";
 
 // Utils
 import * as Boids from '/js/boid.js';
@@ -124,7 +124,7 @@ function onProgress(xhr) {
 
 function loadModel() {
     setTimeout(function () {
-        for (let added = 0; added < 1; added++) {
+        for (let added = 0; added < 100; added++) {
             // Clone
             var fish = SkeletonUtils.clone(cachedModel);
 
@@ -168,11 +168,16 @@ function countFPS() {
     const now = new Date().getTime();
     if (secondTracker == null) secondTracker = now;
     const newSecond = now - secondTracker > 1000;
+    const fish = boids[0];
 
+    if (fish == undefined)
+        return;
+
+    const pos = fish.obj.position;
     if (newSecond) {
-        xTracker.innerText = "X: " + camera.position.x;
-        yTracker.innerText = "Y: " + camera.position.y;
-        zTracker.innerText = "Z: " + camera.position.z;
+        xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  " + Math.round(pos.x);
+        yTracker.innerText = "Y: " + Math.round(camera.position.y) + "  |  " + Math.round(pos.y);
+        zTracker.innerText = "Z: " + Math.round(camera.position.z) + "  |  " + Math.round(pos.z);
 
         // Update FPS
         fps.innerText = "FPS: " + framesRendered;
@@ -187,13 +192,33 @@ function countFPS() {
     renderer.render(scene, camera);
 }
 
+const raycaster = new THREE.Raycaster();
+
 function animate() {
     // Auto-rotate camera
     controls.update();
 
     // Render scene
     renderer.render(scene, camera);
+
     frame = window.requestAnimationFrame(() => {
+        /*
+        const fish = boids[0];
+
+        if (fish != undefined) {
+            camera.updateMatrix();
+            camera.updateMatrixWorld();
+            var frustum = new THREE.Frustum();
+            frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+
+            const pos = fish.obj.position;
+            if (!frustum.containsPoint(pos)) {
+                // Fish is not visible
+                console.log("Fish is not visible");
+            }
+        }
+        */
+
         //if (framesRendered <= 25)
         // Update fishses' position
         Boids.update(boids);
