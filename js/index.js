@@ -1,49 +1,210 @@
+// Threejs util
+import {
+    SkeletonUtils
+} from "/js/threejs/SkeletonUtils.js";
 
+// Utils
+import * as Boids from '/js/boid.js';
 
-    this._mixers = [];
-    this._particles = [];
-    this._previousRAF = null;
+import {
+    createMaterialArray
+} from '/js/skybox.js';
 
-    // Init particle system
-    this._particles = new ParticleSystem({
-      threejs: THREE,
-      parent: this._scene,
-      camera: this._camera,
+import {
+    ParticleSystem
+} from '/js/particles.js';
+
+// 3D Graphics
+var scene, camera, renderer, controls, frame;
+
+// Boid data
+var boids = [];
+
+// Stats & Info
+var fps, framesRendered, secondTracker = null;
+
+var xTracker, yTracker, zTracker;
+
+function initialize() {
+    // Create scene and camera
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 60, 25000);
+    camera.position.set(-1100, -500, -1000);
+
+    // Configure renderer and add to DOM
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    renderer.domElement.id = 'canvas';
+    document.body.appendChild(renderer.domElement);
+
+    // Create skybox textured mesh and add to scene
+    const materialArray = createMaterialArray({
+        threejs: THREE
     });
 
-    this._LoadAnimatedModel();
-    this._RAF();
-  }
+    let skyboxGeo = new THREE.BoxGeometry(5000, 5000, 5000);
+    scene.add(new THREE.Mesh(skyboxGeo, materialArray));
 
-  _
-  
+    // Add light to scene
+    let light = new THREE.PointLight();
+    light.position.set(10, 10, 10);
+    scene.add(light);
 
-  _RAF() {
-    
 
-    requestAnimationFrame((frame) => {
+    // Configure user-controls
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enabled = true;
 
-      this._RAF();
-      this._Step(frame - this._previousRAF);
-      this._previousRAF = frame;
-    });
-  }
+    //controls.enablePan = false;
+    //controls.autoRotate = true;
+    controls.rotateSpeed = 0.45;
+    controls.autoRotateSpeed = 0.30;
 
-  _Step(timeElapsed) {
-    const timeElapsedS = timeElapsed * 0.001;
+    controls.minDistance = 250;
+    controls.maxDistance = 1500;
 
-    if (this._mixers) this._mixers.map((m) => m.update(timeElapsedS));
+    // Register resize listener
+    window.addEventListener('resize', () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    }, false);
 
-    if (this._particles) this._particles.Step(timeElapsedS);
-  }
+    // Register fps counter
+    fps = document.getElementById('fps');
+    xTracker = document.getElementById('x');
+    yTracker = document.getElementById('y');
+    zTracker = document.getElementById('z');
+
+    loadAnimatedModel();
+
+    // Render-loop
+    animate();
 }
 
-let _APP = null;
+function loadAnimatedModel() {
+    //this.mixer = new THREE.AnimationMixer(model);
+    //this._mixers.push(this.mixer);
 
-var secondTracker = null;
+    //const anim = model.animations[0];
 
-var framesRendered = 0;
+    //console.log('ANIM: ' + anim);
+    //const idle = _APP.mixer.clipAction(anim);
+    //idle.play();
 
-window.addEventListener("DOMContentLoaded", () => {
-  _APP = new Fishjs();
-});
+
+    var manager = new THREE.LoadingManager(loadModel);
+    var loader = new THREE.FBXLoader(manager);
+
+    loader.load("/resources/fish.fbx", (model) => {
+        cachedModel = model;
+    }, onProgress, onError, null, false);
+}
+
+var cachedModel;
+
+function onError() {
+    console.log('ERROR LOADING MODEL!');
+}
+
+function onProgress(xhr) {
+    if (xhr.lengthComputable) {
+        var percentComplete = xhr.loaded / xhr.total * 100;
+        console.log('Loading Model: ' + Math.round(percentComplete, 2) + '%');
+    }
+}
+
+function loadModel() {
+    setTimeout(function () {
+        for (let added = 0; added < 1; added++) {
+            // Clone
+            var fish = SkeletonUtils.clone(cachedModel);
+
+            // Apply texture
+            fish.traverse(e => {
+                if (e.isMesh) {
+                    e.material = e.material.clone();
+                    e.material.color.set((Math.random() * 0xffffff) | 0);
+                }
+            });
+
+            // Randomly position
+            const x = Math.round(Math.random() * 1000);
+            const y = Math.round(Math.random() * 1000);
+            const z = Math.round(Math.random() * 1000);
+
+            fish.position.set(x, y, z);
+            fish.receiveShadow = true;
+            fish.castShadow = true;
+
+            fish.updateMatrixWorld();
+            scene.add(fish);
+
+            // Add to boids
+            // Create boid object
+            var boid = new Boids.Entity({
+                x: x,
+                y: y,
+                z: z,
+                obj: fish
+            });
+
+
+            // Store boid in array
+            boids.push(boid);
+        }
+    }, 10);
+}
+
+function countFPS() {
+    const now = new Date().getTime();
+    if (secondTracker == null) secondTracker = now;
+    const newSecond = now - secondTracker > 1000;
+
+    if (newSecond) {
+        xTracker.innerText = "X: " + camera.position.x;
+        yTracker.innerText = "Y: " + camera.position.y;
+        zTracker.innerText = "Z: " + camera.position.z;
+
+        // Update FPS
+        fps.innerText = "FPS: " + framesRendered;
+        secondTracker = now;
+        framesRendered = 1;
+    } else {
+        framesRendered += 1;
+    }
+
+
+
+    renderer.render(scene, camera);
+}
+
+function animate() {
+    // Auto-rotate camera
+    controls.update();
+
+    // Render scene
+    renderer.render(scene, camera);
+    frame = window.requestAnimationFrame(() => {
+        //if (framesRendered <= 25)
+        // Update fishses' position
+        Boids.update(boids);
+
+        // FPS counter
+        countFPS();
+
+        // Loop
+        animate();
+    });
+}
+
+
+initialize();

@@ -1,180 +1,114 @@
-// THREEJS Utils
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+/*
+  A simple three.js application shell for getting help with problems!
+*/
 
-import {
-    OrbitControls
-} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+import { SkeletonUtils } from "/js/threejs/SkeletonUtils.js";
 
-import {
-    FBXLoader
-} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/loaders/FBXLoader.js';
+let camera, scene, renderer, controls;
+let material;
+let clock;
+let mixers = [];
+let fish = [];
+let testplane;
 
-// Native Utils
-import * as Boids from '/js/boid.js';
+let lastTime = performance.now() / 1000;
+init();
+animate();
 
-import {
-    createMaterialArray
-} from '/js/skybox.js';
+function init() {
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  camera.position.set(5, 5, 5);
 
-import {
-    ParticleSystem
-} from '/js/particles.js';
+  scene = new THREE.Scene();
 
-// 3D Graphics
-var scene, camera, renderer, controls, frame;
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true
+  });
 
-// Boid data
-var boids = [];
+  renderer.setClearColor("blue", 1);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  document.body.appendChild(renderer.domElement);
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-// Stats & Info
-var fps, framesRendered, secondTracker = null;
+  THREE.Cache.enabled = true;
 
-function initialize() {
-    // Create scene and camera
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 60, 25000);
-    camera.position.set(-1100, -500, -1000);
+  //  let tex = new THREE.TextureLoader().load('https://cdn.glitch.com/8c6a200d-6243-4e2a-b5c9-d6846ac00d17%2FYSB_60S_812_750x.png?v=1585936092913')
 
-    // Configure renderer and add to DOM
-    renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+  let fishBase;
+  let fbx = new THREE.FBXLoader().load(
+    `https://cdn.glitch.com/ea8fbab7-8008-4d4e-9ba6-5542afc137ff%2Ffish.fbx?v=1608427644046`,
+    fbx => {
+      fishBase = fbx;
+      for (let x = -10; x <= 25; x++)
+        for (let y = -10; y <= 25; y++) {
+          //     debugger
 
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    renderer.domElement.id = 'canvas';
-    document.body.appendChild(renderer.domElement);
-
-    // Create skybox textured mesh and add to scene
-    const materialArray = createMaterialArray({
-        threejs: THREE
-    });
-
-    let skyboxGeo = new THREE.BoxGeometry(25000, 25000, 25000);
-    scene.add(new THREE.Mesh(skyboxGeo, materialArray));
-
-    // Add light to scene
-
-    // Configure user-controls
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enabled = true;
-
-    controls.enablePan = false;
-    //controls.autoRotate = true;
-    controls.rotateSpeed = 0.45;
-    controls.autoRotateSpeed = 0.30;
-
-    controls.minDistance = 700;
-    controls.maxDistance = 1500;
-
-    // Register resize listener
-    window.addEventListener('resize', () => {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-    }, false);
-
-    // Register fps counter
-    fps = document.getElementById('fps');
-
-    loadAnimatedModel();
-
-    // Render-loop
-    animate();
-}
-
-function loadAnimatedModel() {
-    const loader = new FBXLoader();
-    loader.setPath("/resources/");
-
-    // model.scale.setScalar(0.1);
-    //this.mixer = new THREE.AnimationMixer(model);
-    //this._mixers.push(this.mixer);
-
-    //const anim = model.animations[0];
-
-    //console.log('ANIM: ' + anim);
-    //const idle = _APP.mixer.clipAction(anim);
-    //idle.play();
-
-    var geometry = new THREE.BoxGeometry(50, 50, 50);
-    var material = new THREE.MeshBasicMaterial({
-        color: 0x999999
-    });
-
-    //loader.load("fish.fbx", (model) => {
-    for (let added = 0; added < 500; added++) {
-        var cube = new THREE.Mesh(geometry, material);
-
-        const x = Math.round((Math.random() * 1000) + (added * 2.5));
-        const y = Math.round((Math.random() * 1000) + (added * 2.5));
-        const z = Math.round((Math.random() * 1000) + (added * 2.5));
-
-        cube.position.set(x, y, z);
-        cube.receiveShadow = true;
-        cube.castShadow = true;
-        scene.add(cube);
-
-        // Create boid object
-        var boid = new Boids.Entity({
-            x: x,
-            y: y,
-            z: z,
-            obj: cube,
-            threejs: THREE
-        });
-
-
-        // Store boid in array
-        boids.push(boid);
+          const fbx = SkeletonUtils.clone(fishBase);
+          let mixer = new THREE.AnimationMixer(fbx);
+          const action = mixer.clipAction(fishBase.animations[0]);
+          mixers.push(mixer);
+          action.play();
+          let meshes = [];
+          fbx.traverse(e => {
+            if (e.isMesh) {
+              meshes.push(e);
+              e.material = e.material.clone();
+              e.material.color.set((Math.random() * 0xffffff) | 0);
+            }
+          });
+          fbx.scale.multiplyScalar(0.01);
+          fbx.updateMatrixWorld();
+          fbx.position.set(x, 0, y);
+          fbx.updateMatrixWorld();
+          fbx.rotation.y = Math.random() * 6.2;
+          fish.push(fbx);
+          scene.add(fbx);
+        }
     }
-    // });
+  );
+  let light = new THREE.PointLight();
+  light.position.set(10, 10, 10);
+  scene.add(light);
+
+  light = new THREE.PointLight();
+  light.position.set(-10, -10, -10);
+  scene.add(light);
+  scene.add(camera);
+
+  window.addEventListener("resize", onWindowResize, false);
+  onWindowResize();
 }
 
-function countFPS() {
-    const now = new Date().getTime();
-    if (secondTracker == null) secondTracker = now;
-    const newSecond = now - secondTracker > 1000;
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
 
-    if (newSecond) {
-        // Update FPS
-        fps.innerText = "FPS: " + framesRendered;
-        secondTracker = now;
-        framesRendered = 1;
-    } else {
-        framesRendered += 1;
-    }
-
-
-
-    renderer.render(scene, camera);
+  renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
 function animate() {
-    // Auto-rotate camera
-    controls.update();
-
-    // Render scene
-    renderer.render(scene, camera);
-    frame = window.requestAnimationFrame(() => {
-        // FPS counter
-        countFPS();
-
-        //if (framesRendered <= 5)
-        // Update fishses' position
-        Boids.update({
-            threejs: THREE,
-            flock: boids
-        });
-
-        // Loop
-        animate();
-    });
+  requestAnimationFrame(animate);
+  render();
 }
+let tv0 = new THREE.Vector3();
 
-
-initialize();
+function render() {
+  let time = performance.now() / 1000;
+  let dt = time - lastTime;
+  lastTime = time;
+  controls.update();
+  for (let i = 0; i < mixers.length; i++) mixers[i].update(0.01);
+  for (let i = 0; i < fish.length; i++) {
+    let f = fish[i];
+    f.rotation.y += Math.sin(time) * 0.01;
+    tv0.set(-0.01, 0, 0).applyQuaternion(f.quaternion);
+    f.position.add(tv0);
+  }
+  renderer.render(scene, camera);
+  // testplane.material.opacity = (Math.sin(performance.now()/1000)+1)*.5
+}

@@ -11,12 +11,10 @@ function setMagnitude(params) {
     vector.z = Math.tan(direction) * magnitude;
 }
 
-const perception = 150;
+const perception = 250;
 
 export class Entity {
     constructor(params) {
-        const THREE = params.threejs;
-
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
 
@@ -26,21 +24,46 @@ export class Entity {
         this.maxSpeed = 4;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
+
+        // VIDEO @ 21:50
     }
 
-    update(THREE) {
+    bounce() {
+        const pos = this.obj.position,
+            v = this.velocity;
+
+        //console.log(v.x + ", " + v.y + ", " + v.z + "  |  " + pos.x + ", " + pos.y + ", " + pos.z);
+
+
+        if (pos.x >= 2450 || pos.x <= -2450) {
+            const vx = this.velocity.x;
+            this.velocity .x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
+        }
+
+        if (pos.y >= 2450 || pos.y <= -2450) {
+            const vy = this.velocity.y;
+            this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
+        }
+
+        if (pos.z >= 2450 || pos.z <= -2450) {
+            const vz = this.velocity.z;
+            this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
+        }
+    }
+
+    update() {
         // Update momentum
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
         this.velocity.add(this.acceleration);
     }
 
-    align(THREE, boids) {
-        const alignment = this.getAlignment(THREE, boids);
+    align(boids) {
+        const alignment = this.getAlignment(boids);
         this.acceleration = alignment;
         //console.log("X: " + alignment.x + " Y: " + alignment.y + " Z: " + alignment.z);
     }
 
-    getAlignment(THREE, boids) {
+    getAlignment(boids) {
         let perceivedVelocity = new THREE.Vector3(0, 0, 0);
         const position = this.obj.position;
         let othersInPerception = 0;
@@ -64,7 +87,7 @@ export class Entity {
             perceivedVelocity.z = (perceivedVelocity.z / othersInPerception);
 
             setMagnitude({
-                vector: perceivedVelocity, 
+                vector: perceivedVelocity,
                 magnitude: this.maxSpeed
             });
 
@@ -87,19 +110,15 @@ export class Entity {
 
         return perceivedVelocity;
     }
-
-
 }
 
 
-export function update(params) {
-    const THREE = params.threejs;
-    const boids = params.flock;
-
+export function update(boids) {
     for (let boid of boids) {
-        boid.align(THREE, boids);
-        boid.update(THREE);
+        boid.bounce();
 
-        
+        boid.align(boids);
+        boid.update();
+
     }
 }
