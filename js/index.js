@@ -124,7 +124,7 @@ function onProgress(xhr) {
 
 function loadModel() {
     setTimeout(function () {
-        for (let added = 0; added < 100; added++) {
+        for (let added = 0; added < 1; added++) {
             // Clone
             var fish = SkeletonUtils.clone(cachedModel);
 
@@ -164,6 +164,16 @@ function loadModel() {
     }, 10);
 }
 
+
+
+Math.degrees = function (radians) {
+    return radians * 180 / Math.PI;
+};
+
+Math.radians = function (degrees) {
+    return degrees * Math.PI / 180;
+};
+
 function countFPS() {
     const now = new Date().getTime();
     if (secondTracker == null) secondTracker = now;
@@ -173,26 +183,27 @@ function countFPS() {
     if (fish == undefined)
         return;
 
-    const pos = fish.obj.position;
+    const pos = fish.velocity;
     if (newSecond) {
-        xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  " + Math.round(pos.x);
-        yTracker.innerText = "Y: " + Math.round(camera.position.y) + "  |  " + Math.round(pos.y);
-        zTracker.innerText = "Z: " + Math.round(camera.position.z) + "  |  " + Math.round(pos.z);
-
         // Update FPS
-        fps.innerText = "FPS: " + framesRendered;
         secondTracker = now;
         framesRendered = 1;
     } else {
         framesRendered += 1;
     }
 
-
+    fps.innerText = "FPS: " + framesRendered + "  |  Facing: " +  Boids.getDirection(fish.obj.quaternion);
+    xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + Boids.velocityToDirection(fish.velocity);
+    yTracker.innerText = "Y: " + Math.round(camera.position.y);
+    zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
     renderer.render(scene, camera);
 }
 
-const raycaster = new THREE.Raycaster();
+let clock = new THREE.Clock();
+let delta = 0;
+let interval = 1 / 30;
+
 
 function animate() {
     // Auto-rotate camera
@@ -219,9 +230,13 @@ function animate() {
         }
         */
 
-        //if (framesRendered <= 25)
+        delta += clock.getDelta();
+
         // Update fishses' position
-        Boids.update(boids);
+        if (delta > interval) {
+            Boids.update(boids);
+            delta = delta % interval;
+        }
 
         // FPS counter
         countFPS();
