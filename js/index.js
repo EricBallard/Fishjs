@@ -5,6 +5,7 @@ import {
 
 // Utils
 import * as Boids from '/js/boid.js';
+import * as Movement from '/js/movement.js';
 
 import {
     createMaterialArray
@@ -14,11 +15,14 @@ import {
     ParticleSystem
 } from '/js/particles.js';
 
+
+
 // 3D Graphics
 var scene, camera, renderer, controls, frame;
 
 // Boid data
 var boids = [];
+var rotationManagers = [];
 
 // Stats & Info
 var fps, framesRendered, secondTracker = null;
@@ -124,7 +128,7 @@ function onProgress(xhr) {
 
 function loadModel() {
     setTimeout(function () {
-        for (let added = 0; added < 1; added++) {
+        for (let added = 0; added < 200; added++) {
             // Clone
             var fish = SkeletonUtils.clone(cachedModel);
 
@@ -154,7 +158,8 @@ function loadModel() {
                 x: x,
                 y: y,
                 z: z,
-                obj: fish
+                obj: fish,
+                managers: rotationManagers
             });
 
 
@@ -192,8 +197,9 @@ function countFPS() {
         framesRendered += 1;
     }
 
-    fps.innerText = "FPS: " + framesRendered + "  |  Facing: " +  Boids.getDirection(fish.obj.quaternion);
-    xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + Boids.velocityToDirection(fish.velocity);
+    const q = fish.obj.quaternion;
+    fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + Movement.getDirection(q);
+    xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + Movement.velocityToDirection(fish.velocity);
     yTracker.innerText = "Y: " + Math.round(camera.position.y);
     zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
@@ -234,7 +240,7 @@ function animate() {
 
         // Update fishses' position
         if (delta > interval) {
-            Boids.update(boids);
+            Boids.update(boids, rotationManagers);
             delta = delta % interval;
         }
 
@@ -245,6 +251,5 @@ function animate() {
         animate();
     });
 }
-
 
 initialize();

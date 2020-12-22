@@ -1,6 +1,4 @@
-import {
-    Manager
-} from '/js/rotater.js';
+import * as Movement from '/js/movement.js';
 
 function getSeed() {
     return Math.random() * (Math.random() * 20);
@@ -17,104 +15,14 @@ function setMagnitude(params) {
 
 const perception = 250;
 
-const direction = {
-    NORTH: 'north',
-    EAST: 'east',
-    SOUTH: 'south',
-    WEST: 'west',
-    NORTH_WEST: 'north-west',
-    NORTH_EAST: 'north-east',
-    SOUTH_EAST: 'south-east',
-    SOUTH_WEST: 'south-west'
-}
-
-export function getDirection(rotation) {
-    const y = rotation.y;
-
-    if (y < -0.85 || y >= 0.874) {
-        return direction.NORTH;
-    } else if (y >= 0.625 && y < 0.874) {
-        return direction.NORTH_EAST;
-    } else if (y >= 0.5 && y < 0.625) {
-        return direction.EAST;
-    } else if (y >= 0.375 && y < 0.5) {
-        return direction.SOUTH_EAST;
-    } else if (y >= -0.125 && y < 0.375) {
-        return direction.SOUTH;
-    } else if (y < -0.125 && y >= -0.375) {
-        return direction.SOUTH_WEST;
-    } else if (y < -0.375 && y >= -0.625) {
-        return direction.WEST;
-    } else if (y < -0.625 && y >= -0.85) {
-        return direction.NORTH_WEST;
-    } else {
-        return null;
-    }
-}
-
-
-export function velocityToDirection(velocity) {
-    let x = velocity.x,
-        z = velocity.z;
-
-    if (x > 0 && x <= 1 && Math.round(z) == 0)
-        return direction.NORTH;
-    else if (z > 0 && z <= 1 && Math.round(x) == 0)
-        return direction.EAST;
-    if (x < 0 && x >= -1 && Math.round(z) == 0)
-        return direction.SOUTH;
-    else if (z < 0 && z >= -1 && Math.round(x) == 0)
-        return direction.WEST;
-
-    // TODO - maybe? Refactor offset to use division to account for decimal
-    // eg; (1, 0, 0.25) is not registered as an offset despite x being *4 z
-
-    // However this may not be noticable in final product
-    let offset = x - z;
-
-    if (x > 0 && z > 0) {
-        if (offset >= -5 && offset <= 5) {
-            return direction.NORTH_EAST;
-        } else {
-            return x > z ? direction.NORTH : direction.EAST;
-        }
-    }
-
-    if (x < 0 && z >= 0 || z < 0 && x >= 0) {
-        const ax = Math.abs(x),
-            az = Math.abs(z),
-            aoffset = ax - az;
-
-        if (aoffset >= -5 && aoffset <= 5) {
-            return offset >= 0 ? direction.NORTH_WEST : direction.SOUTH_EAST;
-        } else {
-            let off = Math.abs(offset);
-            if (off >= -5 && off <= 5)
-                return x > z ? direction.SOUTH : direction.EAST;
-            else
-                return offset >= 0 ? direction.NORTH_WEST : direction.SOUTH_EAST;
-        }
-    }
-
-    if (x < 0 && z < 0) {
-        if (offset >= -5 && offset <= 5) {
-            return direction.SOUTH_WEST;
-        } else {
-            return x > z ? direction.WEST : direction.SOUTH;
-        }
-    }
-
-    console.log('NULL DIRECTION | x: ' + x + " z: " + z + " offset: " + offset);
-    return null;
-}
-
 export class Entity {
     constructor(params) {
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
+        this.managers = params.managers;
 
         // Momentum
-        this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed());
+        this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
 
         this.maxSpeed = 4;
         this.maxForce = 0.2;
@@ -126,9 +34,6 @@ export class Entity {
     bounce() {
         const pos = this.obj.position,
             v = this.velocity;
-
-        //console.log(v.x + ", " + v.y + ", " + v.z + "  |  " + pos.x + ", " + pos.y + ", " + pos.z);
-
 
         if (pos.x >= 2450 || pos.x <= -2450) {
             const vx = this.velocity.x;
@@ -146,61 +51,9 @@ export class Entity {
         }
     }
 
-    update() {
-        // Update momentum
-        this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
-        this.velocity.add(this.acceleration);
-
-        // Rotate object based on velocity
-        this.rotate();
-
-        getDirection(this.obj.quaternion);
-    }
-
-
-    rotate() {
-        //1.57
-        const v = this.velocity,
-            rot = Math.degrees(this.obj.rotation.y);
-
-        if (v.x > v.y && v.x > v.y) {
-            //console.log("RoT:" + rot);
-
-            if (rot == 0 || rot < -2 || rot > 2) {
-                //console.log('Rot -X: ' + rot);
-
-
-
-                this.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), THREE.Math.radToDeg(0.0008));
-
-            }
-        } else if (v.x < v.z && v.x < v.y) {
-            if (rot != 0) {
-                // console.log('Rot +X: ' + rot);
-                this.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), THREE.Math.radToDeg(0.0008));
-            }
-        } else {
-            // Z-Axis
-            if (v.z > v.y && v.z > v.x) {
-                if (rot != 90) {
-                    // console.log('Rot +Z: ' + rot);
-                    this.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
-                }
-            } else {
-                if (v.z < v.y && v.z < v.x) {
-                    if (rot != -90) {
-                        //   console.log('Rot -Z: ' + rot);
-                        this.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -offset);
-                    }
-                }
-            }
-        }
-    }
-
     align(boids) {
         const alignment = this.getAlignment(boids);
         this.acceleration = alignment;
-        //console.log("X: " + alignment.x + " Y: " + alignment.y + " Z: " + alignment.z);
     }
 
     getAlignment(boids) {
@@ -208,11 +61,17 @@ export class Entity {
         const position = this.obj.position;
         let othersInPerception = 0;
 
-        for (let other of boids) {
+        main : for (let other of boids) {
             if (other == this)
                 continue;
 
             if (other.obj.position.distanceTo(position) <= perception) {
+                // Ignore fish that are rotating
+                for (let manager of this.managers) {
+                    if (manager.obj == other.obj)
+                        continue main;
+                }
+
                 perceivedVelocity.x += other.velocity.x;
                 perceivedVelocity.y += other.velocity.y;
                 perceivedVelocity.z += other.velocity.z;
@@ -250,29 +109,55 @@ export class Entity {
 
         return perceivedVelocity;
     }
+
+    update() {
+        // Update momentum
+        this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
+        this.velocity.add(this.acceleration);
+
+        // Rotate object based on velocity
+        this.rotate();
+    }
+
+    rotate() {
+        // Return if object is being actively rotated/managed
+        for (let manager of this.managers) {
+            if (manager.obj === this.obj) {
+                return;
+            }
+        }
+
+        const q = this.obj.quaternion,
+            rot = Movement.getDirection(q),
+            dir = Movement.velocityToDirection(this.velocity);
+
+        if (rot != dir) {
+            // Add manager to animate the rotation
+            this.managers.push(new Movement.RotationManager({
+                boid: this,
+                start: q,
+                desired: dir
+            }));
+        }
+    }
 }
 
-function rotateAroundWorldAxis(object, axis, radians) {
-
-    var rotationMatrix = new THREE.Matrix4();
-
-    rotationMatrix.setRotationAxis(new THREE.Vector3(0, 1, 0).normalize(), radians);
-    rotationMatrix.multiplySelf(object.matrix); // pre-multiply
-    object.matrix = rotationMatrix;
-    object.rotation.setRotationFromMatrix(object.matrix);
-}
 
 
-
-
-const offset = Math.PI / 2;
-
-
-export function update(boids) {
+export function update(boids, managers) {
     for (let boid of boids) {
         boid.bounce();
 
         boid.align(boids);
         boid.update();
+    }
+
+    const managerSize = managers.length;
+    for (let index = 0; index < managerSize; index++) {
+        const manager = managers[index];
+
+        if (manager != undefined && manager.execute()) {
+            managers.splice(index, 1);
+        }
     }
 }

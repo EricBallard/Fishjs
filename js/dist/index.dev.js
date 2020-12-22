@@ -6,6 +6,8 @@ var _SkeletonUtils = require("/js/libs/SkeletonUtils.js");
 
 var Boids = _interopRequireWildcard(require("/js/boid.js"));
 
+var Movement = _interopRequireWildcard(require("/js/movement.js"));
+
 var _skybox = require("/js/skybox.js");
 
 var _particles = require("/js/particles.js");
@@ -19,7 +21,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // 3D Graphics
 var scene, camera, renderer, controls, frame; // Boid data
 
-var boids = []; // Stats & Info
+var boids = [];
+var rotationManagers = []; // Stats & Info
 
 var fps,
     framesRendered,
@@ -106,7 +109,7 @@ function onProgress(xhr) {
 
 function loadModel() {
   setTimeout(function () {
-    for (var added = 0; added < 1; added++) {
+    for (var added = 0; added < 200; added++) {
       // Clone
       var fish = _SkeletonUtils.SkeletonUtils.clone(cachedModel); // Apply texture
 
@@ -132,7 +135,8 @@ function loadModel() {
         x: x,
         y: y,
         z: z,
-        obj: fish
+        obj: fish,
+        managers: rotationManagers
       }); // Store boid in array
 
       boids.push(boid);
@@ -164,8 +168,9 @@ function countFPS() {
     framesRendered += 1;
   }
 
-  fps.innerText = "FPS: " + framesRendered + "  |  Facing: " + Boids.getDirection(fish.obj.quaternion);
-  xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + Boids.velocityToDirection(fish.velocity);
+  var q = fish.obj.quaternion;
+  fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + Movement.getDirection(q);
+  xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + Movement.velocityToDirection(fish.velocity);
   yTracker.innerText = "Y: " + Math.round(camera.position.y);
   zTracker.innerText = "Z: " + Math.round(camera.position.z);
   renderer.render(scene, camera);
@@ -198,7 +203,7 @@ function animate() {
     delta += clock.getDelta(); // Update fishses' position
 
     if (delta > interval) {
-      Boids.update(boids);
+      Boids.update(boids, rotationManagers);
       delta = delta % interval;
     } // FPS counter
 
