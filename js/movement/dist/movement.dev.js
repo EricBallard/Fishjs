@@ -1,11 +1,5 @@
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getDirection = getDirection;
-exports.velocityToDirection = velocityToDirection;
-exports.direction = void 0;
 var direction = {
   NORTH: 'north',
   EAST: 'east',
@@ -16,26 +10,25 @@ var direction = {
   SOUTH_EAST: 'south-east',
   SOUTH_WEST: 'south-west'
 };
-exports.direction = direction;
 
 function getDirection(rotation) {
   var y = rotation.y;
 
-  if (y < -0.85 || y >= 0.874) {
+  if (y < -0.85 || y >= 0.875) {
     return direction.NORTH;
-  } else if (y >= 0.625 && y < 0.874) {
+  } else if (y >= 0.625 && y < 0.875) {
     return direction.NORTH_EAST;
-  } else if (y >= 0.5 && y < 0.625) {
+  } else if (y >= 0.375 && y < 0.625) {
     return direction.EAST;
-  } else if (y >= 0.375 && y < 0.5) {
+  } else if (y >= 0.125 && y < 0.375) {
     return direction.SOUTH_EAST;
-  } else if (y >= -0.125 && y < 0.375) {
+  } else if (y >= -0.125 && y < 0.125) {
     return direction.SOUTH;
   } else if (y < -0.125 && y >= -0.375) {
     return direction.SOUTH_WEST;
   } else if (y < -0.375 && y >= -0.625) {
     return direction.WEST;
-  } else if (y < -0.625 && y >= -0.85) {
+  } else if (y < -0.625 && y >= -0.875) {
     return direction.NORTH_WEST;
   } else {
     return null;
@@ -45,8 +38,8 @@ function getDirection(rotation) {
 function velocityToDirection(velocity) {
   var x = velocity.x,
       z = velocity.z;
-  if (x > 0 && x <= 1 && Math.round(z) == 0) return direction.NORTH;else if (z > 0 && z <= 1 && Math.round(x) == 0) return direction.EAST;
-  if (x < 0 && x >= -1 && Math.round(z) == 0) return direction.SOUTH;else if (z < 0 && z >= -1 && Math.round(x) == 0) return direction.WEST; // TODO - maybe? Refactor offset to use division to account for decimal
+  if (x > 0 && Math.round(z) == 0) return direction.NORTH;else if (z > 0 && Math.round(x) == 0) return direction.EAST;
+  if (x < 0 && Math.round(z) == 0) return direction.SOUTH;else if (z < 0 && Math.round(x) == 0) return direction.WEST; // TODO - maybe? Refactor offset to use division to account for decimal
   // eg; (1, 0, 0.25) is not registered as an offset despite x being *4 z
   // However this may not be noticable in final product
 
@@ -79,8 +72,8 @@ function velocityToDirection(velocity) {
     } else {
       return x > z ? direction.WEST : direction.SOUTH;
     }
-  }
+  } //console.log('NULL DIRECTION | x: ' + x + " z: " + z + " offset: " + offset);
 
-  console.log('NULL DIRECTION | x: ' + x + " z: " + z + " offset: " + offset);
+
   return null;
 }

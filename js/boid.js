@@ -1,7 +1,8 @@
-import * as Movement from '/js/movement.js';
+import * as Managers from '/js/movement/managers.js';
 
 function getSeed() {
-    return Math.random() * (Math.random() * 20);
+    let seed = Math.random() * (Math.random() * 50) + .5 ;
+    return Math.random() < 0.5 ? seed : seed -= seed * 2;
 }
 
 function setMagnitude(params) {
@@ -19,14 +20,22 @@ export class Entity {
     constructor(params) {
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
-        this.managers = params.managers;
+        this.bounceManager = params.bounceManager;
+        this.rotationManager = params.rotationManager;
 
         // Momentum
         this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
 
-        this.maxSpeed = 4;
+        this.maxSpeed = 8;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
+
+        // Auto-rotate
+        new Managers.Rotation({
+            boid: this,
+            desired: velocityToDirection(this.velocity),
+            instant: true
+        });
 
         // VIDEO @ 21:50
     }
@@ -49,6 +58,42 @@ export class Entity {
             const vz = this.velocity.z;
             this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
         }
+
+        /*
+        const pos = this.obj.position,
+            offX = pos.x >= 2000 || pos.x <= -2000,
+            offY = pos.y >= 2000 || pos.y <= -2000,
+            offZ = pos.z >= 2000 || pos.z <= -2000;
+
+        if (offX || offY || offZ) {
+            // Return if object is actively bouncing
+
+            const managerSize = this.bounceManager.length;
+            for (let index = 0; index < managerSize; index++) {
+                const manager = this.bounceManager[index];
+                if (manager == undefined)
+                    continue;
+                else {
+                    if (manager.boid == this) {
+                        if ((offX && !manager.reflectX) ||
+                            (offY && !manager.reflectY) ||
+                            (offZ && !manager.reflectZ)) {
+
+                            console.log("Overriding manager...");
+                            this.bounceManager.splice(index, 1);
+                        } else
+                            return;
+                    }
+                }
+            }
+
+
+            this.bounceManager.push(new Managers.Bounce({
+                boid: this
+            }));
+        }
+        */
+
     }
 
     align(boids) {
@@ -61,14 +106,14 @@ export class Entity {
         const position = this.obj.position;
         let othersInPerception = 0;
 
-        main : for (let other of boids) {
+        main: for (let other of boids) {
             if (other == this)
                 continue;
 
             if (other.obj.position.distanceTo(position) <= perception) {
                 // Ignore fish that are rotating
-                for (let manager of this.managers) {
-                    if (manager.obj == other.obj)
+                for (let manager of this.bounceManager) {
+                    if (manager.boid.obj == other.obj)
                         continue main;
                 }
 
@@ -121,22 +166,21 @@ export class Entity {
 
     rotate() {
         // Return if object is being actively rotated/managed
-        for (let manager of this.managers) {
-            if (manager.obj === this.obj) {
+        for (let manager of this.rotationManager) {
+            if (manager.boid == this) {
                 return;
             }
         }
 
-        const q = this.obj.quaternion,
-            rot = Movement.getDirection(q),
-            dir = Movement.velocityToDirection(this.velocity);
+        const rot = getDirection(this.obj.quaternion),
+            dir = velocityToDirection(this.velocity);
 
         if (rot != dir) {
             // Add manager to animate the rotation
-            this.managers.push(new Movement.RotationManager({
+            this.rotationManager.push(new Managers.Rotation({
                 boid: this,
-                start: q,
-                desired: dir
+                desired: dir,
+                instant: false
             }));
         }
     }
@@ -144,7 +188,7 @@ export class Entity {
 
 
 
-export function update(boids, managers) {
+export function update(boids, bounceManager, rotationManager) {
     for (let boid of boids) {
         boid.bounce();
 
@@ -152,12 +196,19 @@ export function update(boids, managers) {
         boid.update();
     }
 
-    const managerSize = managers.length;
+    // Update Bounce managers
+    let managerSize = bounceManager.length;
     for (let index = 0; index < managerSize; index++) {
-        const manager = managers[index];
+        const manager = bounceManager[index];
+        if (manager != undefined && manager.execute())
+            bounceManager.splice(index, 1);
+    }
 
-        if (manager != undefined && manager.execute()) {
-            managers.splice(index, 1);
-        }
+    // Update rotation managers
+    managerSize = rotationManager.length;
+    for (let index = 0; index < managerSize; index++) {
+        const manager = rotationManager[index];
+        if (manager != undefined && manager.execute())
+            rotationManager.splice(index, 1);
     }
 }

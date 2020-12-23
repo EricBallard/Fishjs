@@ -5,24 +5,19 @@ import {
 
 // Utils
 import * as Boids from '/js/boid.js';
-import * as Movement from '/js/movement.js';
 
 import {
     createMaterialArray
 } from '/js/skybox.js';
-
-import {
-    ParticleSystem
-} from '/js/particles.js';
-
 
 
 // 3D Graphics
 var scene, camera, renderer, controls, frame;
 
 // Boid data
-var boids = [];
-var rotationManagers = [];
+var boids = [],
+    bounceManager = [],
+    rotationManager = [];
 
 // Stats & Info
 var fps, framesRendered, secondTracker = null;
@@ -128,7 +123,7 @@ function onProgress(xhr) {
 
 function loadModel() {
     setTimeout(function () {
-        for (let added = 0; added < 200; added++) {
+        for (let added = 0; added < 1; added++) {
             // Clone
             var fish = SkeletonUtils.clone(cachedModel);
 
@@ -141,9 +136,9 @@ function loadModel() {
             });
 
             // Randomly position
-            const x = Math.round(Math.random() * 1000);
-            const y = Math.round(Math.random() * 1000);
-            const z = Math.round(Math.random() * 1000);
+            const x = Math.round(Math.random() * 1000) - (added * 10);
+            const y = Math.round(Math.random() * 1000) - (added * 10);
+            const z = Math.round(Math.random() * 1000) - (added * 10);
 
             fish.position.set(x, y, z);
             fish.receiveShadow = true;
@@ -159,7 +154,8 @@ function loadModel() {
                 y: y,
                 z: z,
                 obj: fish,
-                managers: rotationManagers
+                bounceManager: bounceManager,
+                rotationManager: rotationManager
             });
 
 
@@ -168,16 +164,6 @@ function loadModel() {
         }
     }, 10);
 }
-
-
-
-Math.degrees = function (radians) {
-    return radians * 180 / Math.PI;
-};
-
-Math.radians = function (degrees) {
-    return degrees * Math.PI / 180;
-};
 
 function countFPS() {
     const now = new Date().getTime();
@@ -198,8 +184,8 @@ function countFPS() {
     }
 
     const q = fish.obj.quaternion;
-    fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + Movement.getDirection(q);
-    xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + Movement.velocityToDirection(fish.velocity);
+    fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + getDirection(q);
+    xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
     yTracker.innerText = "Y: " + Math.round(camera.position.y);
     zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
@@ -240,7 +226,7 @@ function animate() {
 
         // Update fishses' position
         if (delta > interval) {
-            Boids.update(boids, rotationManagers);
+            Boids.update(boids, bounceManager, rotationManager);
             delta = delta % interval;
         }
 

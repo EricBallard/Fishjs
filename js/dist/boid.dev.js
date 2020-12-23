@@ -8,7 +8,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.update = update;
 exports.Entity = void 0;
 
-var Movement = _interopRequireWildcard(require("/js/movement.js"));
+var Managers = _interopRequireWildcard(require("/js/movement/managers.js"));
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
 
@@ -21,7 +21,8 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 function getSeed() {
-  return Math.random() * (Math.random() * 20);
+  var seed = Math.random() * (Math.random() * 50) + .5;
+  return Math.random() < 0.5 ? seed : seed -= seed * 2;
 }
 
 function setMagnitude(params) {
@@ -43,12 +44,19 @@ function () {
 
     // Cache obj to reflect/update position based on momentum
     this.obj = params.obj;
-    this.managers = params.managers; // Momentum
+    this.bounceManager = params.bounceManager;
+    this.rotationManager = params.rotationManager; // Momentum
 
     this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
-    this.maxSpeed = 4;
+    this.maxSpeed = 8;
     this.maxForce = 0.2;
-    this.acceleration = new THREE.Vector3(0, 0, 0); // VIDEO @ 21:50
+    this.acceleration = new THREE.Vector3(0, 0, 0); // Auto-rotate
+
+    new Managers.Rotation({
+      boid: this,
+      desired: velocityToDirection(this.velocity),
+      instant: true
+    }); // VIDEO @ 21:50
   }
 
   _createClass(Entity, [{
@@ -71,6 +79,36 @@ function () {
         var vz = this.velocity.z;
         this.velocity.z = vz < 0 ? Math.abs(vz) : vz - vz * 2;
       }
+      /*
+      const pos = this.obj.position,
+          offX = pos.x >= 2000 || pos.x <= -2000,
+          offY = pos.y >= 2000 || pos.y <= -2000,
+          offZ = pos.z >= 2000 || pos.z <= -2000;
+        if (offX || offY || offZ) {
+          // Return if object is actively bouncing
+            const managerSize = this.bounceManager.length;
+          for (let index = 0; index < managerSize; index++) {
+              const manager = this.bounceManager[index];
+              if (manager == undefined)
+                  continue;
+              else {
+                  if (manager.boid == this) {
+                      if ((offX && !manager.reflectX) ||
+                          (offY && !manager.reflectY) ||
+                          (offZ && !manager.reflectZ)) {
+                            console.log("Overriding manager...");
+                          this.bounceManager.splice(index, 1);
+                      } else
+                          return;
+                  }
+              }
+          }
+              this.bounceManager.push(new Managers.Bounce({
+              boid: this
+          }));
+      }
+      */
+
     }
   }, {
     key: "align",
@@ -100,9 +138,9 @@ function () {
             var _iteratorError2 = undefined;
 
             try {
-              for (var _iterator2 = this.managers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              for (var _iterator2 = this.bounceManager[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                 var manager = _step2.value;
-                if (manager.obj == other.obj) continue main;
+                if (manager.boid.obj == other.obj) continue main;
               }
             } catch (err) {
               _didIteratorError2 = true;
@@ -181,10 +219,10 @@ function () {
       var _iteratorError3 = undefined;
 
       try {
-        for (var _iterator3 = this.managers[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        for (var _iterator3 = this.rotationManager[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
           var manager = _step3.value;
 
-          if (manager.obj === this.obj) {
+          if (manager.boid == this) {
             return;
           }
         }
@@ -203,16 +241,15 @@ function () {
         }
       }
 
-      var q = this.obj.quaternion,
-          rot = Movement.getDirection(q),
-          dir = Movement.velocityToDirection(this.velocity);
+      var rot = getDirection(this.obj.quaternion),
+          dir = velocityToDirection(this.velocity);
 
       if (rot != dir) {
         // Add manager to animate the rotation
-        this.managers.push(new Movement.RotationManager({
+        this.rotationManager.push(new Managers.Rotation({
           boid: this,
-          start: q,
-          desired: dir
+          desired: dir,
+          instant: false
         }));
       }
     }
@@ -223,7 +260,7 @@ function () {
 
 exports.Entity = Entity;
 
-function update(boids, managers) {
+function update(boids, bounceManager, rotationManager) {
   var _iteratorNormalCompletion4 = true;
   var _didIteratorError4 = false;
   var _iteratorError4 = undefined;
@@ -234,7 +271,8 @@ function update(boids, managers) {
       boid.bounce();
       boid.align(boids);
       boid.update();
-    }
+    } // Update Bounce managers
+
   } catch (err) {
     _didIteratorError4 = true;
     _iteratorError4 = err;
@@ -250,13 +288,18 @@ function update(boids, managers) {
     }
   }
 
-  var managerSize = managers.length;
+  var managerSize = bounceManager.length;
 
   for (var index = 0; index < managerSize; index++) {
-    var manager = managers[index];
+    var manager = bounceManager[index];
+    if (manager != undefined && manager.execute()) bounceManager.splice(index, 1);
+  } // Update rotation managers
 
-    if (manager != undefined && manager.execute()) {
-      managers.splice(index, 1);
-    }
+
+  managerSize = rotationManager.length;
+
+  for (var _index = 0; _index < managerSize; _index++) {
+    var _manager = rotationManager[_index];
+    if (_manager != undefined && _manager.execute()) rotationManager.splice(_index, 1);
   }
 }

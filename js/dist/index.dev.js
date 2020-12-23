@@ -6,11 +6,7 @@ var _SkeletonUtils = require("/js/libs/SkeletonUtils.js");
 
 var Boids = _interopRequireWildcard(require("/js/boid.js"));
 
-var Movement = _interopRequireWildcard(require("/js/movement.js"));
-
 var _skybox = require("/js/skybox.js");
-
-var _particles = require("/js/particles.js");
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
 
@@ -21,8 +17,9 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // 3D Graphics
 var scene, camera, renderer, controls, frame; // Boid data
 
-var boids = [];
-var rotationManagers = []; // Stats & Info
+var boids = [],
+    bounceManager = [],
+    rotationManager = []; // Stats & Info
 
 var fps,
     framesRendered,
@@ -109,7 +106,7 @@ function onProgress(xhr) {
 
 function loadModel() {
   setTimeout(function () {
-    for (var added = 0; added < 200; added++) {
+    for (var added = 0; added < 1; added++) {
       // Clone
       var fish = _SkeletonUtils.SkeletonUtils.clone(cachedModel); // Apply texture
 
@@ -121,9 +118,9 @@ function loadModel() {
         }
       }); // Randomly position
 
-      var x = Math.round(Math.random() * 1000);
-      var y = Math.round(Math.random() * 1000);
-      var z = Math.round(Math.random() * 1000);
+      var x = Math.round(Math.random() * 1000) - added * 10;
+      var y = Math.round(Math.random() * 1000) - added * 10;
+      var z = Math.round(Math.random() * 1000) - added * 10;
       fish.position.set(x, y, z);
       fish.receiveShadow = true;
       fish.castShadow = true;
@@ -136,21 +133,14 @@ function loadModel() {
         y: y,
         z: z,
         obj: fish,
-        managers: rotationManagers
+        bounceManager: bounceManager,
+        rotationManager: rotationManager
       }); // Store boid in array
 
       boids.push(boid);
     }
   }, 10);
 }
-
-Math.degrees = function (radians) {
-  return radians * 180 / Math.PI;
-};
-
-Math.radians = function (degrees) {
-  return degrees * Math.PI / 180;
-};
 
 function countFPS() {
   var now = new Date().getTime();
@@ -169,8 +159,8 @@ function countFPS() {
   }
 
   var q = fish.obj.quaternion;
-  fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + Movement.getDirection(q);
-  xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + Movement.velocityToDirection(fish.velocity);
+  fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + getDirection(q);
+  xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
   yTracker.innerText = "Y: " + Math.round(camera.position.y);
   zTracker.innerText = "Z: " + Math.round(camera.position.z);
   renderer.render(scene, camera);
@@ -203,7 +193,7 @@ function animate() {
     delta += clock.getDelta(); // Update fishses' position
 
     if (delta > interval) {
-      Boids.update(boids, rotationManagers);
+      Boids.update(boids, bounceManager, rotationManager);
       delta = delta % interval;
     } // FPS counter
 
