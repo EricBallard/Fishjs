@@ -1,20 +1,11 @@
 import * as Managers from '/js/movement/managers.js';
 
 function getSeed() {
-    let seed = Math.random() * (Math.random() * 50) + .5 ;
-    return Math.random() < 0.5 ? seed : seed -= seed * 2;
+    let seed = Math.random() * (Math.random() * 10);
+    return Math.random() < 0.5 ? seed : seed - (seed * 2);
 }
 
-function setMagnitude(params) {
-    const vector = params.vector;
-    const magnitude = params.magnitude;
-    const direction = Math.atan2(vector.y, vector.x, vector.z);
-    vector.x = Math.cos(direction) * magnitude;
-    vector.y = Math.sin(direction) * magnitude;
-    vector.z = Math.tan(direction) * magnitude;
-}
-
-const perception = 250;
+const perception = 1000;
 
 export class Entity {
     constructor(params) {
@@ -24,7 +15,7 @@ export class Entity {
         this.rotationManager = params.rotationManager;
 
         // Momentum
-        this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
+        this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed()); // getSeed());
 
         this.maxSpeed = 8;
         this.maxForce = 0.2;
@@ -37,6 +28,7 @@ export class Entity {
             instant: true
         });
 
+
         // VIDEO @ 21:50
     }
 
@@ -44,56 +36,26 @@ export class Entity {
         const pos = this.obj.position,
             v = this.velocity;
 
-        if (pos.x >= 2450 || pos.x <= -2450) {
-            const vx = this.velocity.x;
-            this.velocity.x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
+        const vx = this.velocity.x,
+            vy = this.velocity.y,
+            vz = this.velocity.z;
+
+        let inverse = false;
+
+        if (pos.x >= 2000 || (inverse = pos.x <= -2000)) {
+            if (inverse ? vx < 0 : vx >= 0)
+                this.velocity.x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
         }
 
-        if (pos.y >= 2450 || pos.y <= -2450) {
-            const vy = this.velocity.y;
-            this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
+        if (pos.y >= 2000 || (inverse = pos.y <= -2000)) {
+            if (inverse ? vy < 0 : vy >= 0)
+                this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
         }
 
-        if (pos.z >= 2450 || pos.z <= -2450) {
-            const vz = this.velocity.z;
-            this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
+        if (pos.z >= 2000 || (inverse = pos.z <= -2000)) {
+            if (inverse ? vz < 0 : vz >= 0)
+                this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
         }
-
-        /*
-        const pos = this.obj.position,
-            offX = pos.x >= 2000 || pos.x <= -2000,
-            offY = pos.y >= 2000 || pos.y <= -2000,
-            offZ = pos.z >= 2000 || pos.z <= -2000;
-
-        if (offX || offY || offZ) {
-            // Return if object is actively bouncing
-
-            const managerSize = this.bounceManager.length;
-            for (let index = 0; index < managerSize; index++) {
-                const manager = this.bounceManager[index];
-                if (manager == undefined)
-                    continue;
-                else {
-                    if (manager.boid == this) {
-                        if ((offX && !manager.reflectX) ||
-                            (offY && !manager.reflectY) ||
-                            (offZ && !manager.reflectZ)) {
-
-                            console.log("Overriding manager...");
-                            this.bounceManager.splice(index, 1);
-                        } else
-                            return;
-                    }
-                }
-            }
-
-
-            this.bounceManager.push(new Managers.Bounce({
-                boid: this
-            }));
-        }
-        */
-
     }
 
     align(boids) {
@@ -103,53 +65,56 @@ export class Entity {
 
     getAlignment(boids) {
         let perceivedVelocity = new THREE.Vector3(0, 0, 0);
+
         const position = this.obj.position;
+
+        const nearBorder = (position.x >= 1750 || position.x <= -1750 ||
+            position.y >= 1750 || position.y <= -1750 ||
+            position.z >= 1750 || position.z <= -1750);
+
         let othersInPerception = 0;
 
         main: for (let other of boids) {
             if (other == this)
                 continue;
 
-            if (other.obj.position.distanceTo(position) <= perception) {
-                // Ignore fish that are rotating
-                for (let manager of this.bounceManager) {
-                    if (manager.boid.obj == other.obj)
-                        continue main;
-                }
+            const pos = other.obj.position;
+            if (pos.distanceTo(position) > (nearBorder ? perception / 4 : perception))
+                continue;
 
-                perceivedVelocity.x += other.velocity.x;
-                perceivedVelocity.y += other.velocity.y;
-                perceivedVelocity.z += other.velocity.z;
-                othersInPerception += 1;
+            if (pos.x >= 1500 || pos.x <= -1500 ||
+                pos.y >= 1500 || pos.y <= -1500 ||
+                pos.z >= 1500 || pos.z <= -1500) {
+                continue;
             }
+
+            perceivedVelocity.x += other.velocity.x;
+            perceivedVelocity.y += other.velocity.y;
+            perceivedVelocity.z += other.velocity.z;
+            othersInPerception += 1;
         }
 
         if (othersInPerception > 0) {
-            // Normalize velocity
+            // Determine average velocity
             perceivedVelocity.x = (perceivedVelocity.x / othersInPerception);
             perceivedVelocity.y = (perceivedVelocity.y / othersInPerception);
             perceivedVelocity.z = (perceivedVelocity.z / othersInPerception);
 
-            setMagnitude({
-                vector: perceivedVelocity,
-                magnitude: this.maxSpeed
-            });
-
-            const vx = perceivedVelocity.x - this.velocity.x;
-            perceivedVelocity.x = (vx < 0.00 ? 0.00 : vx);
-            const vy = perceivedVelocity.y - this.velocity.y;
-            perceivedVelocity.y = (vy < 0.00 ? 0.00 : vy);
-            const vz = perceivedVelocity.z - this.velocity.z;
-            perceivedVelocity.z = (vz < 0.00 ? 0.00 : vz);
-
             // Limit force of velocity
             if (perceivedVelocity.x > this.maxForce)
                 perceivedVelocity.x = this.maxForce;
+            if (perceivedVelocity.x < -this.maxForce)
+                perceivedVelocity.x = -this.maxForce;
+
             if (perceivedVelocity.y > this.maxForce)
                 perceivedVelocity.y = this.maxForce;
+            if (perceivedVelocity.y < -this.maxForce)
+                perceivedVelocity.y = -this.maxForce;
+
             if (perceivedVelocity.z > this.maxForce)
                 perceivedVelocity.z = this.maxForce;
-
+            if (perceivedVelocity.z < -this.maxForce)
+                perceivedVelocity.z = -this.maxForce;
         }
 
         return perceivedVelocity;
@@ -157,8 +122,18 @@ export class Entity {
 
     update() {
         // Update momentum
-        this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
         this.velocity.add(this.acceleration);
+
+        // Limit 
+        const v = this.velocity;
+        if (v.x > this.maxSpeed)
+            this.velocity.x = this.maxSpeed;
+        if (v.y > this.maxSpeed)
+            this.velocity.y = this.maxSpeed;
+        if (v.z > this.maxSpeed)
+            this.velocity.z = this.maxSpeed;
+
+        this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
 
         // Rotate object based on velocity
         this.rotate();
@@ -167,7 +142,7 @@ export class Entity {
     rotate() {
         // Return if object is being actively rotated/managed
         for (let manager of this.rotationManager) {
-            if (manager.boid == this) {
+            if (manager.boid.obj == this.obj) {
                 return;
             }
         }
@@ -177,11 +152,13 @@ export class Entity {
 
         if (rot != dir) {
             // Add manager to animate the rotation
+
             this.rotationManager.push(new Managers.Rotation({
                 boid: this,
                 desired: dir,
                 instant: false
             }));
+
         }
     }
 }
@@ -200,8 +177,10 @@ export function update(boids, bounceManager, rotationManager) {
     let managerSize = bounceManager.length;
     for (let index = 0; index < managerSize; index++) {
         const manager = bounceManager[index];
-        if (manager != undefined && manager.execute())
+        if (manager != undefined && manager.execute()) {
+            console.log("finished vbouncing");
             bounceManager.splice(index, 1);
+        }
     }
 
     // Update rotation managers

@@ -67,40 +67,56 @@ function () {
     } // Rotate quickest direction
 
 
-    var startQ = this.obj.quaternion.y;
+    var startQ = this.obj.quaternion.y; // console.log("DesiredDegree: " + desiredDegree);
+    //console.log("StartQ: " + startQ);
 
-    if (startQ > 0 && desiredDegree < 0) {
+    if (startQ >= 0 && desiredDegree < 0) {
       var turnLeft = 1 - startQ + (1 - Math.abs(desiredDegree));
       var turnRight = startQ + Math.abs(desiredDegree);
-      this.inverse = turnRight < turnLeft;
-    } else if (startQ < 0 && desiredDegree > 0) {
+      this.inverse = turnRight < turnLeft; //console.log(this.inverse + " | pos turn")
+    } else if (startQ < 0 && desiredDegree >= 0) {
       var _turnLeft = Math.abs(startQ) + desiredDegree;
 
       var _turnRight = 1 - Math.abs(startQ) + (1 - desiredDegree);
 
-      this.inverse = _turnRight < _turnLeft;
+      this.inverse = _turnRight < _turnLeft; // console.log(this.inverse + " | neg turn")
     } else {
-      var _turnLeft2 = desiredDegree - startQ;
+      if (startQ < 0 && desiredDegree < 0 || startQ >= 0 && desiredDegree >= 0) {
+        var _turnLeft2 = desiredDegree - startQ;
 
-      var _turnRight2 = startQ - desiredDegree;
+        var _turnRight2 = startQ - desiredDegree;
 
-      this.inverse = _turnRight2 < _turnLeft2;
+        this.inverse = _turnRight2 >= 0 && _turnRight2 < _turnLeft2; // console.log(this.inverse + " | same turn")
+      } else {// console.log(startQ + " | other turn")
+        }
     }
 
-    this.desired = Math.abs(desiredDegree);
+    this.desired = desiredDegree;
   }
 
   _createClass(Rotation, [{
     key: "execute",
     value: function execute() {
-      var q = Math.abs(this.boid.obj.quaternion.y),
-          desiredPercent = Math.round(this.desired * 100),
-          currentPercent = Math.round(q * 100),
+      var q = this.boid.obj.quaternion.y,
+          desiredPercent = Math.round(Math.abs(this.desired) * 100),
+          currentPercent = Math.round(Math.abs(q) * 100),
           percentDiff = desiredPercent - currentPercent;
-      if (percentDiff >= -2 && percentDiff <= 2) return true; // Rotate by random increments
 
-      var offset = THREE.Math.radToDeg((Math.random() * 20 + .1) / 10000);
-      if (this.inverse) offset -= offset * 2; //console.log("Desired Degree: " + Math.round(this.desired * 100) + " |  " + Math.round(q * 100));
+      if (percentDiff >= -2 && percentDiff <= 2) {
+        return true;
+      } // Rotate by random increments
+
+
+      var offset = THREE.Math.radToDeg((Math.random() * 10 + .1) / 10000);
+      if (this.inverse) offset -= offset * 2;
+
+      if (!this.inverse) {
+        if (q > 0 && this.desired > 0 && q > this.desired || q < 0 && this.desired < 0 && q < this.desired) {
+          this.inverse = true;
+          offset = offset / 2;
+        }
+      } //console.log("Desired Degree: " + Math.round(this.desired * 100) + " |  " + Math.round(q * 100));
+
 
       this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
       return false;
@@ -123,45 +139,29 @@ function () {
         maxSpeed = this.boid.maxSpeed,
         vv = this.boid.velocity;
     this.start = vv;
-    var inversed;
 
-    if (this.reflectX = pos.x >= 1750 || pos.x <= -1750) {
-      inversed = vv.x < 0;
-      var vx = Math.abs(vv.x / 2);
-
-      if (vx > maxSpeed) {
-        this.boid.velocity.x = inversed ? -maxSpeed : maxSpeed;
-        vx = maxSpeed;
-      }
-
-      this.desiredVX = inversed ? vx : vx - vx * 2;
-      console.log('DESIRED VX: ' + this.desiredVX);
+    if (this.reflectX = pos.x >= 2000 || pos.x <= -2000) {
+      var vx = vv.x;
+      vx = vx < 0 ? Math.abs(vx) : vx - vx * 2;
+      var desired = vx / (Math.random() * 4 + .4);
+      desired = desired > maxSpeed ? maxSpeed : desired;
+      console.log('EnterX: ' + this.boid.velocity.x + " | ExitX: " + desired);
+      this.boid.velocity.x = vx;
+      this.desiredVX = desired;
     }
 
-    if (this.reflectY = pos.y >= 1750 || pos.y <= -1750) {
-      inversed = vv.y < 0;
-      var vy = Math.abs(vv.y / 2);
-
-      if (vy > maxSpeed) {
-        this.boid.velocity.y = inversed ? -maxSpeed : maxSpeed;
-        vy = maxSpeed;
-      }
-
-      this.desiredVY = vv.y < 0 ? vy : vy - vy * 2;
-      console.log('DESIRED VY: ' + this.desiredVY);
+    if (this.reflectY = pos.y >= 2000 || pos.y <= -2000) {
+      var vy = vv.y;
+      vy = vy < 0 ? Math.abs(vy) : vy - vy * 2;
+      this.boid.velocity.y = vy;
+      this.desiredVY = (vy > maxSpeed ? maxSpeed : vy) / (Math.random() * 4);
     }
 
-    if (this.reflectZ = pos.z >= 1750 || pos.z <= -1750) {
-      inversed = vv.z < 0;
-      var vz = Math.abs(vv.z / 2);
-
-      if (vz > maxSpeed) {
-        this.boid.velocity.z = inversed ? -maxSpeed : maxSpeed;
-        vz = maxSpeed;
-      }
-
-      this.desiredVZ = vv.z < 0 ? vz : vz - vz * 2;
-      console.log('DESIRED VZ: ' + this.desiredVZ);
+    if (this.reflectZ = pos.z >= 2000 || pos.z <= -2000) {
+      var vz = vv.z;
+      vz = vz < 0 ? Math.abs(vz) : vz - vz * 2;
+      this.boid.velocity.z = vz;
+      this.desiredVZ = (vz > maxSpeed ? maxSpeed : vz) / (Math.random() * 4);
     }
   }
 
@@ -171,16 +171,13 @@ function () {
       // Reflect entities velcoity, making it "bounce"
       var v = this.boid.velocity,
           pos = this.boid.obj.position;
-      var altered = false;
-      console.log('RX: ' + this.reflectX + " | RY: " + this.reflectY + " | RZ: " + this.reflectZ);
-      console.log('VX: ' + v.x + " | VY: " + v.y + " | VZ: " + v.z); // X-Axis
+      var altered = false; // X-Axis
 
       if (this.reflectX) {
-        var inverted = this.desiredVX < 0,
-            vx = Math.abs(this.desiredVX / 10);
+        var inverted = this.desiredVX < 0;
 
-        if (inverted ? this.start.x > this.desiredVX : this.start.x < this.desiredVX) {
-          this.boid.velocity.x = inverted ? v.x - vx : v.x + vx;
+        if (inverted ? v.x > this.desiredVX : v.x < this.desiredVX) {
+          this.boid.velocity.x = inverted ? v.x - v.x / (Math.random() * 4) : v.x + v.x / (Math.random() * 4);
           altered = true;
         }
       } // Y-Axis
@@ -207,7 +204,7 @@ function () {
         }
       }
 
-      return !altered && pos.x <= 2000 && pos.x >= -2000 && pos.y <= 2000 && pos.y >= -2000 && pos.z <= 2000 && pos.z >= -2000;
+      return !altered && pos.x <= 1500 && pos.x >= -1500 && pos.y <= 1500 && pos.y >= -1500 && pos.z <= 1500 && pos.z >= -1500;
     }
   }]);
 

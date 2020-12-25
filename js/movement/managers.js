@@ -49,37 +49,57 @@ export class Rotation {
 
         // Rotate quickest direction
         const startQ = this.obj.quaternion.y;
+        // console.log("DesiredDegree: " + desiredDegree);
+        //console.log("StartQ: " + startQ);
 
-        if (startQ > 0 && desiredDegree < 0) {
+        if (startQ >= 0 && desiredDegree < 0) {
             const turnLeft = (1 - startQ) + (1 - Math.abs(desiredDegree));
             const turnRight = (startQ + Math.abs(desiredDegree));
             this.inverse = turnRight < turnLeft;
-        } else if (startQ < 0 && desiredDegree > 0) {
+            //console.log(this.inverse + " | pos turn")
+        } else if (startQ < 0 && desiredDegree >= 0) {
             const turnLeft = Math.abs(startQ) + desiredDegree;
             const turnRight = (1 - Math.abs(startQ)) + (1 - desiredDegree);
             this.inverse = turnRight < turnLeft;
+           // console.log(this.inverse + " | neg turn")
         } else {
-            const turnLeft = desiredDegree - startQ;
-            const turnRight = startQ - desiredDegree;
-            this.inverse = turnRight < turnLeft;
+            if ((startQ < 0 && desiredDegree < 0) || (startQ >= 0 && desiredDegree >= 0)) {
+                const turnLeft = desiredDegree - startQ;
+                const turnRight = startQ - desiredDegree;
+
+                this.inverse = turnRight >= 0 && turnRight < turnLeft;
+               // console.log(this.inverse + " | same turn")
+            } else {
+               // console.log(startQ + " | other turn")
+
+            }
         }
 
-        this.desired = Math.abs(desiredDegree);
+        this.desired = desiredDegree;
     }
 
     execute() {
-        const q = Math.abs(this.boid.obj.quaternion.y),
-            desiredPercent = Math.round(this.desired * 100),
-            currentPercent = Math.round(q * 100),
+        const q = this.boid.obj.quaternion.y,
+            desiredPercent = Math.round(Math.abs(this.desired) * 100),
+            currentPercent = Math.round(Math.abs(q) * 100),
             percentDiff = desiredPercent - currentPercent;
 
-        if (percentDiff >= -2 && percentDiff <= 2)
+        if (percentDiff >= -2 && percentDiff <= 2) {
             return true;
+        }
 
         // Rotate by random increments
-        let offset = THREE.Math.radToDeg(((Math.random() * 20) + .1) / 10000);
+        let offset = THREE.Math.radToDeg(((Math.random() * 10) + .1) / 10000);
         if (this.inverse)
             offset -= offset * 2;
+
+        if (!this.inverse) {
+            if ((q > 0 && this.desired > 0 && q > this.desired) ||
+                (q < 0 && this.desired < 0 && q < this.desired)) {
+                this.inverse = true;
+                offset = offset / 2;
+            }
+        }
 
         //console.log("Desired Degree: " + Math.round(this.desired * 100) + " |  " + Math.round(q * 100));
         this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
@@ -96,45 +116,32 @@ export class Bounce {
             vv = this.boid.velocity;
 
         this.start = vv;
-        let inversed;
 
-        if (this.reflectX = pos.x >= 1750 || pos.x <= -1750) {
-            inversed = vv.x < 0;
-            let vx = Math.abs(vv.x / 2);
+        if (this.reflectX = pos.x >= 2000 || pos.x <= -2000) {
+            let vx = vv.x;
+            vx = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
 
-            if (vx > maxSpeed) {
-                this.boid.velocity.x = inversed ? -maxSpeed : maxSpeed;
-                vx = maxSpeed;
-            }
-
-            this.desiredVX = inversed ? vx : vx - (vx * 2);
-            console.log('DESIRED VX: ' + this.desiredVX);
+            let desired = vx / ((Math.random() * 4) + .4);
+            desired = (desired > maxSpeed ? maxSpeed : desired);
+            console.log('EnterX: ' + this.boid.velocity.x + " | ExitX: " + desired);
+            this.boid.velocity.x = vx;
+            this.desiredVX = desired;
         }
 
-        if (this.reflectY = pos.y >= 1750 || pos.y <= -1750) {
-            inversed = vv.y < 0;
-            let vy = Math.abs(vv.y / 2);
+        if (this.reflectY = pos.y >= 2000 || pos.y <= -2000) {
+            let vy = vv.y;
+            vy = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
 
-            if (vy > maxSpeed) {
-                this.boid.velocity.y = inversed ? -maxSpeed : maxSpeed;
-                vy = maxSpeed;
-            }
-
-            this.desiredVY = vv.y < 0 ? vy : vy - (vy * 2);
-            console.log('DESIRED VY: ' + this.desiredVY);
+            this.boid.velocity.y = vy;
+            this.desiredVY = (vy > maxSpeed ? maxSpeed : vy) / (Math.random() * 4);
         }
 
-        if (this.reflectZ = pos.z >= 1750 || pos.z <= -1750) {
-            inversed = vv.z < 0;
-            let vz = Math.abs(vv.z / 2);
+        if (this.reflectZ = pos.z >= 2000 || pos.z <= -2000) {
+            let vz = vv.z;
+            vz = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
 
-            if (vz > maxSpeed) {
-                this.boid.velocity.z = inversed ? -maxSpeed : maxSpeed;
-                vz = maxSpeed;
-            }
-
-            this.desiredVZ = vv.z < 0 ? vz : vz - (vz * 2);
-            console.log('DESIRED VZ: ' + this.desiredVZ);
+            this.boid.velocity.z = vz;
+            this.desiredVZ = (vz > maxSpeed ? maxSpeed : vz) / (Math.random() * 4);
         }
     }
 
@@ -145,16 +152,12 @@ export class Bounce {
 
         let altered = false;
 
-        console.log('RX: ' + this.reflectX + " | RY: " + this.reflectY + " | RZ: " + this.reflectZ);
-        console.log('VX: ' + v.x + " | VY: " + v.y + " | VZ: " + v.z);
-
         // X-Axis
         if (this.reflectX) {
-            const inverted = this.desiredVX < 0,
-                vx = Math.abs(this.desiredVX / 10);
+            const inverted = this.desiredVX < 0;
 
-            if (inverted ? this.start.x > this.desiredVX : this.start.x < this.desiredVX) {
-                this.boid.velocity.x = inverted ? v.x - vx : v.x + vx;
+            if (inverted ? v.x > this.desiredVX : v.x < this.desiredVX) {
+                this.boid.velocity.x = inverted ? v.x - (v.x / (Math.random() * 4)) : v.x + (v.x / (Math.random() * 4));
                 altered = true;
             }
         }
@@ -182,8 +185,8 @@ export class Bounce {
         }
 
         return !altered &&
-            (pos.x <= 2000 && pos.x >= -2000 &&
-                pos.y <= 2000 && pos.y >= -2000 &&
-                pos.z <= 2000 && pos.z >= -2000);
+            (pos.x <= 1500 && pos.x >= -1500 &&
+                pos.y <= 1500 && pos.y >= -1500 &&
+                pos.z <= 1500 && pos.z >= -1500);
     }
 }

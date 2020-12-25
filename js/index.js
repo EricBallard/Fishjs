@@ -123,7 +123,7 @@ function onProgress(xhr) {
 
 function loadModel() {
     setTimeout(function () {
-        for (let added = 0; added < 1; added++) {
+        for (let added = 0; added < 100; added++) {
             // Clone
             var fish = SkeletonUtils.clone(cachedModel);
 
@@ -136,11 +136,12 @@ function loadModel() {
             });
 
             // Randomly position
-            const x = Math.round(Math.random() * 1000) - (added * 10);
-            const y = Math.round(Math.random() * 1000) - (added * 10);
-            const z = Math.round(Math.random() * 1000) - (added * 10);
+            const x = Math.round(Math.random() * 1500) - 1000;
+            const y = Math.round(Math.random() * 1500) - 1000;
+            const z = Math.round(Math.random() * 1500) - 1000;
 
             fish.position.set(x, y, z);
+           // fish.position.set(0, 0, 0);
             fish.receiveShadow = true;
             fish.castShadow = true;
 
@@ -186,7 +187,7 @@ function countFPS() {
     const q = fish.obj.quaternion;
     fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + getDirection(q);
     xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
-    yTracker.innerText = "Y: " + Math.round(camera.position.y);
+    yTracker.innerText = "Y: " + Math.round(camera.position.y) + " | VX: " + fish.velocity.x ;
     zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
     renderer.render(scene, camera);
