@@ -2,7 +2,7 @@
   A simple three.js application shell for getting help with problems!
 */
 
-import { SkeletonUtils } from "/js/threejs/SkeletonUtils.js";
+import { SkeletonUtils } from "/js/libs/SkeletonUtils.js";
 
 let camera, scene, renderer, controls;
 let material;
@@ -95,6 +95,7 @@ function animate() {
   requestAnimationFrame(animate);
   render();
 }
+
 let tv0 = new THREE.Vector3();
 
 function render() {

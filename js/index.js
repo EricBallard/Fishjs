@@ -12,10 +12,11 @@ import {
 
 
 // 3D Graphics
-var scene, camera, renderer, controls, frame;
+var scene, camera, renderer, controls;
 
 // Boid data
 var boids = [],
+    mixers = [],
     bounceManager = [],
     rotationManager = [];
 
@@ -54,9 +55,11 @@ function initialize() {
 
     // Add light to scene
     let light = new THREE.PointLight();
-    light.position.set(10, 10, 10);
+    light.position.set(275, 2400, -1750);
     scene.add(light);
 
+    light = new THREE.AmbientLight(0x252525, 0.01);
+    scene.add(light);
 
     // Configure user-controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -90,16 +93,6 @@ function initialize() {
 }
 
 function loadAnimatedModel() {
-    //this.mixer = new THREE.AnimationMixer(model);
-    //this._mixers.push(this.mixer);
-
-    //const anim = model.animations[0];
-
-    //console.log('ANIM: ' + anim);
-    //const idle = _APP.mixer.clipAction(anim);
-    //idle.play();
-
-
     var manager = new THREE.LoadingManager(loadModel);
     var loader = new THREE.FBXLoader(manager);
 
@@ -125,7 +118,7 @@ function loadModel() {
     setTimeout(function () {
         for (let added = 0; added < 100; added++) {
             // Clone
-            var fish = SkeletonUtils.clone(cachedModel);
+            const fish = SkeletonUtils.clone(cachedModel);
 
             // Apply texture
             fish.traverse(e => {
@@ -135,13 +128,22 @@ function loadModel() {
                 }
             });
 
+            // Start animation
+            for (let i = 0; i < 3; i++) {
+                let mixer = new THREE.AnimationMixer(fish);
+                const action = mixer.clipAction(cachedModel.animations[i]);
+                mixers.push(mixer);
+                action.play();
+            }
+            
+
             // Randomly position
             const x = Math.round(Math.random() * 1500) - 1000;
             const y = Math.round(Math.random() * 1500) - 1000;
             const z = Math.round(Math.random() * 1500) - 1000;
 
             fish.position.set(x, y, z);
-           // fish.position.set(0, 0, 0);
+            // fish.position.set(0, 0, 0);
             fish.receiveShadow = true;
             fish.castShadow = true;
 
@@ -187,7 +189,7 @@ function countFPS() {
     const q = fish.obj.quaternion;
     fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + getDirection(q);
     xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
-    yTracker.innerText = "Y: " + Math.round(camera.position.y) + " | VX: " + fish.velocity.x ;
+    yTracker.innerText = "Y: " + Math.round(camera.position.y) + " | VX: " + fish.velocity.x;
     zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
     renderer.render(scene, camera);
@@ -205,7 +207,7 @@ function animate() {
     // Render scene
     renderer.render(scene, camera);
 
-    frame = window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
         /*
         const fish = boids[0];
 
@@ -227,6 +229,8 @@ function animate() {
 
         // Update fishses' position
         if (delta > interval) {
+            for (let i = 0; i < mixers.length; i++) mixers[i].update(0.02);
+
             Boids.update(boids, bounceManager, rotationManager);
             delta = delta % interval;
         }

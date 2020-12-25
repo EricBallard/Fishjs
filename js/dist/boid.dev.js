@@ -21,7 +21,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 function getSeed() {
-  var seed = Math.random() * (Math.random() * 10);
+  var seed = Math.random();
   return Math.random() < 0.5 ? seed : seed - seed * 2;
 }
 
@@ -38,8 +38,7 @@ function () {
     this.bounceManager = params.bounceManager;
     this.rotationManager = params.rotationManager; // Momentum
 
-    this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed()); // getSeed());
-
+    this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed());
     this.maxSpeed = 8;
     this.maxForce = 0.2;
     this.acceleration = new THREE.Vector3(0, 0, 0); // Auto-rotate
@@ -209,8 +208,8 @@ function update(boids, bounceManager, rotationManager) {
   try {
     for (var _iterator3 = boids[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
       var boid = _step3.value;
-      boid.bounce();
-      boid.align(boids);
+      boid.bounce(); //boid.align(boids);
+
       boid.update();
     } // Update Bounce managers
 

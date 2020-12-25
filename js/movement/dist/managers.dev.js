@@ -111,12 +111,13 @@ function () {
       if (this.inverse) offset -= offset * 2;
 
       if (!this.inverse) {
-        if (q > 0 && this.desired > 0 && q > this.desired || q < 0 && this.desired < 0 && q < this.desired) {
+        if (q >= 0 && this.desired >= 0 && q > this.desired || q < 0 && this.desired < 0 && q < this.desired) {
+          this.recorrected = true;
           this.inverse = true;
-          offset = offset / 2;
         }
-      } //console.log("Desired Degree: " + Math.round(this.desired * 100) + " |  " + Math.round(q * 100));
+      }
 
+      if (this.recorrected) offset = offset / 8; //console.log("Desired Degree: " + Math.round(this.desired * 100) + " |  " + Math.round(q * 100));
 
       this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
       return false;

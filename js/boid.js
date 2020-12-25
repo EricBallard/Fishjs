@@ -1,7 +1,7 @@
 import * as Managers from '/js/movement/managers.js';
 
 function getSeed() {
-    let seed = Math.random() * (Math.random() * 10);
+    let seed = (Math.random() );
     return Math.random() < 0.5 ? seed : seed - (seed * 2);
 }
 
@@ -15,7 +15,7 @@ export class Entity {
         this.rotationManager = params.rotationManager;
 
         // Momentum
-        this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed()); // getSeed());
+        this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed());
 
         this.maxSpeed = 8;
         this.maxForce = 0.2;
@@ -169,7 +169,7 @@ export function update(boids, bounceManager, rotationManager) {
     for (let boid of boids) {
         boid.bounce();
 
-        boid.align(boids);
+        //boid.align(boids);
         boid.update();
     }
 

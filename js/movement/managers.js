@@ -61,16 +61,16 @@ export class Rotation {
             const turnLeft = Math.abs(startQ) + desiredDegree;
             const turnRight = (1 - Math.abs(startQ)) + (1 - desiredDegree);
             this.inverse = turnRight < turnLeft;
-           // console.log(this.inverse + " | neg turn")
+            // console.log(this.inverse + " | neg turn")
         } else {
             if ((startQ < 0 && desiredDegree < 0) || (startQ >= 0 && desiredDegree >= 0)) {
                 const turnLeft = desiredDegree - startQ;
                 const turnRight = startQ - desiredDegree;
 
                 this.inverse = turnRight >= 0 && turnRight < turnLeft;
-               // console.log(this.inverse + " | same turn")
+                // console.log(this.inverse + " | same turn")
             } else {
-               // console.log(startQ + " | other turn")
+                // console.log(startQ + " | other turn")
 
             }
         }
@@ -94,12 +94,15 @@ export class Rotation {
             offset -= offset * 2;
 
         if (!this.inverse) {
-            if ((q > 0 && this.desired > 0 && q > this.desired) ||
+            if ((q >= 0 && this.desired >= 0 && q > this.desired) ||
                 (q < 0 && this.desired < 0 && q < this.desired)) {
+                this.recorrected = true;
                 this.inverse = true;
-                offset = offset / 2;
             }
         }
+
+        if (this.recorrected)
+            offset = offset / 8;
 
         //console.log("Desired Degree: " + Math.round(this.desired * 100) + " |  " + Math.round(q * 100));
         this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);

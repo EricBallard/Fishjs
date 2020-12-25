@@ -15,9 +15,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // Threejs util
 // Utils
 // 3D Graphics
-var scene, camera, renderer, controls, frame; // Boid data
+var scene, camera, renderer, controls; // Boid data
 
 var boids = [],
+    mixers = [],
     bounceManager = [],
     rotationManager = []; // Stats & Info
 
@@ -50,7 +51,9 @@ function initialize() {
   scene.add(new THREE.Mesh(skyboxGeo, materialArray)); // Add light to scene
 
   var light = new THREE.PointLight();
-  light.position.set(10, 10, 10);
+  light.position.set(275, 2400, -1750);
+  scene.add(light);
+  light = new THREE.AmbientLight(0x252525, 0.01);
   scene.add(light); // Configure user-controls
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -78,12 +81,6 @@ function initialize() {
 }
 
 function loadAnimatedModel() {
-  //this.mixer = new THREE.AnimationMixer(model);
-  //this._mixers.push(this.mixer);
-  //const anim = model.animations[0];
-  //console.log('ANIM: ' + anim);
-  //const idle = _APP.mixer.clipAction(anim);
-  //idle.play();
   var manager = new THREE.LoadingManager(loadModel);
   var loader = new THREE.FBXLoader(manager);
   loader.load("/resources/fish.fbx", function (model) {
@@ -116,7 +113,15 @@ function loadModel() {
           e.material = e.material.clone();
           e.material.color.set(Math.random() * 0xffffff | 0);
         }
-      }); // Randomly position
+      }); // Start animation
+
+      for (var i = 0; i < 3; i++) {
+        var mixer = new THREE.AnimationMixer(fish);
+        var action = mixer.clipAction(cachedModel.animations[i]);
+        mixers.push(mixer);
+        action.play();
+      } // Randomly position
+
 
       var x = Math.round(Math.random() * 1500) - 1000;
       var y = Math.round(Math.random() * 1500) - 1000;
@@ -176,7 +181,7 @@ function animate() {
   controls.update(); // Render scene
 
   renderer.render(scene, camera);
-  frame = window.requestAnimationFrame(function () {
+  window.requestAnimationFrame(function () {
     /*
     const fish = boids[0];
       if (fish != undefined) {
@@ -194,6 +199,10 @@ function animate() {
     delta += clock.getDelta(); // Update fishses' position
 
     if (delta > interval) {
+      for (var i = 0; i < mixers.length; i++) {
+        mixers[i].update(0.02);
+      }
+
       Boids.update(boids, bounceManager, rotationManager);
       delta = delta % interval;
     } // FPS counter
