@@ -19,105 +19,85 @@ function () {
 
     this.boid = params.boid;
     this.obj = this.boid.obj;
-    var dir = params.desired;
-    var desiredDegree;
-    var seed = Math.random() * 250 / 1000;
+    this.facing = params.facing;
+    this.desired = params.desired; // Rotate quickest direction
 
-    switch (dir) {
+    this.inverse = false;
+    var inverseFrom = [],
+        oppositeDir;
+
+    switch (this.desired) {
       case direction.NORTH:
-        desiredDegree = seed + 0.875;
-        if (desiredDegree > 1.0) desiredDegree = -1 + (desiredDegree - 1.0);
-        break;
-
-      case direction.NORTH_EAST:
-        desiredDegree = seed + 0.625;
+        inverseFrom = [direction.NORTH_WEST, direction.SOUTH_WEST, direction.WEST];
+        oppositeDir = direction.SOUTH;
         break;
 
       case direction.EAST:
-        desiredDegree = seed + 0.375;
-        break;
-
-      case direction.SOUTH_EAST:
-        desiredDegree = seed + 0.125;
+        inverseFrom = [direction.NORTH_WEST, direction.NORTH_EAST, direction.NORTH];
+        oppositeDir = direction.WEST;
         break;
 
       case direction.SOUTH:
-        desiredDegree = seed + -0.125;
-        break;
-
-      case direction.SOUTH_WEST:
-        desiredDegree = seed + -0.375;
+        inverseFrom = [direction.NORTH_EAST, direction.SOUTH_EAST, direction.EAST];
+        oppositeDir = direction.NORTH;
         break;
 
       case direction.WEST:
-        desiredDegree = seed + -0.625;
+        inverseFrom = [direction.SOUTH_WEST, direction.SOUTH_EAST, direction.SOUTH];
+        oppositeDir = direction.EAST;
+        break;
+
+      case direction.NORTH_EAST:
+        inverseFrom = [direction.NORTH_WEST, direction.NORTH, direction.WEST];
+        oppositeDir = direction.SOUTH_WEST;
+        break;
+
+      case direction.SOUTH_EAST:
+        inverseFrom = [direction.NORTH_WEST, direction.NORTH, direction.WEST];
+        oppositeDir = direction.NORTH_WEST;
+        break;
+
+      case direction.SOUTH_WEST:
+        inverseFrom = [direction.SOUTH_EAST, direction.SOUTH, direction.EAST];
+        oppositeDir = direction.NORTH_EAST;
         break;
 
       case direction.NORTH_WEST:
-        desiredDegree = seed + -0.875;
+        inverseFrom = [direction.SOUTH_WEST, direction.SOUTH, direction.WEST];
+        oppositeDir = direction.SOUTH_EAST;
         break;
-    } // Instant rotate when spawning entity
-
-
-    if (params.instant) {
-      var quaternion = new THREE.Quaternion();
-      quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * desiredDegree);
-      this.boid.obj.applyQuaternion(quaternion);
-      return;
-    } // Rotate quickest direction
-
-
-    var startQ = this.obj.quaternion.y; // console.log("DesiredDegree: " + desiredDegree);
-    //console.log("StartQ: " + startQ);
-
-    if (startQ >= 0 && desiredDegree < 0) {
-      var turnLeft = 1 - startQ + (1 - Math.abs(desiredDegree));
-      var turnRight = startQ + Math.abs(desiredDegree);
-      this.inverse = turnRight < turnLeft; //console.log(this.inverse + " | pos turn")
-    } else if (startQ < 0 && desiredDegree >= 0) {
-      var _turnLeft = Math.abs(startQ) + desiredDegree;
-
-      var _turnRight = 1 - Math.abs(startQ) + (1 - desiredDegree);
-
-      this.inverse = _turnRight < _turnLeft; // console.log(this.inverse + " | neg turn")
-    } else {
-      if (startQ < 0 && desiredDegree < 0 || startQ >= 0 && desiredDegree >= 0) {
-        var _turnLeft2 = desiredDegree - startQ;
-
-        var _turnRight2 = startQ - desiredDegree;
-
-        this.inverse = _turnRight2 >= 0 && _turnRight2 < _turnLeft2; // console.log(this.inverse + " | same turn")
-      } else {// console.log(startQ + " | other turn")
-        }
     }
 
-    this.desired = desiredDegree;
+    if (this.facing == oppositeDir && Math.random() < 0.5) inverseFrom.push(oppositeDir);
+
+    for (var _i = 0, _inverseFrom = inverseFrom; _i < _inverseFrom.length; _i++) {
+      var dir = _inverseFrom[_i];
+
+      if (dir == this.facing) {
+        this.inverse = true;
+        break;
+      }
+    }
   }
 
   _createClass(Rotation, [{
     key: "execute",
     value: function execute() {
-      var q = this.boid.obj.quaternion.y,
-          desiredPercent = Math.round(Math.abs(this.desired) * 100),
-          currentPercent = Math.round(Math.abs(q) * 100),
-          percentDiff = desiredPercent - currentPercent;
+      // Validate rotation
+      var facing = getDirectionFromChild(this.boid.obj.getWorldPosition(), this.boid.child.getWorldPosition());
 
-      if (percentDiff >= -2 && percentDiff <= 2) {
+      if (facing == this.desired) {
+        //console.log(this.desired + ' | Succesful rotate!');
         return true;
-      } // Rotate by random increments
+      } // Generate random increments
 
 
-      var offset = THREE.Math.radToDeg((Math.random() * 10 + .1) / 10000);
-      if (this.inverse) offset -= offset * 2;
+      var offset = THREE.Math.radToDeg((Math.random() * 10 + 1) / 10000);
 
-      if (!this.inverse) {
-        if (q >= 0 && this.desired >= 0 && q > this.desired || q < 0 && this.desired < 0 && q < this.desired) {
-          this.recorrected = true;
-          this.inverse = true;
-        }
-      }
+      if (this.inverse) {
+        offset -= offset * 2;
+      } // Rotate 
 
-      if (this.recorrected) offset = offset / 8; //console.log("Desired Degree: " + Math.round(this.desired * 100) + " |  " + Math.round(q * 100));
 
       this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
       return false;

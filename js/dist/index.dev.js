@@ -4,6 +4,8 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var _SkeletonUtils = require("/js/libs/SkeletonUtils.js");
 
+var _SceneUtils = require("/js/libs/SceneUtils.js");
+
 var Boids = _interopRequireWildcard(require("/js/boid.js"));
 
 var _skybox = require("/js/skybox.js");
@@ -22,7 +24,8 @@ var boids = [],
     bounceManager = [],
     rotationManager = []; // Stats & Info
 
-var fps,
+var stats,
+    fps,
     framesRendered,
     secondTracker = null;
 var xTracker, yTracker, zTracker;
@@ -35,14 +38,27 @@ function initialize() {
 
   renderer = new THREE.WebGLRenderer({
     antialias: true,
-    alpha: true
+    alpha: false
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.domElement.id = 'canvas';
-  document.body.appendChild(renderer.domElement); // Create skybox textured mesh and add to scene
+  var body = document.body;
+  body.appendChild(renderer.domElement);
+  body.appendChild((stats = new Stats()).dom); //Test
+
+  /*
+  body.addEventListener('click', () => {
+     const rm = rotationManager[0];
+       if (rm != undefined) {
+         rm.inverse = !rm.inverse;
+         console.log('Inversed: ' + rm.inverse);
+     }
+  });
+  */
+  // Create skybox textured mesh and add to scene
 
   var materialArray = (0, _skybox.createMaterialArray)({
     threejs: THREE
@@ -56,9 +72,10 @@ function initialize() {
   light = new THREE.AmbientLight(0x252525, 0.01);
   scene.add(light); // Configure user-controls
 
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enabled = true; //controls.enablePan = false;
-  //controls.autoRotate = true;
+  controls = new THREE.OrbitControls(camera, renderer.domElement); // controls.minPolarAngle = Math.PI / 1.55;
+
+  controls.enabled = true; // controls.enablePan = false;
+  // controls.autoRotate = true;
 
   controls.rotateSpeed = 0.45;
   controls.autoRotateSpeed = 0.30;
@@ -102,6 +119,10 @@ function onProgress(xhr) {
 }
 
 function loadModel() {
+  var geometry = new THREE.BoxGeometry(1, 1, 1),
+      material = new THREE.MeshBasicMaterial({
+    color: 0xfffff
+  });
   setTimeout(function () {
     for (var added = 0; added < 100; added++) {
       // Clone
@@ -113,32 +134,43 @@ function loadModel() {
           e.material = e.material.clone();
           e.material.color.set(Math.random() * 0xffffff | 0);
         }
-      }); // Start animation
+      });
+      var mixer = new THREE.AnimationMixer(fish); // Start animation
 
       for (var i = 0; i < 3; i++) {
-        var mixer = new THREE.AnimationMixer(fish);
         var action = mixer.clipAction(cachedModel.animations[i]);
         mixers.push(mixer);
         action.play();
       } // Randomly position
 
 
-      var x = Math.round(Math.random() * 1500) - 1000;
-      var y = Math.round(Math.random() * 1500) - 1000;
-      var z = Math.round(Math.random() * 1500) - 1000;
-      fish.position.set(x, y, z); // fish.position.set(0, 0, 0);
+      var x = 0; //Math.round(Math.random() * 1500) - 1000;
 
+      var y = 0; //Math.round(Math.random() * 1500) - 1000;
+
+      var z = 0; //Math.round(Math.random() * 1500) - 1000;
+
+      fish.position.set(x, y, z);
       fish.receiveShadow = true;
       fish.castShadow = true;
       fish.updateMatrixWorld();
-      scene.add(fish); // Add to boids
+      scene.add(fish); // Create direction cube
+
+      var cube = new THREE.Mesh(geometry, material);
+      cube.position.set(x + 50, y, z);
+      cube.visible = false;
+      scene.add(cube);
+
+      _SceneUtils.SceneUtils.attach(cube, scene, fish); // Add to boids
       // Create boid object
+
 
       var boid = new Boids.Entity({
         x: x,
         y: y,
         z: z,
         obj: fish,
+        child: cube,
         bounceManager: bounceManager,
         rotationManager: rotationManager
       }); // Store boid in array
@@ -151,7 +183,7 @@ function loadModel() {
 function countFPS() {
   var now = new Date().getTime();
   if (secondTracker == null) secondTracker = now;
-  var newSecond = now - secondTracker > 1000;
+  var newSecond = now - secondTracker >= 1000;
   var fish = boids[0];
   if (fish == undefined) return;
   var pos = fish.velocity;
@@ -162,12 +194,16 @@ function countFPS() {
     framesRendered = 1;
   } else {
     framesRendered += 1;
-  }
+  } // Seems to be standarized however needs to be detected/hotfixed for negative rotation
+  // fish.obj.getWorldQuaternion().y
 
-  var q = fish.obj.quaternion;
-  fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + getDirection(q);
+
+  var pp = fish.obj.getWorldPosition();
+  var cp = fish.child.getWorldPosition();
+  var dir = getDirectionFromChild(pp, cp);
+  fps.innerText = "FPS: " + framesRendered + "  | (" + 0 + ") Facing: " + dir;
   xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
-  yTracker.innerText = "Y: " + Math.round(camera.position.y) + " | VX: " + fish.velocity.x;
+  yTracker.innerText = "Y: " + Math.round(camera.position.y);
   zTracker.innerText = "Z: " + Math.round(camera.position.z);
   renderer.render(scene, camera);
 }
@@ -177,7 +213,7 @@ var delta = 0;
 var interval = 1 / 30;
 
 function animate() {
-  // Auto-rotate camera
+  // Auto-rotate/update camera
   controls.update(); // Render scene
 
   renderer.render(scene, camera);
@@ -200,13 +236,14 @@ function animate() {
 
     if (delta > interval) {
       for (var i = 0; i < mixers.length; i++) {
-        mixers[i].update(0.02);
+        mixers[i].update(0.01);
       }
 
       Boids.update(boids, bounceManager, rotationManager);
       delta = delta % interval;
-    } // FPS counter
+    }
 
+    stats.update(); // FPS counter
 
     countFPS(); // Loop
 

@@ -21,7 +21,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 function getSeed() {
-  var seed = Math.random();
+  var seed = Math.random() * 10;
   return Math.random() < 0.5 ? seed : seed - seed * 2;
 }
 
@@ -35,19 +35,23 @@ function () {
 
     // Cache obj to reflect/update position based on momentum
     this.obj = params.obj;
+    this.child = params.child;
     this.bounceManager = params.bounceManager;
     this.rotationManager = params.rotationManager; // Momentum
 
     this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed());
     this.maxSpeed = 8;
     this.maxForce = 0.2;
-    this.acceleration = new THREE.Vector3(0, 0, 0); // Auto-rotate
+    this.acceleration = new THREE.Vector3(0, 0, 0); // Auto-rotate RE-TODO?
 
+    /*
     new Managers.Rotation({
-      boid: this,
-      desired: velocityToDirection(this.velocity),
-      instant: true
-    }); // VIDEO @ 21:50
+        boid: this,
+        desired: velocityToDirection(this.velocity),
+        instant: true
+    });
+    */
+    // VIDEO @ 21:50
   }
 
   _createClass(Entity, [{
@@ -61,15 +65,21 @@ function () {
       var inverse = false;
 
       if (pos.x >= 2000 || (inverse = pos.x <= -2000)) {
-        if (inverse ? vx < 0 : vx >= 0) this.velocity.x = vx < 0 ? Math.abs(vx) : vx - vx * 2;
+        if (inverse ? vx < 0 : vx >= 0) {
+          this.velocity.x = vx < 0 ? Math.abs(vx) : vx - vx * 2;
+        }
       }
 
       if (pos.y >= 2000 || (inverse = pos.y <= -2000)) {
-        if (inverse ? vy < 0 : vy >= 0) this.velocity.y = vy < 0 ? Math.abs(vy) : vy - vy * 2;
+        if (inverse ? vy < 0 : vy >= 0) {
+          this.velocity.y = vy < 0 ? Math.abs(vy) : vy - vy * 2;
+        }
       }
 
       if (pos.z >= 2000 || (inverse = pos.z <= -2000)) {
-        if (inverse ? vz < 0 : vz >= 0) this.velocity.z = vz < 0 ? Math.abs(vz) : vz - vz * 2;
+        if (inverse ? vz < 0 : vz >= 0) {
+          this.velocity.z = vz < 0 ? Math.abs(vz) : vz - vz * 2;
+        }
       }
     }
   }, {
@@ -139,21 +149,18 @@ function () {
   }, {
     key: "update",
     value: function update() {
-      // Update momentum
-      this.velocity.add(this.acceleration); // Limit 
-
+      // Update momentum 
+      this.velocity.add(this.acceleration);
       var v = this.velocity;
       if (v.x > this.maxSpeed) this.velocity.x = this.maxSpeed;
       if (v.y > this.maxSpeed) this.velocity.y = this.maxSpeed;
       if (v.z > this.maxSpeed) this.velocity.z = this.maxSpeed;
-      this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z)); // Rotate object based on velocity
-
+      this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
       this.rotate();
     }
   }, {
     key: "rotate",
     value: function rotate() {
-      // Return if object is being actively rotated/managed
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
       var _iteratorError2 = undefined;
@@ -161,10 +168,7 @@ function () {
       try {
         for (var _iterator2 = this.rotationManager[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
           var manager = _step2.value;
-
-          if (manager.boid.obj == this.obj) {
-            return;
-          }
+          if (manager.boid.obj == this.obj) return;
         }
       } catch (err) {
         _didIteratorError2 = true;
@@ -181,15 +185,16 @@ function () {
         }
       }
 
-      var rot = getDirection(this.obj.quaternion),
-          dir = velocityToDirection(this.velocity);
+      var facingDirection = getDirectionFromChild(this.obj.getWorldPosition(), this.child.getWorldPosition());
+      var desiredDirection = velocityToDirection(this.velocity);
 
-      if (rot != dir) {
+      if (facingDirection != desiredDirection) {
+        //console.log('Facing: ' + facingDirection + ' | Desired: ' + desiredDirection);
         // Add manager to animate the rotation
         this.rotationManager.push(new Managers.Rotation({
           boid: this,
-          desired: dir,
-          instant: false
+          facing: facingDirection,
+          desired: desiredDirection
         }));
       }
     }
@@ -208,8 +213,8 @@ function update(boids, bounceManager, rotationManager) {
   try {
     for (var _iterator3 = boids[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
       var boid = _step3.value;
-      boid.bounce(); //boid.align(boids);
-
+      boid.bounce();
+      boid.align(boids);
       boid.update();
     } // Update Bounce managers
 

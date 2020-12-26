@@ -1,7 +1,7 @@
 import * as Managers from '/js/movement/managers.js';
 
 function getSeed() {
-    let seed = (Math.random() );
+    let seed = (Math.random() * 10);
     return Math.random() < 0.5 ? seed : seed - (seed * 2);
 }
 
@@ -11,6 +11,7 @@ export class Entity {
     constructor(params) {
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
+        this.child = params.child;
         this.bounceManager = params.bounceManager;
         this.rotationManager = params.rotationManager;
 
@@ -21,13 +22,14 @@ export class Entity {
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
-        // Auto-rotate
+        // Auto-rotate RE-TODO?
+        /*
         new Managers.Rotation({
             boid: this,
             desired: velocityToDirection(this.velocity),
             instant: true
         });
-
+        */
 
         // VIDEO @ 21:50
     }
@@ -43,18 +45,21 @@ export class Entity {
         let inverse = false;
 
         if (pos.x >= 2000 || (inverse = pos.x <= -2000)) {
-            if (inverse ? vx < 0 : vx >= 0)
+            if (inverse ? vx < 0 : vx >= 0) {
                 this.velocity.x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
+            }
         }
 
         if (pos.y >= 2000 || (inverse = pos.y <= -2000)) {
-            if (inverse ? vy < 0 : vy >= 0)
+            if (inverse ? vy < 0 : vy >= 0) {
                 this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
+            }
         }
 
         if (pos.z >= 2000 || (inverse = pos.z <= -2000)) {
-            if (inverse ? vz < 0 : vz >= 0)
+            if (inverse ? vz < 0 : vz >= 0) {
                 this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
+            }
         }
     }
 
@@ -121,10 +126,10 @@ export class Entity {
     }
 
     update() {
-        // Update momentum
+        // Update momentum 
+
         this.velocity.add(this.acceleration);
 
-        // Limit 
         const v = this.velocity;
         if (v.x > this.maxSpeed)
             this.velocity.x = this.maxSpeed;
@@ -135,41 +140,38 @@ export class Entity {
 
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
 
-        // Rotate object based on velocity
+
         this.rotate();
     }
 
     rotate() {
-        // Return if object is being actively rotated/managed
         for (let manager of this.rotationManager) {
-            if (manager.boid.obj == this.obj) {
+            if (manager.boid.obj == this.obj)
                 return;
-            }
         }
 
-        const rot = getDirection(this.obj.quaternion),
-            dir = velocityToDirection(this.velocity);
+        const facingDirection = getDirectionFromChild(this.obj.getWorldPosition(), this.child.getWorldPosition());
+        const desiredDirection = velocityToDirection(this.velocity);
 
-        if (rot != dir) {
+        if (facingDirection != desiredDirection) {
+            //console.log('Facing: ' + facingDirection + ' | Desired: ' + desiredDirection);
             // Add manager to animate the rotation
 
             this.rotationManager.push(new Managers.Rotation({
                 boid: this,
-                desired: dir,
-                instant: false
+                facing: facingDirection,
+                desired: desiredDirection
             }));
 
         }
     }
 }
 
-
-
 export function update(boids, bounceManager, rotationManager) {
     for (let boid of boids) {
         boid.bounce();
 
-        //boid.align(boids);
+        boid.align(boids);
         boid.update();
     }
 

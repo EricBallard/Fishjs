@@ -9,28 +9,42 @@ const direction = {
     SOUTH_WEST: 'south-west'
 }
 
-function getDirection(rotation) {
-    const y = rotation.y;
+// half = 12.5
+function getDirectionFromChild(parentPos, childPos) {
+    const x = parentPos.x - childPos.x,
+        z = parentPos.z - childPos.z;
 
-    if (y < -0.85 || y >= 0.875) {
+    // North
+    if (x >= 37.5 && z >= -12.5 && z <= 12.5)
         return direction.NORTH;
-    } else if (y >= 0.625 && y < 0.875) {
-        return direction.NORTH_EAST;
-    } else if (y >= 0.375 && y < 0.625) {
+
+    // East
+    if (x <= 12.5 && x >= -12.5 && z >= 37.5)
         return direction.EAST;
-    } else if (y >= 0.125 && y < 0.375) {
-        return direction.SOUTH_EAST;
-    } else if (y >= -0.125 && y < 0.125) {
+
+    // South
+    if (x <= -37.5 && z >= -12.5 && z <= 12.5)
         return direction.SOUTH;
-    } else if (y < -0.125 && y >= -0.375) {
-        return direction.SOUTH_WEST;
-    } else if (y < -0.375 && y >= -0.625) {
+
+    // West
+    if (x <= 12.5 && x >= -12.5 && z <= -37.5)
         return direction.WEST;
-    } else if (y < -0.625 && y >= -0.875) {
+
+    // North-East
+    if (x >= 12.5 && z >= 12.5)
+        return direction.NORTH_EAST;
+
+    // South-East
+    if (x <= -12.5 && z >= 12.5)
+        return direction.SOUTH_EAST;
+
+    // South-West
+    if (x <= -12.5 && z <= -12.5)
+        return direction.SOUTH_WEST;
+
+    // North-West
+    if (x >= 12.5 && z <= -12.5)
         return direction.NORTH_WEST;
-    } else {
-        return null;
-    }
 }
 
 function velocityToDirection(velocity) {
@@ -84,6 +98,5 @@ function velocityToDirection(velocity) {
         }
     }
 
-    //console.log('NULL DIRECTION | x: ' + x + " z: " + z + " offset: " + offset);
     return null;
 }

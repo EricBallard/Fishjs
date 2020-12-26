@@ -3,6 +3,11 @@ import {
     SkeletonUtils
 } from "/js/libs/SkeletonUtils.js";
 
+import {
+    SceneUtils
+} from "/js/libs/SceneUtils.js";
+
+
 // Utils
 import * as Boids from '/js/boid.js';
 
@@ -21,7 +26,7 @@ var boids = [],
     rotationManager = [];
 
 // Stats & Info
-var fps, framesRendered, secondTracker = null;
+var stats, fps, framesRendered, secondTracker = null;
 
 var xTracker, yTracker, zTracker;
 
@@ -34,7 +39,7 @@ function initialize() {
     // Configure renderer and add to DOM
     renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: true
+        alpha: false
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -43,7 +48,23 @@ function initialize() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer.domElement.id = 'canvas';
-    document.body.appendChild(renderer.domElement);
+
+    const body = document.body;
+    body.appendChild(renderer.domElement);
+    body.appendChild((stats = new Stats()).dom);
+
+    //Test
+     /*
+    body.addEventListener('click', () => {
+        const rm = rotationManager[0];
+
+        if (rm != undefined) {
+            rm.inverse = !rm.inverse;
+            console.log('Inversed: ' + rm.inverse);
+        }
+    });
+    */
+
 
     // Create skybox textured mesh and add to scene
     const materialArray = createMaterialArray({
@@ -63,10 +84,11 @@ function initialize() {
 
     // Configure user-controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // controls.minPolarAngle = Math.PI / 1.55;
     controls.enabled = true;
 
-    //controls.enablePan = false;
-    //controls.autoRotate = true;
+    // controls.enablePan = false;
+    // controls.autoRotate = true;
     controls.rotateSpeed = 0.45;
     controls.autoRotateSpeed = 0.30;
 
@@ -115,7 +137,14 @@ function onProgress(xhr) {
 }
 
 function loadModel() {
+    const geometry = new THREE.BoxGeometry(1, 1, 1),
+        material = new THREE.MeshBasicMaterial({
+            color: 0xfffff
+        });
+
+
     setTimeout(function () {
+
         for (let added = 0; added < 100; added++) {
             // Clone
             const fish = SkeletonUtils.clone(cachedModel);
@@ -128,27 +157,34 @@ function loadModel() {
                 }
             });
 
+            const mixer = new THREE.AnimationMixer(fish);
+
             // Start animation
             for (let i = 0; i < 3; i++) {
-                let mixer = new THREE.AnimationMixer(fish);
                 const action = mixer.clipAction(cachedModel.animations[i]);
                 mixers.push(mixer);
                 action.play();
             }
-            
 
             // Randomly position
-            const x = Math.round(Math.random() * 1500) - 1000;
-            const y = Math.round(Math.random() * 1500) - 1000;
-            const z = Math.round(Math.random() * 1500) - 1000;
+            const x = 0;//Math.round(Math.random() * 1500) - 1000;
+            const y = 0;//Math.round(Math.random() * 1500) - 1000;
+            const z = 0;//Math.round(Math.random() * 1500) - 1000;
 
             fish.position.set(x, y, z);
-            // fish.position.set(0, 0, 0);
             fish.receiveShadow = true;
             fish.castShadow = true;
 
             fish.updateMatrixWorld();
             scene.add(fish);
+
+            // Create direction cube
+            var cube = new THREE.Mesh(geometry, material);
+            cube.position.set(x + 50, y, z);
+            cube.visible = false;
+
+            scene.add(cube);
+            SceneUtils.attach(cube, scene, fish);
 
             // Add to boids
             // Create boid object
@@ -157,6 +193,7 @@ function loadModel() {
                 y: y,
                 z: z,
                 obj: fish,
+                child: cube,
                 bounceManager: bounceManager,
                 rotationManager: rotationManager
             });
@@ -168,10 +205,11 @@ function loadModel() {
     }, 10);
 }
 
+
 function countFPS() {
     const now = new Date().getTime();
     if (secondTracker == null) secondTracker = now;
-    const newSecond = now - secondTracker > 1000;
+    const newSecond = now - secondTracker >= 1000;
     const fish = boids[0];
 
     if (fish == undefined)
@@ -186,11 +224,19 @@ function countFPS() {
         framesRendered += 1;
     }
 
-    const q = fish.obj.quaternion;
-    fps.innerText = "FPS: " + framesRendered + "  | (" + q.y + ") Facing: " + getDirection(q);
+    // Seems to be standarized however needs to be detected/hotfixed for negative rotation
+    // fish.obj.getWorldQuaternion().y
+
+    const pp = fish.obj.getWorldPosition();
+    const cp = fish.child.getWorldPosition();
+
+    const dir = getDirectionFromChild(pp, cp);
+
+    fps.innerText = "FPS: " + framesRendered + "  | (" + 0 + ") Facing: " + dir;
     xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
-    yTracker.innerText = "Y: " + Math.round(camera.position.y) + " | VX: " + fish.velocity.x;
+    yTracker.innerText = "Y: " + Math.round(camera.position.y);
     zTracker.innerText = "Z: " + Math.round(camera.position.z);
+
 
     renderer.render(scene, camera);
 }
@@ -199,9 +245,8 @@ let clock = new THREE.Clock();
 let delta = 0;
 let interval = 1 / 30;
 
-
 function animate() {
-    // Auto-rotate camera
+    // Auto-rotate/update camera
     controls.update();
 
     // Render scene
@@ -229,11 +274,13 @@ function animate() {
 
         // Update fishses' position
         if (delta > interval) {
-            for (let i = 0; i < mixers.length; i++) mixers[i].update(0.02);
+            for (let i = 0; i < mixers.length; i++) mixers[i].update(0.01);
 
             Boids.update(boids, bounceManager, rotationManager);
             delta = delta % interval;
         }
+
+        stats.update();
 
         // FPS counter
         countFPS();
