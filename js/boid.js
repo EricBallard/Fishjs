@@ -16,9 +16,9 @@ export class Entity {
         this.rotationManager = params.rotationManager;
 
         // Momentum
-        this.velocity = new THREE.Vector3(getSeed(), getSeed(), getSeed());
+        this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
 
-        this.maxSpeed = 8;
+        this.maxSpeed = 4;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
@@ -129,14 +129,22 @@ export class Entity {
         // Update momentum 
 
         this.velocity.add(this.acceleration);
-
         const v = this.velocity;
+
         if (v.x > this.maxSpeed)
             this.velocity.x = this.maxSpeed;
+        if (v.x < -this.maxSpeed)
+            this.velocity.x = -this.maxSpeed;
+
         if (v.y > this.maxSpeed)
             this.velocity.y = this.maxSpeed;
+        if (v.y < -this.maxSpeed)
+            this.velocity.y = -this.maxSpeed;
+
         if (v.z > this.maxSpeed)
             this.velocity.z = this.maxSpeed;
+        if (v.z < -this.maxSpeed)
+            this.velocity.z = -this.maxSpeed;
 
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
 

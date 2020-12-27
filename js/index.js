@@ -71,16 +71,13 @@ function initialize() {
         threejs: THREE
     });
 
-    let skyboxGeo = new THREE.BoxGeometry(5000, 5000, 5000);
-    scene.add(new THREE.Mesh(skyboxGeo, materialArray));
+    scene.add(new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materialArray));
 
     // Add light to scene
     let light = new THREE.PointLight();
     light.position.set(275, 2400, -1750);
     scene.add(light);
 
-    light = new THREE.AmbientLight(0x252525, 0.01);
-    scene.add(light);
 
     // Configure user-controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -137,12 +134,6 @@ function onProgress(xhr) {
 }
 
 function loadModel() {
-    const geometry = new THREE.BoxGeometry(1, 1, 1),
-        material = new THREE.MeshBasicMaterial({
-            color: 0xfffff
-        });
-
-
     setTimeout(function () {
 
         for (let added = 0; added < 100; added++) {
@@ -167,9 +158,9 @@ function loadModel() {
             }
 
             // Randomly position
-            const x = 0;//Math.round(Math.random() * 1500) - 1000;
-            const y = 0;//Math.round(Math.random() * 1500) - 1000;
-            const z = 0;//Math.round(Math.random() * 1500) - 1000;
+            const x = Math.round(Math.random() * 1500) - 1000;
+            const y = Math.round(Math.random() * 1500) - 1000;
+            const z = Math.round(Math.random() * 1500) - 1000;
 
             fish.position.set(x, y, z);
             fish.receiveShadow = true;
@@ -178,13 +169,13 @@ function loadModel() {
             fish.updateMatrixWorld();
             scene.add(fish);
 
-            // Create direction cube
-            var cube = new THREE.Mesh(geometry, material);
-            cube.position.set(x + 50, y, z);
-            cube.visible = false;
+            // Attach point to determine direction
+            const directionPoint = new THREE.Mesh(new THREE.Vector3(0, 0, 0));
+            directionPoint.position.set(x + 50, y, z);
+            directionPoint.visible = false;
 
-            scene.add(cube);
-            SceneUtils.attach(cube, scene, fish);
+            scene.add(directionPoint);
+            SceneUtils.attach(directionPoint, scene, fish);
 
             // Add to boids
             // Create boid object
@@ -193,7 +184,7 @@ function loadModel() {
                 y: y,
                 z: z,
                 obj: fish,
-                child: cube,
+                child: directionPoint,
                 bounceManager: bounceManager,
                 rotationManager: rotationManager
             });
@@ -274,7 +265,7 @@ function animate() {
 
         // Update fishses' position
         if (delta > interval) {
-            for (let i = 0; i < mixers.length; i++) mixers[i].update(0.01);
+            for (let i = 0; i < mixers.length; i++) mixers[i].update((Math.random() * 20 + 10) / 1000);
 
             Boids.update(boids, bounceManager, rotationManager);
             delta = delta % interval;
