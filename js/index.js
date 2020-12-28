@@ -26,7 +26,9 @@ var boids = [],
     rotationManager = [];
 
 // Stats & Info
-var stats, fps, framesRendered, secondTracker = null;
+var stats, framesRendered = 0;
+
+var fpsTracker, fishTracker, secondTracker = null;
 
 var xTracker, yTracker, zTracker;
 
@@ -100,7 +102,8 @@ function initialize() {
     }, false);
 
     // Register fps counter
-    fps = document.getElementById('fps');
+    fpsTracker = document.getElementById('fpsCount');
+    fishTracker = document.getElementById('fishCount');
     xTracker = document.getElementById('x');
     yTracker = document.getElementById('y');
     zTracker = document.getElementById('z');
@@ -209,6 +212,7 @@ function countFPS() {
     const pos = fish.velocity;
     if (newSecond) {
         // Update FPS
+        fpsTracker.innerText = framesRendered;
         secondTracker = now;
         framesRendered = 1;
     } else {
@@ -223,9 +227,8 @@ function countFPS() {
 
     const dir = getDirectionFromChild(pp, cp);
 
-    fps.innerText = "FPS: " + framesRendered + "  | (" + 0 + ") Facing: " + dir;
     xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
-    yTracker.innerText = "Y: " + Math.round(camera.position.y);
+    yTracker.innerText = "Y: " + Math.round(camera.position.y)  + "  | (" + 0 + ") Facing: " + dir;;
     zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
 

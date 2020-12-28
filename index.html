@@ -2,28 +2,51 @@
 <html lang="en">
 
 <head>
-    <title>Document</title>
+    <title>Fishjs</title>
+    <link rel="icon" href="/resources/favicon.ico" type="image/x-icon">
+
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body>
-    <!-- FPS Counter -->
-    <div class="fpscounter">
-        <h5 id="fps">
-            FPS: 0
-        </h5>
+    <!-- Info -->
+    <div class="info">
+        <h1>Fishjs</h1>
+
+        <!-- Description paragraph -->
+        <p>
+            You're experiencing an interactive 3D
+            <br>
+            implementation of Craig Reynolds' Boids
+            <br>
+            algorithm! Boids are an example of emergent
+            <br>
+            behavior found in life, such as birds and <i>fish</i>!
+        </p>
+
+        <!-- Boid/FPS counter -->
+        <p>Right now you're watching 
+            <br>
+            <t id="fishCount" class="fishCount">0</t>
+             fish being simulated at 
+            <t id="fpsCount" class="fpsCount">0</t>
+             fps
+        </p>
+
+        <br> <!-- debug -->
         <h5 id='x'>X: 0.0</h5>
         <h5 id='y'>Y: 0.0</h5>
         <h5 id='z'>Z: 0.0</h5>
+
     </div>
-    
+
     <!-- Three.js API and Util -->
     <script src="/js/libs/three.min.js"></script>
     <script src="/js/libs/stats.min.js"></script>
     <script src="/js/libs/OrbitControls.js"></script>
 
-    <script src="/js/libs/inflate.min.js"></script>    
+    <script src="/js/libs/inflate.min.js"></script>
     <script src="/js/libs/FBXLoader.js"></script>
     <script src="/js/libs/GLTFLoader.js"></script>
 
