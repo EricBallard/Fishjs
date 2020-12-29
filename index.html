@@ -10,8 +10,14 @@
 </head>
 
 <body>
+    <!-- Loading Identifier -->
+    <div id="loadStatus" class="loader">
+        <h1>Loading</h1>
+        <div class="status"></div>
+    </div>
+
     <!-- Info -->
-    <div class="info">
+    <div id="info" class="info">
         <h1>Fishjs</h1>
 
         <!-- Description paragraph -->
@@ -22,39 +28,61 @@
             <br>
             algorithm! Boids are an example of emergent
             <br>
-            behavior found in life, such as birds and <i>fish</i>!
+            behavior found in natural life - such as <i>fish</i>!
         </p>
 
         <!-- Boid/FPS counter -->
-        <p>Right now you're watching 
+        <p>At this moment, you're watching
             <br>
             <t id="fishCount" class="fishCount">0</t>
-             fish being simulated at 
+            fish being simulated at
             <t id="fpsCount" class="fpsCount">0</t>
-             fps
+            fps.
+            <br><br>
+            <a href="https://github.com/EricBallard/Fishjs" class="link">Source on GitHub</a>
         </p>
+    </div>
 
+    <div class="debug">
         <br> <!-- debug -->
-        <h5 id='x'>X: 0.0</h5>
-        <h5 id='y'>Y: 0.0</h5>
-        <h5 id='z'>Z: 0.0</h5>
-
+        <h5 id='x'></h5>
+        <h5 id='y'></h5>
+        <h5 id='z'></h5>
     </div>
 
     <!-- Three.js API and Util -->
     <script src="/js/libs/three.min.js"></script>
-    <script src="/js/libs/stats.min.js"></script>
     <script src="/js/libs/OrbitControls.js"></script>
 
     <script src="/js/libs/inflate.min.js"></script>
     <script src="/js/libs/FBXLoader.js"></script>
     <script src="/js/libs/GLTFLoader.js"></script>
 
-    <!-- Local Util-->
-    <script src="/js/movement/movement.js"></script>
-
     <!-- Core -->
     <script type="module" src="/js/index.js"></script>
+
+    <script type="text/javascript">
+        var opacity = 0;
+        var intervalID = 0;
+        window.onload = fadeIn;
+
+        function fadeIn() {
+            setInterval(show, 1000);
+        }
+
+        function show() {
+            var body = document.getElementById("loadStatus");
+            opacity = Number(window.getComputedStyle(body)
+                .getPropertyValue("opacity"));
+            if (opacity < 1) {
+                opacity = opacity + 0.1;
+                body.style.opacity = opacity
+            } else {
+                clearInterval(intervalID);
+            }
+        }
+    </script>
+
 </body>
 
 </html>

@@ -1,14 +1,89 @@
+/*
+  Loading Identifier
+*/
+.loader {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.status {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  animation: anim 2s linear infinite;
+}
+
+.status:before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(255, 255, 255, .3);
+}
+
+@keyframes anim {
+  0% {
+    transform: rotate(0deg);
+    box-shadow: 1px 5px 2px #e65c00;
+  }
+
+  50% {
+    transform: rotate(180deg);
+    box-shadow: 1px 5px 2px #18b201;
+  }
+
+  100% {
+    transform: rotate(360deg);
+    box-shadow: 1px 5px 2px #0456c8;
+  }
+}
+
+/*
+  Description and information
+*/
 .info {
-  left: 100px;
+  top: 0px;
+  left: 25px;
+  font-size: 18px;
+
+  opacity: 0;
   color: white;
   position: absolute;
-  font-size: 1.2rem;
+}
+
+.debug {
+  left: 15px;
+  bottom: 0px;
+
+  color: white;
+  position: absolute;
+}
+
+.link {
+  text-decoration-thickness: 1px;
+
+  color: #252525;
+  text-decoration-style: dotted;
+  text-decoration-line: underline;
+}
+
+.fpsCount, .fishCount {
+  font-size: 1.25rem;
 }
 
 h1 {
   color: #252525;
 }
 
+/*
+  Body
+*/
 body {
   margin: 0;
   padding: 0;

@@ -1,4 +1,4 @@
-const direction = {
+export const direction = Object.freeze({
     NORTH: 'north',
     EAST: 'east',
     SOUTH: 'south',
@@ -7,10 +7,10 @@ const direction = {
     NORTH_EAST: 'north-east',
     SOUTH_EAST: 'south-east',
     SOUTH_WEST: 'south-west'
-}
+});
 
 // half = 12.5
-function getDirectionFromChild(parentPos, childPos) {
+export function getDirectionFromChild(parentPos, childPos) {
     const x = parentPos.x - childPos.x,
         z = parentPos.z - childPos.z;
 
@@ -47,9 +47,9 @@ function getDirectionFromChild(parentPos, childPos) {
         return direction.NORTH_WEST;
 }
 
-function velocityToDirection(velocity) {
-    let x = velocity.x,
-        z = velocity.z;
+export function velocityToDirection(velocity) {
+    let x = velocity.x;
+    let z = velocity.z;
 
     if (x > 0 && Math.round(z) == 0)
         return direction.NORTH;

@@ -1,3 +1,5 @@
+import * as Movement from '/js/movement/movement.js';
+
 export class Rotation {
     constructor(params) {
         this.boid = params.boid;
@@ -7,42 +9,41 @@ export class Rotation {
 
         // Rotate quickest direction
         this.inverse = false;
-
         let inverseFrom = [],
             oppositeDir;
 
         switch (this.desired) {
-            case direction.NORTH:
-                inverseFrom = [direction.NORTH_WEST, direction.SOUTH_WEST, direction.WEST];
-                oppositeDir = direction.SOUTH;
+            case Movement.direction.NORTH:
+                inverseFrom = [Movement.direction.NORTH_WEST, Movement.direction.SOUTH_WEST, Movement.direction.WEST];
+                oppositeDir = Movement.direction.SOUTH;
                 break;
-            case direction.EAST:
-                inverseFrom = [direction.NORTH_WEST, direction.NORTH_EAST, direction.NORTH];
-                oppositeDir = direction.WEST;
+            case Movement.direction.EAST:
+                inverseFrom = [Movement.direction.NORTH_WEST, Movement.direction.NORTH_EAST, Movement.direction.NORTH];
+                oppositeDir = Movement.direction.WEST;
                 break;
-            case direction.SOUTH:
-                inverseFrom = [direction.NORTH_EAST, direction.SOUTH_EAST, direction.EAST];
-                oppositeDir = direction.NORTH;
+            case Movement.direction.SOUTH:
+                inverseFrom = [Movement.direction.NORTH_EAST, Movement.direction.SOUTH_EAST, Movement.direction.EAST];
+                oppositeDir = Movement.direction.NORTH;
                 break;
-            case direction.WEST:
-                inverseFrom = [direction.SOUTH_WEST, direction.SOUTH_EAST, direction.SOUTH];
-                oppositeDir = direction.EAST;
+            case Movement.direction.WEST:
+                inverseFrom = [Movement.direction.SOUTH_WEST, Movement.direction.SOUTH_EAST, Movement.direction.SOUTH];
+                oppositeDir = Movement.direction.EAST;
                 break;
-            case direction.NORTH_EAST:
-                inverseFrom = [direction.NORTH_WEST, direction.NORTH, direction.WEST];
-                oppositeDir = direction.SOUTH_WEST;
+            case Movement.direction.NORTH_EAST:
+                inverseFrom = [Movement.direction.NORTH_WEST, Movement.direction.NORTH, Movement.direction.WEST];
+                oppositeDir = Movement.direction.SOUTH_WEST;
                 break;
-            case direction.SOUTH_EAST:
-                inverseFrom = [direction.NORTH_WEST, direction.NORTH, direction.WEST];
-                oppositeDir = direction.NORTH_WEST;
+            case Movement.direction.SOUTH_EAST:
+                inverseFrom = [Movement.direction.NORTH_WEST, Movement.direction.NORTH, Movement.direction.WEST];
+                oppositeDir = Movement.direction.NORTH_WEST;
                 break;
-            case direction.SOUTH_WEST:
-                inverseFrom = [direction.SOUTH_EAST, direction.SOUTH, direction.EAST];
-                oppositeDir = direction.NORTH_EAST;
+            case Movement.direction.SOUTH_WEST:
+                inverseFrom = [Movement.direction.SOUTH_EAST, Movement.direction.SOUTH, Movement.direction.EAST];
+                oppositeDir = Movement.direction.NORTH_EAST;
                 break;
-            case direction.NORTH_WEST:
-                inverseFrom = [direction.SOUTH_WEST, direction.SOUTH, direction.WEST];
-                oppositeDir = direction.SOUTH_EAST;
+            case Movement.direction.NORTH_WEST:
+                inverseFrom = [Movement.direction.SOUTH_WEST, Movement.direction.SOUTH, Movement.direction.WEST];
+                oppositeDir = Movement.direction.SOUTH_EAST;
                 break;
         }
 
@@ -59,7 +60,7 @@ export class Rotation {
 
     execute() {
         // Validate rotation
-        const facing = getDirectionFromChild(this.boid.obj.getWorldPosition(), this.boid.child.getWorldPosition());
+        const facing = Movement.getDirectionFromChild(this.boid.obj.getWorldPosition(), this.boid.child.getWorldPosition());
 
         if (facing == this.desired) {
             //console.log(this.desired + ' | Succesful rotate!');

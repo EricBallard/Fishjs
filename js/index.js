@@ -3,17 +3,20 @@ import {
     SkeletonUtils
 } from "/js/libs/SkeletonUtils.js";
 
-import {
-    SceneUtils
-} from "/js/libs/SceneUtils.js";
-
-
 // Utils
 import * as Boids from '/js/boid.js';
 
 import {
     createMaterialArray
 } from '/js/skybox.js';
+
+
+const getFPS = () =>
+    new Promise(resolve =>
+        requestAnimationFrame(t1 =>
+            requestAnimationFrame(t2 => resolve(1000 / (t2 - t1)))
+        )
+    );
 
 
 // 3D Graphics
@@ -26,11 +29,50 @@ var boids = [],
     rotationManager = [];
 
 // Stats & Info
-var stats, framesRendered = 0;
+var fishSpawned = 0,
+    framesRendered = 0;
 
 var fpsTracker, fishTracker, secondTracker = null;
 
 var xTracker, yTracker, zTracker;
+
+var intendedFPS = -1;
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function getFrameRate() {
+    const loadStatus = document.getElementById('loadStatus');
+    getFPS().then(fps => intendedFPS = Math.floor(fps));
+
+    while (intendedFPS == -1) {
+        console.log('Calculating frame rate...');
+        await sleep(1000);
+    }
+
+    console.log('Frame Rate: ' + intendedFPS);
+    loadStatus.style.display = 'none';
+    initialize();
+}
+
+function fadeIn(element) {
+    var opacity = 0;
+    var intervalID = setInterval(function () {
+        if (opacity < 1) {
+            opacity = opacity + 0.1
+            element.style.opacity = opacity;
+        } else {
+            clearInterval(intervalID);
+
+            const infoStatus = document.getElementById('info');
+
+            if (infoStatus.style.opacity != 0)
+                return;
+            fadeIn(infoStatus);
+        }
+    }, 100);
+}
 
 function initialize() {
     // Create scene and camera
@@ -43,6 +85,7 @@ function initialize() {
         antialias: true,
         alpha: false
     });
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -50,13 +93,15 @@ function initialize() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer.domElement.id = 'canvas';
-
     const body = document.body;
-    body.appendChild(renderer.domElement);
-    body.appendChild((stats = new Stats()).dom);
+
+    // Add 3D scene to DOM
+    const sceneElement = renderer.domElement
+    sceneElement.style.opacity = 0;
+    body.appendChild(sceneElement);
 
     //Test
-     /*
+    /*
     body.addEventListener('click', () => {
         const rm = rotationManager[0];
 
@@ -67,7 +112,6 @@ function initialize() {
     });
     */
 
-
     // Create skybox textured mesh and add to scene
     const materialArray = createMaterialArray({
         threejs: THREE
@@ -77,16 +121,16 @@ function initialize() {
 
     // Add light to scene
     let light = new THREE.PointLight();
-    light.position.set(275, 2400, -1750);
+    light.position.set(275, 5000, -1750);
     scene.add(light);
 
 
     // Configure user-controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-    // controls.minPolarAngle = Math.PI / 1.55;
+    controls.minPolarAngle = Math.PI / 1.55;
     controls.enabled = true;
 
-    // controls.enablePan = false;
+    //controls.enablePan = false;
     // controls.autoRotate = true;
     controls.rotateSpeed = 0.45;
     controls.autoRotateSpeed = 0.30;
@@ -104,11 +148,16 @@ function initialize() {
     // Register fps counter
     fpsTracker = document.getElementById('fpsCount');
     fishTracker = document.getElementById('fishCount');
+
     xTracker = document.getElementById('x');
     yTracker = document.getElementById('y');
     zTracker = document.getElementById('z');
 
     loadAnimatedModel();
+
+
+    // Fade in 3D scene
+    fadeIn(sceneElement);
 
     // Render-loop
     animate();
@@ -172,13 +221,15 @@ function loadModel() {
             fish.updateMatrixWorld();
             scene.add(fish);
 
+
             // Attach point to determine direction
             const directionPoint = new THREE.Mesh(new THREE.Vector3(0, 0, 0));
             directionPoint.position.set(x + 50, y, z);
             directionPoint.visible = false;
 
             scene.add(directionPoint);
-            SceneUtils.attach(directionPoint, scene, fish);
+            fish.attach(directionPoint, scene, fish);
+
 
             // Add to boids
             // Create boid object
@@ -193,6 +244,7 @@ function loadModel() {
             });
 
 
+            fishSpawned += 1;
             // Store boid in array
             boids.push(boid);
         }
@@ -204,32 +256,32 @@ function countFPS() {
     const now = new Date().getTime();
     if (secondTracker == null) secondTracker = now;
     const newSecond = now - secondTracker >= 1000;
-    const fish = boids[0];
 
-    if (fish == undefined)
-        return;
+    //const fish = boids[0];
+    // if (fish == undefined)
+    //    return;
+    // const pos = fish.velocity;
 
-    const pos = fish.velocity;
     if (newSecond) {
         // Update FPS
         fpsTracker.innerText = framesRendered;
+        fishTracker.innerText = fishSpawned;
         secondTracker = now;
-        framesRendered = 1;
-    } else {
-        framesRendered += 1;
+        framesRendered = 0;
     }
+
+    framesRendered += 1;
 
     // Seems to be standarized however needs to be detected/hotfixed for negative rotation
     // fish.obj.getWorldQuaternion().y
 
-    const pp = fish.obj.getWorldPosition();
-    const cp = fish.child.getWorldPosition();
+    // const pp = fish.obj.getWorldPosition();
+    //  const cp = fish.child.getWorldPosition();
+    // const dir = getDirectionFromChild(pp, cp);
 
-    const dir = getDirectionFromChild(pp, cp);
-
-    xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
-    yTracker.innerText = "Y: " + Math.round(camera.position.y)  + "  | (" + 0 + ") Facing: " + dir;;
-    zTracker.innerText = "Z: " + Math.round(camera.position.z);
+    //  xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
+    //  yTracker.innerText = "Y: " + Math.round(camera.position.y) + "  | (" + 0 + ") Facing: " + dir;;
+    // zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
 
     renderer.render(scene, camera);
@@ -274,8 +326,6 @@ function animate() {
             delta = delta % interval;
         }
 
-        stats.update();
-
         // FPS counter
         countFPS();
 
@@ -284,4 +334,4 @@ function animate() {
     });
 }
 
-initialize();
+getFrameRate();

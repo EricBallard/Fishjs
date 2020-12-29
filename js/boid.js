@@ -1,4 +1,5 @@
 import * as Managers from '/js/movement/managers.js';
+import * as Movement from '/js/movement/movement.js';
 
 function getSeed() {
     let seed = (Math.random() * 10);
@@ -50,7 +51,7 @@ export class Entity {
             }
         }
 
-        if (pos.y >= 2000 || (inverse = pos.y <= -2000)) {
+        if (pos.y >= 2000 || (inverse = pos.y <= 100)) {
             if (inverse ? vy < 0 : vy >= 0) {
                 this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
             }
@@ -74,12 +75,12 @@ export class Entity {
         const position = this.obj.position;
 
         const nearBorder = (position.x >= 1750 || position.x <= -1750 ||
-            position.y >= 1750 || position.y <= -1750 ||
+            position.y >= 1750 || position.y <= 100 ||
             position.z >= 1750 || position.z <= -1750);
 
         let othersInPerception = 0;
 
-        main: for (let other of boids) {
+         for (let other of boids) {
             if (other == this)
                 continue;
 
@@ -158,8 +159,8 @@ export class Entity {
                 return;
         }
 
-        const facingDirection = getDirectionFromChild(this.obj.getWorldPosition(), this.child.getWorldPosition());
-        const desiredDirection = velocityToDirection(this.velocity);
+        const facingDirection = Movement.getDirectionFromChild(this.obj.getWorldPosition(), this.child.getWorldPosition());
+        const desiredDirection = Movement.velocityToDirection(this.velocity);
 
         if (facingDirection != desiredDirection) {
             //console.log('Facing: ' + facingDirection + ' | Desired: ' + desiredDirection);
