@@ -11,6 +11,15 @@ import {
 } from '/js/skybox.js';
 
 
+import {
+    ParticleSystem
+} from '/js/particles.js';
+
+// Audio
+const audio = new Audio('/resources/ambience_sound_compressed.wav');
+audio.volume = 0.2;
+audio.loop = true;
+
 const getFPS = () =>
     new Promise(resolve =>
         requestAnimationFrame(t1 =>
@@ -19,8 +28,14 @@ const getFPS = () =>
     );
 
 
+// DOM elements
+var sceneElement;
+
 // 3D Graphics
 var scene, camera, renderer, controls;
+
+// Bubble particles
+var particles = [];
 
 // Boid data
 var boids = [],
@@ -53,6 +68,7 @@ async function getFrameRate() {
 
     console.log('Frame Rate: ' + intendedFPS);
     loadStatus.style.display = 'none';
+
     initialize();
 }
 
@@ -64,14 +80,13 @@ function fadeIn(element) {
             element.style.opacity = opacity;
         } else {
             clearInterval(intervalID);
-
             const infoStatus = document.getElementById('info');
 
             if (infoStatus.style.opacity != 0)
                 return;
             fadeIn(infoStatus);
         }
-    }, 100);
+    }, 50);
 }
 
 function initialize() {
@@ -96,21 +111,32 @@ function initialize() {
     const body = document.body;
 
     // Add 3D scene to DOM
-    const sceneElement = renderer.domElement
+    sceneElement = renderer.domElement
     sceneElement.style.opacity = 0;
     body.appendChild(sceneElement);
 
     //Test
-    /*
-    body.addEventListener('click', () => {
-        const rm = rotationManager[0];
 
-        if (rm != undefined) {
-            rm.inverse = !rm.inverse;
-            console.log('Inversed: ' + rm.inverse);
-        }
+    body.addEventListener('click', () => {
+        // const rm = rotationManager[0];
+
+        // if (rm != undefined) {
+        //    rm.inverse = !rm.inverse;
+        //    console.log('Inversed: ' + rm.inverse);
+        // }
+
+        if (audio.paused)
+            audio.play();
     });
-    */
+
+
+
+    // Init particle system
+    particles = new ParticleSystem({
+        threejs: THREE,
+        parent: scene,
+        camera: camera,
+    });
 
     // Create skybox textured mesh and add to scene
     const materialArray = createMaterialArray({
@@ -121,13 +147,13 @@ function initialize() {
 
     // Add light to scene
     let light = new THREE.PointLight();
-    light.position.set(275, 5000, -1750);
+    light.position.set(2800, 3000, -2400);
     scene.add(light);
 
 
     // Configure user-controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.minPolarAngle = Math.PI / 1.55;
+    // controls.minPolarAngle = Math.PI / 1.55;
     controls.enabled = true;
 
     //controls.enablePan = false;
@@ -156,8 +182,6 @@ function initialize() {
     loadAnimatedModel();
 
 
-    // Fade in 3D scene
-    fadeIn(sceneElement);
 
     // Render-loop
     animate();
@@ -248,6 +272,9 @@ function loadModel() {
             // Store boid in array
             boids.push(boid);
         }
+
+        // Fade in 3D scene
+        fadeIn(sceneElement);
     }, 10);
 }
 
@@ -279,9 +306,9 @@ function countFPS() {
     //  const cp = fish.child.getWorldPosition();
     // const dir = getDirectionFromChild(pp, cp);
 
-    //  xTracker.innerText = "X: " + Math.round(camera.position.x) + "  |  Moving: " + velocityToDirection(fish.velocity);
-    //  yTracker.innerText = "Y: " + Math.round(camera.position.y) + "  | (" + 0 + ") Facing: " + dir;;
-    // zTracker.innerText = "Z: " + Math.round(camera.position.z);
+    //xTracker.innerText = "X: " + Math.round(camera.position.x);// + "  |  Moving: " + velocityToDirection(fish.velocity);
+    // yTracker.innerText = "Y: " + Math.round(camera.position.y);// + "  | (" + 0 + ") Facing: " + dir;;
+    //zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
 
     renderer.render(scene, camera);
@@ -291,6 +318,8 @@ let clock = new THREE.Clock();
 let delta = 0;
 let interval = 1 / 30;
 
+var previousFrame;
+
 function animate() {
     // Auto-rotate/update camera
     controls.update();
@@ -298,7 +327,7 @@ function animate() {
     // Render scene
     renderer.render(scene, camera);
 
-    window.requestAnimationFrame(() => {
+    window.requestAnimationFrame((frame) => {
         /*
         const fish = boids[0];
 
@@ -320,6 +349,14 @@ function animate() {
 
         // Update fishses' position
         if (delta > interval) {
+            // Update particles
+
+            if (particles) {
+                const timeElapsed = (frame - previousFrame) * 0.001;
+                particles.Step(timeElapsed);
+                previousFrame = frame;
+            }
+            // Update animations
             for (let i = 0; i < mixers.length; i++) mixers[i].update((Math.random() * 20 + 10) / 1000);
 
             Boids.update(boids, bounceManager, rotationManager);

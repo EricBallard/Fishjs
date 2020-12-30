@@ -47,9 +47,10 @@
 /*
   Description and information
 */
+
 .info {
-  top: 0px;
   left: 25px;
+  bottom: 0px;
   font-size: 18px;
 
   opacity: 0;
@@ -59,7 +60,7 @@
 
 .debug {
   left: 15px;
-  bottom: 0px;
+  top: 0px;
 
   color: white;
   position: absolute;
@@ -68,7 +69,7 @@
 .link {
   text-decoration-thickness: 1px;
 
-  color: #252525;
+  color: #757575;
   text-decoration-style: dotted;
   text-decoration-line: underline;
 }
