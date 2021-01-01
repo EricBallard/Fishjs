@@ -56,33 +56,10 @@
 
     <script src="/js/libs/inflate.min.js"></script>
     <script src="/js/libs/FBXLoader.js"></script>
-    <script src="/js/libs/GLTFLoader.js"></script>
 
     <!-- Core -->
     <script type="module" src="/js/index.js"></script>
-
-    <script type="text/javascript">
-        var opacity = 0;
-        var intervalID = 0;
-        window.onload = fadeIn;
-
-        function fadeIn() {
-            setInterval(show, 1000);
-        }
-
-        function show() {
-            var body = document.getElementById("loadStatus");
-            opacity = Number(window.getComputedStyle(body)
-                .getPropertyValue("opacity"));
-            if (opacity < 1) {
-                opacity = opacity + 0.1;
-                body.style.opacity = opacity
-            } else {
-                clearInterval(intervalID);
-            }
-        }
-    </script>
-
 </body>
+
 
 </html>

@@ -72,7 +72,7 @@ async function getFrameRate() {
     initialize();
 }
 
-function fadeIn(element) {
+function fadeIn(element, slowFade) {
     var opacity = 0;
     var intervalID = setInterval(function () {
         if (opacity < 1) {
@@ -84,9 +84,9 @@ function fadeIn(element) {
 
             if (infoStatus.style.opacity != 0)
                 return;
-            fadeIn(infoStatus);
+            fadeIn(infoStatus, true);
         }
-    }, 50);
+    }, (slowFade ? 100 : 50));
 }
 
 function initialize() {
@@ -132,11 +132,11 @@ function initialize() {
 
 
     // Init particle system
-    particles = new ParticleSystem({
-        threejs: THREE,
-        parent: scene,
-        camera: camera,
-    });
+  //  particles = new ParticleSystem({
+  //      threejs: THREE,
+  //      parent: scene,
+  //      camera: camera,
+  //  });
 
     // Create skybox textured mesh and add to scene
     const materialArray = createMaterialArray({
@@ -274,7 +274,7 @@ function loadModel() {
         }
 
         // Fade in 3D scene
-        fadeIn(sceneElement);
+        fadeIn(sceneElement, false);
     }, 10);
 }
 
@@ -351,11 +351,12 @@ function animate() {
         if (delta > interval) {
             // Update particles
 
-            if (particles) {
-                const timeElapsed = (frame - previousFrame) * 0.001;
-                particles.Step(timeElapsed);
-                previousFrame = frame;
-            }
+            //if (particles) {
+            //    const timeElapsed = (frame - previousFrame) * 0.001;
+            //    particles.Step(timeElapsed);
+            //    previousFrame = frame;
+            // }
+            
             // Update animations
             for (let i = 0; i < mixers.length; i++) mixers[i].update((Math.random() * 20 + 10) / 1000);
 

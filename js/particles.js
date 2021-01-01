@@ -1,4 +1,3 @@
-
 // Import shaders module
 import * as Shaders from '/js/shaders.js';
 
