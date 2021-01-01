@@ -3,12 +3,18 @@ import {
     SkeletonUtils
 } from "/js/libs/SkeletonUtils.js";
 
+import {
+    Lensflare,
+    LensflareElement
+} from '/js/libs/Lensflare.js';
+
 // Utils
 import * as Boids from '/js/boid.js';
 
 import {
     createMaterialArray
 } from '/js/skybox.js';
+
 
 
 import {
@@ -98,7 +104,7 @@ function initialize() {
     // Configure renderer and add to DOM
     renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: false
+        alpha: true
     });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -115,8 +121,6 @@ function initialize() {
     sceneElement.style.opacity = 0;
     body.appendChild(sceneElement);
 
-    //Test
-
     body.addEventListener('click', () => {
         // const rm = rotationManager[0];
 
@@ -132,11 +136,11 @@ function initialize() {
 
 
     // Init particle system
-  //  particles = new ParticleSystem({
-  //      threejs: THREE,
-  //      parent: scene,
-  //      camera: camera,
-  //  });
+    //  particles = new ParticleSystem({
+    //      threejs: THREE,
+    //      parent: scene,
+    //      camera: camera,
+    //  });
 
     // Create skybox textured mesh and add to scene
     const materialArray = createMaterialArray({
@@ -146,10 +150,7 @@ function initialize() {
     scene.add(new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materialArray));
 
     // Add light to scene
-    let light = new THREE.PointLight();
-    light.position.set(2800, 3000, -2400);
-    scene.add(light);
-
+    addLight(0.08, 0.8, 0.5, 1000, 2450, 2000);
 
     // Configure user-controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -181,8 +182,6 @@ function initialize() {
 
     loadAnimatedModel();
 
-
-
     // Render-loop
     animate();
 }
@@ -200,6 +199,29 @@ var cachedModel;
 
 function onError() {
     console.log('ERROR LOADING MODEL!');
+}
+
+function addLight(h, s, l, x, y, z) {
+    let light = new THREE.PointLight();
+    light.position.set(x, y, z);
+    scene.add(light);
+
+    const textureLoader = new THREE.TextureLoader();
+    const textureFlare0 = textureLoader.load('/resources/lensflare/lensflare0.png');
+    const textureFlare3 = textureLoader.load('/resources/lensflare/lensflare3.png');
+
+    light = new THREE.PointLight(0xffffff, 1.5, 2000);
+    light.color.setHSL(h, s, l);
+    light.position.set(x, y, z);
+    scene.add(light);
+
+    const lensflare = new Lensflare();
+    lensflare.addElement(new LensflareElement(textureFlare0, 700, 0, light.color));
+    lensflare.addElement(new LensflareElement(textureFlare3, 60, 0.6));
+    lensflare.addElement(new LensflareElement(textureFlare3, 70, 0.7));
+    lensflare.addElement(new LensflareElement(textureFlare3, 120, 0.9));
+    lensflare.addElement(new LensflareElement(textureFlare3, 70, 1));
+    light.add(lensflare);
 }
 
 function onProgress(xhr) {
@@ -306,8 +328,8 @@ function countFPS() {
     //  const cp = fish.child.getWorldPosition();
     // const dir = getDirectionFromChild(pp, cp);
 
-    //xTracker.innerText = "X: " + Math.round(camera.position.x);// + "  |  Moving: " + velocityToDirection(fish.velocity);
-    // yTracker.innerText = "Y: " + Math.round(camera.position.y);// + "  | (" + 0 + ") Facing: " + dir;;
+    //xTracker.innerText = "X: " + Math.round(camera.position.x); // + "  |  Moving: " + velocityToDirection(fish.velocity);
+    //yTracker.innerText = "Y: " + Math.round(camera.position.y); // + "  | (" + 0 + ") Facing: " + dir;;
     //zTracker.innerText = "Z: " + Math.round(camera.position.z);
 
 
@@ -356,7 +378,7 @@ function animate() {
             //    particles.Step(timeElapsed);
             //    previousFrame = frame;
             // }
-            
+
             // Update animations
             for (let i = 0; i < mixers.length; i++) mixers[i].update((Math.random() * 20 + 10) / 1000);
 
