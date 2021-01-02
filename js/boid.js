@@ -23,14 +23,8 @@ export class Entity {
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
-        // Auto-rotate RE-TODO?
-        /*
-        new Managers.Rotation({
-            boid: this,
-            desired: velocityToDirection(this.velocity),
-            instant: true
-        });
-        */
+        // Auto-rotate at start
+        rotateTo(Movement.velocityToDirection(this.velocity), this.obj);
 
         // VIDEO @ 21:50
     }
@@ -80,7 +74,7 @@ export class Entity {
 
         let othersInPerception = 0;
 
-         for (let other of boids) {
+        for (let other of boids) {
             if (other == this)
                 continue;
 
@@ -201,4 +195,41 @@ export function update(boids, bounceManager, rotationManager) {
         if (manager != undefined && manager.execute())
             rotationManager.splice(index, 1);
     }
+}
+
+function rotateTo(direction, obj) {
+    var seed = Math.random() * 250 / 1000,
+        desiredDegree;
+
+    switch (direction) {
+        case Movement.direction.NORTH:
+            desiredDegree = seed + 0.875;
+            if (desiredDegree > 1.0) desiredDegree = -1 + (desiredDegree - 1.0);
+            break;
+        case Movement.direction.NORTH_EAST:
+            desiredDegree = seed + 0.625;
+            break;
+        case Movement.direction.EAST:
+            desiredDegree = seed + 0.375;
+            break;
+        case Movement.direction.SOUTH_EAST:
+            desiredDegree = seed + 0.125;
+            break;
+        case Movement.direction.SOUTH:
+            desiredDegree = seed + -0.125;
+            break;
+        case Movement.direction.SOUTH_WEST:
+            desiredDegree = seed + -0.375;
+            break;
+        case Movement.direction.WEST:
+            desiredDegree = seed + -0.625;
+            break;
+        case Movement.direction.NORTH_WEST:
+            desiredDegree = seed + -0.875;
+            break;
+    }
+
+    var quaternion = new THREE.Quaternion();
+    quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * desiredDegree);
+    obj.applyQuaternion(quaternion);
 }

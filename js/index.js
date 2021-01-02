@@ -8,18 +8,16 @@ import {
     LensflareElement
 } from '/js/libs/Lensflare.js';
 
+import {
+    Water
+} from '/js/libs/Water.js';
+
 // Utils
 import * as Boids from '/js/boid.js';
 
 import {
     createMaterialArray
 } from '/js/skybox.js';
-
-
-
-import {
-    ParticleSystem
-} from '/js/particles.js';
 
 // Audio
 const audio = new Audio('/resources/ambience_sound_compressed.wav');
@@ -39,9 +37,6 @@ var sceneElement;
 
 // 3D Graphics
 var scene, camera, renderer, controls;
-
-// Bubble particles
-var particles = [];
 
 // Boid data
 var boids = [],
@@ -133,15 +128,6 @@ function initialize() {
             audio.play();
     });
 
-
-
-    // Init particle system
-    //  particles = new ParticleSystem({
-    //      threejs: THREE,
-    //      parent: scene,
-    //      camera: camera,
-    //  });
-
     // Create skybox textured mesh and add to scene
     const materialArray = createMaterialArray({
         threejs: THREE
@@ -150,7 +136,12 @@ function initialize() {
     scene.add(new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materialArray));
 
     // Add light to scene
-    addLight(0.08, 0.8, 0.5, 1000, 2450, 2000);
+
+    /*
+        FIND NEW LIBRARARY THIS SHIT IS TAAAAXING
+        Makes mobile nearly unusable 
+    */
+    addLight(0.01, 0.1, 0.1, 1000, 999, 1750);
 
     // Configure user-controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -182,6 +173,8 @@ function initialize() {
 
     loadAnimatedModel();
 
+    addWaterPhysFX();
+
     // Render-loop
     animate();
 }
@@ -206,22 +199,22 @@ function addLight(h, s, l, x, y, z) {
     light.position.set(x, y, z);
     scene.add(light);
 
-    const textureLoader = new THREE.TextureLoader();
-    const textureFlare0 = textureLoader.load('/resources/lensflare/lensflare0.png');
-    const textureFlare3 = textureLoader.load('/resources/lensflare/lensflare3.png');
+   // const textureLoader = new THREE.TextureLoader();
+   // const textureFlare0 = textureLoader.load('/resources/lensflare/lensflare0.png');
+  //  const textureFlare3 = textureLoader.load('/resources/lensflare/lensflare3.png');
 
-    light = new THREE.PointLight(0xffffff, 1.5, 2000);
-    light.color.setHSL(h, s, l);
-    light.position.set(x, y, z);
-    scene.add(light);
+    //light = new THREE.PointLight(0xffffff, 1.5, 2000);
+    // light.color.setHSL(h, s, l);
+    //light.position.set(x, y, z);
+    //scene.add(light);
 
-    const lensflare = new Lensflare();
-    lensflare.addElement(new LensflareElement(textureFlare0, 700, 0, light.color));
-    lensflare.addElement(new LensflareElement(textureFlare3, 60, 0.6));
-    lensflare.addElement(new LensflareElement(textureFlare3, 70, 0.7));
-    lensflare.addElement(new LensflareElement(textureFlare3, 120, 0.9));
-    lensflare.addElement(new LensflareElement(textureFlare3, 70, 1));
-    light.add(lensflare);
+   // const lensflare = new Lensflare();
+    //lensflare.addElement(new LensflareElement(textureFlare0, 700, 0, light.color));
+    //lensflare.addElement(new LensflareElement(textureFlare3, 60, 0.6));
+   // lensflare.addElement(new LensflareElement(textureFlare3, 70, 0.7));
+    //lensflare.addElement(new LensflareElement(textureFlare3, 120, 0.9));
+    //lensflare.addElement(new LensflareElement(textureFlare3, 70, 1));
+   // light.add(lensflare);
 }
 
 function onProgress(xhr) {
@@ -300,6 +293,20 @@ function loadModel() {
     }, 10);
 }
 
+function addWaterPhysFX() {
+    const waterGeometry = new THREE.PlaneBufferGeometry(4600, 4600);
+    const flowMap = new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg');
+
+    const water = new Water(waterGeometry, {
+        textureWidth: 1024,
+        textureHeight: 1024,
+        flowMap: flowMap
+    });
+
+    water.position.y = 1400;
+    water.rotation.x = Math.PI * 0.5;
+    scene.add(water);
+}
 
 function countFPS() {
     const now = new Date().getTime();
@@ -371,14 +378,6 @@ function animate() {
 
         // Update fishses' position
         if (delta > interval) {
-            // Update particles
-
-            //if (particles) {
-            //    const timeElapsed = (frame - previousFrame) * 0.001;
-            //    particles.Step(timeElapsed);
-            //    previousFrame = frame;
-            // }
-
             // Update animations
             for (let i = 0; i < mixers.length; i++) mixers[i].update((Math.random() * 20 + 10) / 1000);
 

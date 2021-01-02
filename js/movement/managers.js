@@ -34,7 +34,7 @@ export class Rotation {
                 oppositeDir = Movement.direction.SOUTH_WEST;
                 break;
             case Movement.direction.SOUTH_EAST:
-                inverseFrom = [Movement.direction.NORTH_WEST, Movement.direction.NORTH, Movement.direction.WEST];
+                inverseFrom = [Movement.direction.NORTH_EAST, Movement.direction.NORTH, Movement.direction.WEST];
                 oppositeDir = Movement.direction.NORTH_WEST;
                 break;
             case Movement.direction.SOUTH_WEST:
