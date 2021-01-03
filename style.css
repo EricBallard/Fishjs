@@ -47,15 +47,37 @@
 /*
   Description and information
 */
-
 .info {
-  top: 0px;
-  left: 25px;
-  font-size: 18px;
-
   opacity: 0;
-  color: white;
+
+  top: 0px;
+  right: 25px;
+  font-size: 18px;
   position: absolute;
+
+  color: white;
+  text-align: right;
+
+  /*
+    Prevent text selection and allow user to control scene
+    when clicking in info div region
+  */
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -khtml-user-select: none;
+  pointer-events: none;
+
+}
+.link {
+  text-decoration-thickness: 1px;
+
+  color: #505050;
+  text-decoration-style: dotted;
+  text-decoration-line: underline;
+  pointer-events: auto;
+
 }
 
 .debug {
@@ -66,15 +88,10 @@
   position: absolute;
 }
 
-.link {
-  text-decoration-thickness: 1px;
 
-  color: #757575;
-  text-decoration-style: dotted;
-  text-decoration-line: underline;
-}
 
-.fpsCount, .fishCount {
+.fpsCount,
+.fishCount {
   font-size: 1.25rem;
 }
 
