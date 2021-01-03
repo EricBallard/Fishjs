@@ -64,7 +64,10 @@ var Reflector = function ( geometry, options ) {
 	var material = new ShaderMaterial( {
 		uniforms: UniformsUtils.clone( shader.uniforms ),
 		fragmentShader: shader.fragmentShader,
-		vertexShader: shader.vertexShader
+		vertexShader: shader.vertexShader,
+		clipping: true,
+		clipShadows: true,
+		clippingPlanes: [ new THREE.Plane( new THREE.Vector3( 0, 0, -1 ), 0.5 ) ]
 	} );
 
 	material.uniforms[ "tDiffuse" ].value = renderTarget.texture;
@@ -217,10 +220,13 @@ Reflector.ReflectorShader = {
 	},
 
 	vertexShader: [
+		'#include <clipping_planes_pars_vertex>',
+
 		'uniform mat4 textureMatrix;',
 		'varying vec4 vUv;',
 
 		'void main() {',
+		'	#include <begin_vertex>',
 
 		'	vUv = textureMatrix * vec4( position, 1.0 );',
 
@@ -230,6 +236,8 @@ Reflector.ReflectorShader = {
 	].join( '\n' ),
 
 	fragmentShader: [
+		'#include <clipping_planes_pars_fragment>',
+
 		'uniform vec3 color;',
 		'uniform sampler2D tDiffuse;',
 		'varying vec4 vUv;',
@@ -247,6 +255,7 @@ Reflector.ReflectorShader = {
 		'}',
 
 		'void main() {',
+		'	#include <clipping_planes_fragment>',
 
 		'	vec4 base = texture2DProj( tDiffuse, vUv );',
 		'	gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );',

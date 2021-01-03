@@ -51,12 +51,12 @@
   opacity: 0;
 
   top: 0px;
-  right: 25px;
+  left: 25px;
   font-size: 18px;
   position: absolute;
 
   color: white;
-  text-align: right;
+  text-align: left;
 
   /*
     Prevent text selection and allow user to control scene
@@ -108,6 +108,6 @@ body {
   width: 100%;
   height: 100%;
   position: absolute;
-  background: #fff;
+  background: #000000;
   overscroll-behavior: none;
 }

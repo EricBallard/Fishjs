@@ -64,7 +64,10 @@ var Refractor = function ( geometry, options ) {
 		uniforms: UniformsUtils.clone( shader.uniforms ),
 		vertexShader: shader.vertexShader,
 		fragmentShader: shader.fragmentShader,
-		transparent: true // ensures, refractors are drawn from farthest to closest
+		transparent: true, // ensures, refractors are drawn from farthest to closest
+		clipping: true,
+		clipShadows: true,
+		clippingPlanes: [ new THREE.Plane( new THREE.Vector3( 0, 0, -1 ), 0.5 ) ]
 	} );
 
 	this.material.uniforms[ "color" ].value = color;
@@ -286,12 +289,14 @@ Refractor.RefractorShader = {
 	},
 
 	vertexShader: [
+		'#include <clipping_planes_pars_vertex>',
 
 		'uniform mat4 textureMatrix;',
 
 		'varying vec4 vUv;',
 
 		'void main() {',
+		'	#include <begin_vertex>',
 
 		'	vUv = textureMatrix * vec4( position, 1.0 );',
 
@@ -302,6 +307,7 @@ Refractor.RefractorShader = {
 	].join( '\n' ),
 
 	fragmentShader: [
+		'#include <clipping_planes_pars_fragment>',
 
 		'uniform vec3 color;',
 		'uniform sampler2D tDiffuse;',
@@ -321,6 +327,7 @@ Refractor.RefractorShader = {
 		'}',
 
 		'void main() {',
+		'	#include <clipping_planes_fragment>',
 
 		'	vec4 base = texture2DProj( tDiffuse, vUv );',
 

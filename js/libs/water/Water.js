@@ -14,10 +14,10 @@ import {
 } from "/js/libs/three.module.js";
 import {
 	Reflector
-} from "/js/libs/Reflector.js";
+} from "/js/libs/water/Reflector.js";
 import {
 	Refractor
-} from "/js/libs/Refractor.js";
+} from "/js/libs/water/Refractor.js";
 
 /**
  * References:
@@ -97,12 +97,14 @@ var Water = function (geometry, options) {
 			UniformsLib['fog'],
 			shader.uniforms
 		]),
-
 		vertexShader: shader.vertexShader,
 		fragmentShader: shader.fragmentShader,
 		transparent: true,
 		opacity: 0.01,
-		fog: true
+		fog: true,
+		clipping: true,
+		clipShadows: true,
+		clippingPlanes: [new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.5)]
 	});
 
 
@@ -265,6 +267,7 @@ Water.WaterShader = {
 		'#include <common>',
 		'#include <fog_pars_vertex>',
 		'#include <logdepthbuf_pars_vertex>',
+		'#include <clipping_planes_pars_vertex>',
 
 		'uniform mat4 textureMatrix;',
 
@@ -273,6 +276,7 @@ Water.WaterShader = {
 		'varying vec3 vToEye;',
 
 		'void main() {',
+		'	#include <begin_vertex>',
 
 		'	vUv = uv;',
 		'	vCoord = textureMatrix * vec4( position, 1.0 );',
@@ -295,6 +299,7 @@ Water.WaterShader = {
 		'#include <common>',
 		'#include <fog_pars_fragment>',
 		'#include <logdepthbuf_pars_fragment>',
+		'#include <clipping_planes_pars_fragment>',
 
 		'uniform sampler2D tReflectionMap;',
 		'uniform sampler2D tRefractionMap;',
@@ -316,7 +321,7 @@ Water.WaterShader = {
 		'varying vec3 vToEye;',
 
 		'void main() {',
-
+		'	#include <clipping_planes_fragment>',
 		'	#include <logdepthbuf_fragment>',
 
 		'	float flowMapOffset0 = config.x;',

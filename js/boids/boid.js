@@ -1,5 +1,5 @@
-import * as Managers from '/js/movement/managers.js';
-import * as Movement from '/js/movement/movement.js';
+import * as Managers from '/js/boids/managers.js';
+import * as Movement from '/js/boids/movement.js';
 
 function getSeed() {
     let seed = (Math.random() * 10);
