@@ -5,6 +5,7 @@ import {
     update
 } from '/js/boids/boid.js';
 
+
 // Track time between frame renders - used to limit animation framte
 let clock = new THREE.Clock(),
     rotatingCamera = false;
@@ -15,17 +16,27 @@ let desiredFrameRate = -1,
 
 // Process updates
 export function render(params) {
-    // Auto-rotate/update camera
+    // Auto-rotate/update controls and camera
     params.controls.update();
 
-    // Render scene from cameras perspective
-    params.renderer.render(params.scene, params.camera);
+    // Render scene with post-processing
+    params.composer.render();
 
     window.requestAnimationFrame(() => {
 
         const fish = params.boids[0];
 
         if (fish != undefined) {
+            // Outline obj
+            if (params.outLine.selectedObjects.length < 1) {
+                console.log('Adding selected obj!!!');
+
+                const array = [];
+                array.push(fish.obj);
+                params.outLine.selectedObjects = array;
+            }
+
+
             params.camera.updateMatrix();
             params.camera.updateMatrixWorld();
             var frustum = new THREE.Frustum();
@@ -34,49 +45,39 @@ export function render(params) {
             const pos = fish.obj.position;
             if (!frustum.containsPoint(pos)) {
                 // Fish is not visible
-
-                if (rotatingCamera) {
-                    console.log("Fish is not visible");
-
+                if (!rotatingCamera) {
                     const controls = params.controls,
                         camera = params.camera;
 
+                    rotatingCamera = true;
                     controls.enabled = false;
                     controls.update();
 
-                    rotatingCamera = true;
-
                     gsap.to(camera, {
-                        duration: 2,
+                        duration: 4,
                         zoom: camera.zoom,
-                        onUpdate: function () {
-                            camera.updateProjectionMatrix();
-                        }
+                        onUpdate: () => camera.updateProjectionMatrix()
                     });
 
-                    gsap.to(controls.target, {
-                        duration: 2,
-                        x: pos.x,
-                        y: pos.y,
-                        z: pos.z,
-
-                        onUpdate: function () {
+                    gsap.to(camera.position, {
+                        duration: 4,
+                        x: pos.x < 0 ? Math.abs(pos.x) : pos.x - (pos.x * 2),
+                        y: pos.y < 0 ? Math.abs(pos.y) : pos.y - (pos.y * 2),
+                        z: pos.z < 0 ? Math.abs(pos.z) : pos.z - (pos.z * 2),
+                        onUpdate: () => controls.update(),
+                        onComplete: () => {
+                            rotatingCamera = false;
+                            controls.enabled = true;
                             controls.update();
                         }
                     });
-
-                    console.log("finished roateing...?");
-                    rotatingCamera = false;
-                    controls.enabled = true;
-                    controls.update();
-
                 }
-                //params.controls.target.set(pos.x, pos.y, pos.z);
             }
         }
 
-
         delta += clock.getDelta();
+
+        // TODO: update anims via gsap
 
         // Update fishses' position
         if (delta > interval) {
@@ -88,7 +89,7 @@ export function render(params) {
         }
 
         // FPS counter
-        countFPS(params.fps, params.fish, params.spawned);
+        countFPS(params.fps, params.fish, params.spawned, params.camera, params.x, params.y, params.z);
 
         // Loop
         render(params);
@@ -135,7 +136,7 @@ const getDesired = () =>
 let framesRendered = 0,
     secondTracker = null;
 
-export function countFPS(fps, fish, spawned) {
+export function countFPS(fps, fish, spawned, camera, x, y, z) {
     const now = new Date().getTime();
     if (secondTracker == null) secondTracker = now;
     const newSecond = now - secondTracker >= 1000;
@@ -162,7 +163,7 @@ export function countFPS(fps, fish, spawned) {
     //  const cp = fish.child.getWorldPosition();
     // const dir = getDirectionFromChild(pp, cp);
 
-    //xTracker.innerText = "X: " + Math.round(camera.position.x); // + "  |  Moving: " + velocityToDirection(fish.velocity);
-    //yTracker.innerText = "Y: " + Math.round(camera.position.y); // + "  | (" + 0 + ") Facing: " + dir;;
-    //zTracker.innerText = "Z: " + Math.round(camera.position.z);
+    x.innerText = "X: " + Math.round(camera.position.x); // + "  |  Moving: " + velocityToDirection(fish.velocity);
+    y.innerText = "Y: " + Math.round(camera.position.y); // + "  | (" + 0 + ") Facing: " + dir;;
+    z.innerText = "Z: " + Math.round(camera.position.z);
 }

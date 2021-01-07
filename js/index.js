@@ -13,6 +13,13 @@ import {
     Water
 } from '/js/libs/water/Water.js';
 
+import {
+    OutlinePass
+} from '/js/libs/post/OutlinePass.js';
+
+import {
+    FXAAShader
+} from '/js/libs/post/FXAAShader.js';
 
 /*
   3D Graphics
@@ -54,6 +61,40 @@ export function initialize() {
     const sceneElement = renderer.domElement
     sceneElement.style.opacity = 0;
 
+    // Post-processesing
+    const composer = new THREE.EffectComposer(renderer);
+
+    const renderPass = new THREE.RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+    composer.addPass(outlinePass);
+
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load('/resources/tri_pattern.jpg', function (texture) {
+
+        outlinePass.patternTexture = texture;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+
+    });
+
+    const effectFXAA = new THREE.ShaderPass(FXAAShader);
+    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+    composer.addPass(effectFXAA);
+
+
+    /*
+    const outLine = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+
+    outLine.edgeStrength = 3.0;
+    outLine.edgeGlow = 0.0;
+    outLine.edgeThickness = 4.0;
+    outLine.pulsePeriod = 0;
+
+    composer.addPass(outLine);
+    */
+
     // Configure user-controls
     const controls = new THREE.OrbitControls(camera, sceneElement);
     controls.enabled = true;
@@ -79,6 +120,8 @@ export function initialize() {
     const appInfo = {
         scene: scene,
         camera: camera,
+        outLine: outlinePass,
+        composer: composer,
         renderer: renderer,
         controls: controls,
         element: sceneElement,
@@ -90,7 +133,12 @@ export function initialize() {
 
         spawned: fishSpawned,
         fish: fishTracker,
-        fps: fpsTracker
+        fps: fpsTracker,
+
+
+        x: xTracker,
+        y: yTracker,
+        z: zTracker
     };
 
     // Create skybox textured mesh and add to scene

@@ -5,15 +5,7 @@ import {
 import * as Boids from '/js/boids/boid.js';
 
 // Cache
-var cachedModel,
-    bounceManager,
-    rotationManager,
-    animations,
-    boids,
-    scene,
-    element;
-
-let fishSpawned;
+let cachedModel, cachedParams;
 
 export function loadAnimatedModel(params) {
     var manager = new THREE.LoadingManager(loadModel);
@@ -21,21 +13,14 @@ export function loadAnimatedModel(params) {
 
     loader.load("/resources/fish.fbx", (model) => {
         cachedModel = model;
-        bounceManager = params.bounceManager;
-        rotationManager = params.rotationManager;
-        animations = params.animations;
-        boids = params.boids,
-        scene = params.scene,
-        element = params.element,
-
-        fishSpawned = params.spawned;
+        cachedParams = params;
     }, onProgress, onError, null, false);
 }
 
 function loadModel() {
     setTimeout(function () {
 
-        for (let added = 0; added < 100; added++) {
+        for (let added = 0; added < 1; added++) {
             // Clone
             const fish = SkeletonUtils.clone(cachedModel);
 
@@ -52,7 +37,7 @@ function loadModel() {
             // Start animation
             for (let i = 0; i < 3; i++) {
                 const action = mixer.clipAction(cachedModel.animations[i]);
-                animations.push(mixer);
+                cachedParams.animations.push(mixer);
                 action.play();
             }
 
@@ -66,7 +51,7 @@ function loadModel() {
             fish.castShadow = true;
 
             fish.updateMatrixWorld();
-            scene.add(fish);
+            cachedParams.scene.add(fish);
 
 
             // Attach point to determine direction
@@ -74,9 +59,8 @@ function loadModel() {
             directionPoint.position.set(x + 50, y, z);
             directionPoint.visible = false;
 
-            scene.add(directionPoint);
-            fish.attach(directionPoint, scene, fish);
-
+            cachedParams.scene.add(directionPoint);
+            fish.attach(directionPoint, cachedParams.scene, fish);
 
             // Add to boids
             // Create boid object
@@ -86,18 +70,18 @@ function loadModel() {
                 z: z,
                 obj: fish,
                 child: directionPoint,
-                bounceManager: bounceManager,
-                rotationManager: rotationManager
+                bounceManager: cachedParams.bounceManager,
+                rotationManager: cachedParams.rotationManager
             });
 
 
-            fishSpawned += 1;
+            cachedParams.spawned += 1;
             // Store boid in array
-            boids.push(boid);
+            cachedParams.boids.push(boid);
         }
 
         // Fade in 3D scene
-        fadeIn(element, false);
+        fadeIn(cachedParams.element, false);
     }, 10);
 }
 
