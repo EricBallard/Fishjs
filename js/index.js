@@ -46,8 +46,8 @@ export function initialize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.localClippingEnabled = true;
 
-    renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer.domElement.id = 'canvas';
@@ -139,16 +139,15 @@ export function initialize() {
 }
 
 function addWaterPhysFX() {
-    const waterGeometry = new THREE.PlaneBufferGeometry(4600, 4600);
-    const flowMap = new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg');
-
-    const water = new Water(waterGeometry, {
+    const water = new Water(new THREE.PlaneBufferGeometry(4600, 4600), {
+        scale: 1,
         textureWidth: 1024,
         textureHeight: 1024,
-        flowMap: flowMap
+        flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg')
     });
 
-    water.position.y = 1400;
+
+    water.position.y = 1000;
     water.rotation.x = Math.PI * 0.5;
     scene.add(water);
 }

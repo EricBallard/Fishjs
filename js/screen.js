@@ -6,12 +6,12 @@ import {
 } from '/js/boids/boid.js';
 
 // Track time between frame renders - used to limit animation framte
-let clock = new THREE.Clock();
+let clock = new THREE.Clock(),
+    rotatingCamera = false;
 
 let desiredFrameRate = -1,
     interval = 1 / 30,
     delta = 0;
-
 
 // Process updates
 export function render(params) {
@@ -22,22 +22,59 @@ export function render(params) {
     params.renderer.render(params.scene, params.camera);
 
     window.requestAnimationFrame(() => {
-        /*
-        const fish = boids[0];
+
+        const fish = params.boids[0];
 
         if (fish != undefined) {
-            camera.updateMatrix();
-            camera.updateMatrixWorld();
+            params.camera.updateMatrix();
+            params.camera.updateMatrixWorld();
             var frustum = new THREE.Frustum();
-            frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+            frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(params.camera.projectionMatrix, params.camera.matrixWorldInverse));
 
             const pos = fish.obj.position;
             if (!frustum.containsPoint(pos)) {
                 // Fish is not visible
-                console.log("Fish is not visible");
+
+                if (rotatingCamera) {
+                    console.log("Fish is not visible");
+
+                    const controls = params.controls,
+                        camera = params.camera;
+
+                    controls.enabled = false;
+                    controls.update();
+
+                    rotatingCamera = true;
+
+                    gsap.to(camera, {
+                        duration: 2,
+                        zoom: camera.zoom,
+                        onUpdate: function () {
+                            camera.updateProjectionMatrix();
+                        }
+                    });
+
+                    gsap.to(controls.target, {
+                        duration: 2,
+                        x: pos.x,
+                        y: pos.y,
+                        z: pos.z,
+
+                        onUpdate: function () {
+                            controls.update();
+                        }
+                    });
+
+                    console.log("finished roateing...?");
+                    rotatingCamera = false;
+                    controls.enabled = true;
+                    controls.update();
+
+                }
+                //params.controls.target.set(pos.x, pos.y, pos.z);
             }
         }
-        */
+
 
         delta += clock.getDelta();
 
@@ -57,6 +94,7 @@ export function render(params) {
         render(params);
     });
 }
+
 
 /*
     Frame-rate
