@@ -11,13 +11,13 @@ import {
 	UniformsUtils,
 	Vector2,
 	Vector4
-} from "/js/libs/three.module.js";
+} from "/js/libs/threejs/three.module.js";
 import {
 	Reflector
-} from "/js/libs/water/Reflector.js";
+} from "/js/libs/threejs/water/Reflector.js";
 import {
 	Refractor
-} from "/js/libs/water/Refractor.js";
+} from "/js/libs/threejs/water/Refractor.js";
 
 /**
  * References:

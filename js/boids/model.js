@@ -1,6 +1,6 @@
 import {
     SkeletonUtils
-} from "/js/libs/models/SkeletonUtils.js";
+} from "/js/libs/threejs/models/SkeletonUtils.js";
 
 import * as Boids from '/js/boids/boid.js';
 
@@ -20,7 +20,7 @@ export function loadAnimatedModel(params) {
 function loadModel() {
     setTimeout(function () {
 
-        for (let added = 0; added < 1; added++) {
+        for (let added = 0; added < 100; added++) {
             // Clone
             const fish = SkeletonUtils.clone(cachedModel);
 

@@ -14,8 +14,8 @@ import {
 	Vector2,
 	Vector3,
 	WebGLRenderTarget
-} from "/js/libs/three.module.js";
-import { Pass } from "/js/libs/post/Pass.js";
+} from "/js/libs/threejs/three.module.js";
+import { Pass } from "/js/libs/threejs/post/pass/Pass.js";
 
 var OutlinePass = function ( resolution, scene, camera, selectedObjects ) {
 

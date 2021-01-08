@@ -11,15 +11,15 @@ import {
 
 import {
     Water
-} from '/js/libs/water/Water.js';
+} from '/js/libs/threejs/water/Water.js';
 
 import {
     OutlinePass
-} from '/js/libs/post/OutlinePass.js';
+} from '/js/libs/threejs/post/pass/OutlinePass.js';
 
 import {
     FXAAShader
-} from '/js/libs/post/FXAAShader.js';
+} from '/js/libs/threejs/post/FXAAShader.js';
 
 /*
   3D Graphics
