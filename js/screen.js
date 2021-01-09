@@ -7,8 +7,7 @@ import {
 
 
 // Track time between frame renders - used to limit animation framte
-let clock = new THREE.Clock(),
-    rotatingCamera = false;
+let clock = new THREE.Clock();
 
 let desiredFrameRate = -1,
     interval = 1 / 30,
@@ -23,69 +22,21 @@ export function render(params) {
     params.composer.render();
 
     window.requestAnimationFrame(() => {
-
-        const fish = params.boids[0];
-
-        if (fish != undefined) {
-            // Outline obj
-            if (params.outLine.selectedObjects.length < 1) {
-                console.log('Adding selected obj!!!');
-
-                const array = [];
-                array.push(fish.obj);
-                params.outLine.selectedObjects = array;
-            }
-
-
-            params.camera.updateMatrix();
-            params.camera.updateMatrixWorld();
-            var frustum = new THREE.Frustum();
-            frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(params.camera.projectionMatrix, params.camera.matrixWorldInverse));
-
-            const pos = fish.obj.position;
-            if (!frustum.containsPoint(pos)) {
-                // Fish is not visible
-                if (!rotatingCamera) {
-                    const controls = params.controls,
-                        camera = params.camera;
-
-                    rotatingCamera = true;
-                    controls.enabled = false;
-                    controls.update();
-
-                    gsap.to(camera, {
-                        duration: 4,
-                        zoom: camera.zoom,
-                        onUpdate: () => camera.updateProjectionMatrix()
-                    });
-
-                    gsap.to(camera.position, {
-                        duration: 4,
-                        x: pos.x < 0 ? Math.abs(pos.x) : pos.x - (pos.x * 2),
-                        y: pos.y < 0 ? Math.abs(pos.y) : pos.y - (pos.y * 2),
-                        z: pos.z < 0 ? Math.abs(pos.z) : pos.z - (pos.z * 2),
-                        onUpdate: () => controls.update(),
-                        onComplete: () => {
-                            rotatingCamera = false;
-                            controls.enabled = true;
-                            controls.update();
-                        }
-                    });
-                }
-            }
-        }
-
         delta += clock.getDelta();
-
-        // TODO: update anims via gsap
 
         // Update fishses' position
         if (delta > interval) {
-            // Update animations
+            delta = delta % interval;
+
+            // Check if selected fished is visible
+            if (params.selected != undefined)
+                alignCameraToSelected(params);
+
+            // Update animations TODO: update via gsap
             for (let i = 0; i < params.animations.length; i++) params.animations[i].update((Math.random() * 20 + 10) / 1000);
 
+            // Update boids
             update(params.boids, params.bounceManager, params.rotationManager);
-            delta = delta % interval;
         }
 
         // FPS counter
@@ -96,6 +47,109 @@ export function render(params) {
     });
 }
 
+/*
+    Fish selection
+*/
+function getPosition(e, width, height) {
+    const x = ((e.changedTouches ? e.changedTouches[0].clientX : e.clientX) / width) * 2 - 1,
+        y = -((e.changedTouches ? e.changedTouches[0].clientY : e.clientY) / height) * 2 + 1;
+    return new THREE.Vector2(x, y);
+}
+
+export function click(e, params) {
+    const pos = getPosition(e, params.width, params.height);
+    console.log("X: " + pos.x + " Y: " + pos.y);
+
+    params.raycaster.setFromCamera(pos, params.camera);
+
+    const meshes = [];
+    for (let so of params.sceneObjects)
+        meshes.push(so.mesh);
+
+    const intersects = params.raycaster.intersectObjects(meshes, false);
+    let selectedMesh;
+
+    // If ray intersects with an object and that object is not currently selected
+    if (intersects.length > 0 &&
+        (selectedMesh = intersects[0].object) != undefined &&
+        (params.selected == undefined || params.selected.mesh != selectedMesh)) {
+
+        const array = [];
+        array.push(selectedMesh);
+
+        let selectedObj = undefined;
+
+        for (let so of params.sceneObjects) {
+            if (so.mesh == selectedMesh) {
+                selectedObj = so.obj;
+                break;
+            }
+        }
+
+        if (selectedObj == undefined) {
+            console.log('Selection failed - unable to find related object and mesh!');
+            return;
+        }
+
+        params.selected = {
+            mesh: selectedMesh,
+            obj: selectedObj
+        };
+
+        params.outLine.selectedObjects = array;
+    } else {
+        params.selected = undefined;
+        params.outLine.selectedObjects = [];
+    }
+}
+
+// Rotate camera to selected fish
+let rotatingCamera = false;
+
+function alignCameraToSelected(params) {
+    let pos = params.selected.obj.position;
+
+    // Update camera projection
+    params.camera.updateMatrix();
+    params.camera.updateMatrixWorld();
+
+    // Define out view
+    const frustum = new THREE.Frustum();
+    frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(params.camera.projectionMatrix, params.camera.matrixWorldInverse));
+
+    if (!frustum.containsPoint(pos)) {
+        if (!rotatingCamera) {
+            // Selected is not visible - rotate camera
+            const controls = params.controls,
+                camera = params.camera;
+
+            // Disable controls while animating
+            rotatingCamera = true;
+            controls.enabled = false;
+            controls.update();
+
+            // Animate camera position via gsap api
+            gsap.to(camera, {
+                duration: 4,
+                zoom: camera.zoom,
+                onUpdate: () => camera.updateProjectionMatrix()
+            });
+
+            gsap.to(camera.position, {
+                duration: 4,
+                x: pos.x < 0 ? Math.abs(pos.x) : pos.x - (pos.x * 2),
+                y: pos.y < 0 ? Math.abs(pos.y) : pos.y - (pos.y * 2),
+                z: pos.z < 0 ? Math.abs(pos.z) : pos.z - (pos.z * 2),
+                onUpdate: () => controls.update(),
+                onComplete: () => {
+                    rotatingCamera = false;
+                    controls.enabled = true;
+                    controls.update();
+                }
+            });
+        }
+    }
+}
 
 /*
     Frame-rate

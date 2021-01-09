@@ -8,7 +8,7 @@ import * as Boids from '/js/boids/boid.js';
 let cachedModel, cachedParams;
 
 export function loadAnimatedModel(params) {
-    var manager = new THREE.LoadingManager(loadModel);
+    var manager = new THREE.LoadingManager(onComplete);
     var loader = new THREE.FBXLoader(manager);
 
     loader.load("/resources/fish.fbx", (model) => {
@@ -17,16 +17,21 @@ export function loadAnimatedModel(params) {
     }, onProgress, onError, null, false);
 }
 
-function loadModel() {
+function onComplete() {
     setTimeout(function () {
 
-        for (let added = 0; added < 100; added++) {
+        for (let added = 0; added < 1; added++) {
             // Clone
             const fish = SkeletonUtils.clone(cachedModel);
 
             // Apply texture
             fish.traverse(e => {
                 if (e.isMesh) {
+                    cachedParams.sceneObjects.push({
+                        mesh: e,
+                        obj: fish
+                    });
+                    
                     e.material = e.material.clone();
                     e.material.color.set((Math.random() * 0xffffff) | 0);
                 }
@@ -46,7 +51,7 @@ function loadModel() {
             const y = Math.round(Math.random() * 1500) - 1000;
             const z = Math.round(Math.random() * 1500) - 1000;
 
-            fish.position.set(x, y, z);
+            //fish.position.set(x, y, z);
             fish.receiveShadow = true;
             fish.castShadow = true;
 

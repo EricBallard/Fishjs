@@ -24,16 +24,20 @@ import {
 /*
   3D Graphics
 */
-let scene;
+let scene = undefined,
+    width = window.innerWidth,
+    height = window.innerHeight;
 
 /*
   Stats & Info
 */
-var fishSpawned = 0;
+let fishSpawned = 0,
+    selectedFish = undefined;
 
 // Boid data
-var boids = [],
+let boids = [],
     mixers = [],
+    sceneObjects = [],
     bounceManager = [],
     rotationManager = [];
 
@@ -44,6 +48,11 @@ export function initialize() {
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 60, 25000);
     camera.position.set(-1100, -500, -1000);
+
+    // Create raycaster
+    const raycaster = new THREE.Raycaster();
+    raycaster.far = 25000;
+    raycaster.near = 60;
 
     // Configure renderer and cache its DOM element
     const renderer = new THREE.WebGLRenderer({
@@ -56,10 +65,7 @@ export function initialize() {
     renderer.localClippingEnabled = true;
 
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
     renderer.domElement.id = 'canvas';
-    const sceneElement = renderer.domElement
-    sceneElement.style.opacity = 0;
 
     // Post-processesing
     const composer = new THREE.EffectComposer(renderer);
@@ -67,7 +73,16 @@ export function initialize() {
     const renderPass = new THREE.RenderPass(scene, camera);
     composer.addPass(renderPass);
 
+    const effectFXAA = new THREE.ShaderPass(FXAAShader);
+    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+    composer.addPass(effectFXAA);
+
     const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+    outlinePass.edgeThickness = 1.0;
+    outlinePass.edgeStrength = 2.5;
+    outlinePass.edgeGlow = 0.1;
+    outlinePass.pulsePeriod = 0;
+
     composer.addPass(outlinePass);
 
     const textureLoader = new THREE.TextureLoader();
@@ -79,21 +94,8 @@ export function initialize() {
 
     });
 
-    const effectFXAA = new THREE.ShaderPass(FXAAShader);
-    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
-    composer.addPass(effectFXAA);
-
-
-    /*
-    const outLine = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
-
-    outLine.edgeStrength = 3.0;
-    outLine.edgeGlow = 0.0;
-    outLine.edgeThickness = 4.0;
-    outLine.pulsePeriod = 0;
-
-    composer.addPass(outLine);
-    */
+    const sceneElement = renderer.domElement
+    sceneElement.style.opacity = 0;
 
     // Configure user-controls
     const controls = new THREE.OrbitControls(camera, sceneElement);
@@ -116,15 +118,22 @@ export function initialize() {
         yTracker = document.getElementById('y'),
         zTracker = document.getElementById('z');
 
+
     // Cache app info obj
     const appInfo = {
+        width: width,
+        height: height,
         scene: scene,
         camera: camera,
         outLine: outlinePass,
         composer: composer,
         renderer: renderer,
+
         controls: controls,
         element: sceneElement,
+        sceneObjects: sceneObjects,
+        raycaster: raycaster,
+        selected: selectedFish,
 
         boids: boids,
         animations: mixers,
@@ -170,10 +179,27 @@ export function initialize() {
     audio.volume = 0.15;
     audio.loop = true;
 
-    body.addEventListener('click', () => {
+    // Register selecting fish - ignores drags (supports pc and mobile)
+    let startPos;
+
+    window.addEventListener('pointerdown', () => {
         if (audio.paused)
             audio.play();
-    });
+
+        const p = camera.position;
+        startPos = new THREE.Vector3(p.x, p.y, p.z);
+    }, false);
+
+    window.addEventListener('pointerup', e => {
+        // Register as selection if mouse hasn't majorily moved during click
+        const p = camera.position;
+
+        if (Math.abs(p.x - startPos.x) <= 100 &&
+            Math.abs(p.y - startPos.y) <= 100 &&
+            Math.abs(p.z - startPos.z) <= 100)
+
+            Screen.click(e, appInfo);
+    }, false);
 
     // Register resize listener
     window.addEventListener('resize', () => {
