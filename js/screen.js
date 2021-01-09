@@ -36,11 +36,11 @@ export function render(params) {
             for (let i = 0; i < params.animations.length; i++) params.animations[i].update((Math.random() * 20 + 10) / 1000);
 
             // Update boids
-            update(params.boids, params.bounceManager, params.rotationManager);
+            update(params.boids, params.bManagers, params.rManagers);
         }
 
         // FPS counter
-        countFPS(params.fps, params.fish, params.spawned, params.camera, params.x, params.y, params.z);
+        countFPS(params);
 
         // Loop
         render(params);
@@ -50,6 +50,8 @@ export function render(params) {
 /*
     Fish selection
 */
+import * as Movement from '/js/boids/movement.js';
+
 function getPosition(e, width, height) {
     const x = ((e.changedTouches ? e.changedTouches[0].clientX : e.clientX) / width) * 2 - 1,
         y = -((e.changedTouches ? e.changedTouches[0].clientY : e.clientY) / height) * 2 + 1;
@@ -58,8 +60,6 @@ function getPosition(e, width, height) {
 
 export function click(e, params) {
     const pos = getPosition(e, params.width, params.height);
-    console.log("X: " + pos.x + " Y: " + pos.y);
-
     params.raycaster.setFromCamera(pos, params.camera);
 
     const meshes = [];
@@ -190,34 +190,31 @@ const getDesired = () =>
 let framesRendered = 0,
     secondTracker = null;
 
-export function countFPS(fps, fish, spawned, camera, x, y, z) {
+export function countFPS(params) {
     const now = new Date().getTime();
     if (secondTracker == null) secondTracker = now;
     const newSecond = now - secondTracker >= 1000;
 
-    //const fish = boids[0];
-    // if (fish == undefined)
-    //    return;
-    // const pos = fish.velocity;
-
     if (newSecond) {
         // Update FPS
-        fps.innerText = framesRendered;
-        fish.innerText = spawned;
+        params.fps.innerText = framesRendered;
+        params.fish.innerText = params.spawned;
         secondTracker = now;
         framesRendered = 0;
     }
 
     framesRendered += 1;
 
-    // Seems to be standarized however needs to be detected/hotfixed for negative rotation
-    // fish.obj.getWorldQuaternion().y
 
-    // const pp = fish.obj.getWorldPosition();
-    //  const cp = fish.child.getWorldPosition();
-    // const dir = getDirectionFromChild(pp, cp);
+    const b = params.boids[0];
+    if (b == undefined)
+        return;
 
-    x.innerText = "X: " + Math.round(camera.position.x); // + "  |  Moving: " + velocityToDirection(fish.velocity);
-    y.innerText = "Y: " + Math.round(camera.position.y); // + "  | (" + 0 + ") Facing: " + dir;;
-    z.innerText = "Z: " + Math.round(camera.position.z);
+    const pp = b.obj.getWorldPosition();
+    const cp = b.child.getWorldPosition();
+
+    x.innerText = "Moving: " + Movement.velocityToDirection(b.velocity);
+    y.innerText = "Facing: " + Movement.getDirectionFromChild(pp, cp);
+
+    // z.innerText = "Z: " + Math.round(camera.position.z);
 }

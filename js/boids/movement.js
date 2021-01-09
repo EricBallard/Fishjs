@@ -9,6 +9,52 @@ export const direction = Object.freeze({
     SOUTH_WEST: 'south-west'
 });
 
+// Clock-wise
+export function getNeighboringDirections(direction) {
+    switch (direction) {
+        case this.direction.NORTH:
+            return ({
+                left: this.direction.NORTH_WEST,
+                right: this.direction.NORTH_EAST,
+            });
+        case this.direction.EAST:
+            return ({
+                left: this.direction.NORTH_EAST,
+                right: this.direction.SOUTH_EAST,
+            });
+        case this.direction.SOUTH:
+            return ({
+                left: this.direction.SOUTH_EAST,
+                right: this.direction.SOUTH_WEST,
+            });
+        case this.direction.WEST:
+            return ({
+                left: this.direction.SOUTH_WEST,
+                right: this.direction.NORTH_WEST,
+            });
+        case this.direction.NORTH_EAST:
+            return ({
+                left: this.direction.NORTH,
+                right: this.direction.EAST,
+            });
+        case this.direction.SOUTH_EAST:
+            return ({
+                left: this.direction.EAST,
+                right: this.direction.SOUTH,
+            });
+        case this.direction.SOUTH_WEST:
+            return ({
+                left: this.direction.SOUTH,
+                right: this.direction.WEST,
+            });
+        case this.direction.NORTH_WEST:
+            return ({
+                left: this.direction.WEST,
+                right: this.direction.NORTH,
+            });
+    }
+}
+
 // half = 12.5
 export function getDirectionFromChild(parentPos, childPos) {
     const x = parentPos.x - childPos.x,

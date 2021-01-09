@@ -6,6 +6,8 @@ export class Rotation {
         this.obj = this.boid.obj;
         this.facing = params.facing;
         this.desired = params.desired;
+        
+        this.idleDirs = Movement.getNeighboringDirections(this.desired);
 
         // Rotate quickest direction
         this.inverse = false;
@@ -60,15 +62,22 @@ export class Rotation {
 
     execute() {
         // Validate rotation
-        const facing = Movement.getDirectionFromChild(this.boid.obj.getWorldPosition(), this.boid.child.getWorldPosition());
+        this.facing = Movement.getDirectionFromChild(this.boid.obj.getWorldPosition(), this.boid.child.getWorldPosition());
 
-        if (facing == this.desired) {
-            //console.log(this.desired + ' | Succesful rotate!');
+        if ((this.facing == this.desired && this.idleDir == undefined ||
+                this.facing == this.idleDir)) {
+
+            if (this.idleDir != undefined) {
+                this.idleDir = this.inverse ? this.idleDirs.left : this.idleDirs.right;
+                this.inverse = !this.inverse;
+            } else {
+                this.idleDir = this.inverse ? this.idleDirs.right : this.idleDirs.left;
+            }
             return true;
         }
 
         // Generate random increments
-        let offset = THREE.Math.radToDeg(((Math.random() * 10) + 1) / 10000);
+        let offset = THREE.Math.radToDeg(((Math.random() * (this.idleDir != undefined ? 4 : 8)) + 1) / 10000);
         if (this.inverse) {
             offset -= offset * 2;
         }

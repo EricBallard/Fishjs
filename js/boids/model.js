@@ -51,13 +51,12 @@ function onComplete() {
             const y = Math.round(Math.random() * 1500) - 1000;
             const z = Math.round(Math.random() * 1500) - 1000;
 
-            //fish.position.set(x, y, z);
+            fish.position.set(x, y, z);
             fish.receiveShadow = true;
             fish.castShadow = true;
 
             fish.updateMatrixWorld();
             cachedParams.scene.add(fish);
-
 
             // Attach point to determine direction
             const directionPoint = new THREE.Mesh(new THREE.Vector3(0, 0, 0));
@@ -67,7 +66,6 @@ function onComplete() {
             cachedParams.scene.add(directionPoint);
             fish.attach(directionPoint, cachedParams.scene, fish);
 
-            // Add to boids
             // Create boid object
             var boid = new Boids.Entity({
                 x: x,
@@ -75,10 +73,8 @@ function onComplete() {
                 z: z,
                 obj: fish,
                 child: directionPoint,
-                bounceManager: cachedParams.bounceManager,
-                rotationManager: cachedParams.rotationManager
+                rManagers: cachedParams.rManagers
             });
-
 
             cachedParams.spawned += 1;
             // Store boid in array

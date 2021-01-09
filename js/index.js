@@ -38,8 +38,8 @@ let fishSpawned = 0,
 let boids = [],
     mixers = [],
     sceneObjects = [],
-    bounceManager = [],
-    rotationManager = [];
+    bounceManagers = [],
+    rotationManagers = [];
 
 
 export function initialize() {
@@ -137,8 +137,8 @@ export function initialize() {
 
         boids: boids,
         animations: mixers,
-        bounceManager: bounceManager,
-        rotationManager: rotationManager,
+        bManagers: bounceManagers,
+        rManagers: rotationManagers,
 
         spawned: fishSpawned,
         fish: fishTracker,
@@ -183,8 +183,8 @@ export function initialize() {
     let startPos;
 
     window.addEventListener('pointerdown', () => {
-        if (audio.paused)
-            audio.play();
+        // if (audio.paused)
+        //    audio.play();
 
         const p = camera.position;
         startPos = new THREE.Vector3(p.x, p.y, p.z);
@@ -193,6 +193,9 @@ export function initialize() {
     window.addEventListener('pointerup', e => {
         // Register as selection if mouse hasn't majorily moved during click
         const p = camera.position;
+
+        if (p == undefined)
+            return;
 
         if (Math.abs(p.x - startPos.x) <= 100 &&
             Math.abs(p.y - startPos.y) <= 100 &&

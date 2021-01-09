@@ -6,15 +6,13 @@ function getSeed() {
     return Math.random() < 0.5 ? seed : seed - (seed * 2);
 }
 
-const perception = 1000;
+const perception = 500;
 
 export class Entity {
     constructor(params) {
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
         this.child = params.child;
-        this.bounceManager = params.bounceManager;
-        this.rotationManager = params.rotationManager;
 
         // Momentum
         this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
@@ -23,8 +21,19 @@ export class Entity {
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
+        // Rotation
+        this.direction = Movement.velocityToDirection(this.velocity);
+
+        this.rotationManager = new Managers.Rotation({
+            boid: this,
+            facing: undefined,
+            desired: this.direction
+        });
+
+        params.rManagers.push(this.rotationManager);
+
         // Auto-rotate at start
-        rotateTo(Movement.velocityToDirection(this.velocity), this.obj);
+        rotateTo(this.direction, this.obj);
 
         // VIDEO @ 21:50
     }
@@ -39,19 +48,19 @@ export class Entity {
 
         let inverse = false;
 
-        if (pos.x >= 2000 || (inverse = pos.x <= -2000)) {
+        if (pos.x >= 1000 || (inverse = pos.x <= -1000)) {
             if (inverse ? vx < 0 : vx >= 0) {
                 this.velocity.x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
             }
         }
 
-        if (pos.y >= 2000 || (inverse = pos.y <= 100)) {
+        if (pos.y >= 1000 || (inverse = pos.y <= 1000)) {
             if (inverse ? vy < 0 : vy >= 0) {
                 this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
             }
         }
 
-        if (pos.z >= 2000 || (inverse = pos.z <= -2000)) {
+        if (pos.z >= 1000 || (inverse = pos.z <= -1000)) {
             if (inverse ? vz < 0 : vz >= 0) {
                 this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
             }
@@ -68,9 +77,9 @@ export class Entity {
 
         const position = this.obj.position;
 
-        const nearBorder = (position.x >= 1750 || position.x <= -1750 ||
-            position.y >= 1750 || position.y <= 100 ||
-            position.z >= 1750 || position.z <= -1750);
+        const nearBorder = (position.x >= 750 || position.x <= -750 ||
+            position.y >= 750 || position.y <= 750 ||
+            position.z >= 750 || position.z <= -750);
 
         let othersInPerception = 0;
 
@@ -82,9 +91,9 @@ export class Entity {
             if (pos.distanceTo(position) > (nearBorder ? perception / 4 : perception))
                 continue;
 
-            if (pos.x >= 1500 || pos.x <= -1500 ||
-                pos.y >= 1500 || pos.y <= -1500 ||
-                pos.z >= 1500 || pos.z <= -1500) {
+            if (pos.x >= 1000 || pos.x <= -1000 ||
+                pos.y >= 1000 || pos.y <= -1000 ||
+                pos.z >= 1000 || pos.z <= -1000) {
                 continue;
             }
 
@@ -120,9 +129,8 @@ export class Entity {
         return perceivedVelocity;
     }
 
-    update() {
+    move() {
         // Update momentum 
-
         this.velocity.add(this.acceleration);
         const v = this.velocity;
 
@@ -142,58 +150,44 @@ export class Entity {
             this.velocity.z = -this.maxSpeed;
 
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
-
-
-        this.rotate();
     }
 
     rotate() {
-        for (let manager of this.rotationManager) {
-            if (manager.boid.obj == this.obj)
-                return;
-        }
-
-        const facingDirection = Movement.getDirectionFromChild(this.obj.getWorldPosition(), this.child.getWorldPosition());
         const desiredDirection = Movement.velocityToDirection(this.velocity);
 
-        if (facingDirection != desiredDirection) {
-            //console.log('Facing: ' + facingDirection + ' | Desired: ' + desiredDirection);
-            // Add manager to animate the rotation
-
-            this.rotationManager.push(new Managers.Rotation({
-                boid: this,
-                facing: facingDirection,
-                desired: desiredDirection
-            }));
-
+        if (desiredDirection != this.rotationManager.desired) {
+            console.log('Desired: ' + desiredDirection);
+            this.rotationManager.desired = desiredDirection;
         }
     }
 }
 
-export function update(boids, bounceManager, rotationManager) {
+export function update(boids, bManagers, rManagers) {
+    // Update boids
     for (let boid of boids) {
+        boid.align(boids);
         boid.bounce();
 
-        boid.align(boids);
-        boid.update();
+        boid.move();
+        boid.rotate();
     }
 
     // Update Bounce managers
-    let managerSize = bounceManager.length;
+    let managerSize = bManagers.length;
     for (let index = 0; index < managerSize; index++) {
-        const manager = bounceManager[index];
+        const manager = bManagers[index];
         if (manager != undefined && manager.execute()) {
             console.log("finished vbouncing");
-            bounceManager.splice(index, 1);
+            bManagers.splice(index, 1);
         }
     }
 
     // Update rotation managers
-    managerSize = rotationManager.length;
+    managerSize = rManagers.length;
     for (let index = 0; index < managerSize; index++) {
-        const manager = rotationManager[index];
-        if (manager != undefined && manager.execute())
-            rotationManager.splice(index, 1);
+        const manager = rManagers[index];
+        if (manager != undefined)
+            manager.execute();
     }
 }
 
