@@ -50,7 +50,6 @@ export function render(params) {
 /*
     Fish selection
 */
-import * as Movement from '/js/boids/movement.js';
 
 function getPosition(e, width, height) {
     const x = ((e.changedTouches ? e.changedTouches[0].clientX : e.clientX) / width) * 2 - 1,
@@ -205,16 +204,13 @@ export function countFPS(params) {
 
     framesRendered += 1;
 
-
     const b = params.boids[0];
+
     if (b == undefined)
         return;
 
-    const pp = b.obj.getWorldPosition();
-    const cp = b.child.getWorldPosition();
-
-    x.innerText = "Moving: " + Movement.velocityToDirection(b.velocity);
-    y.innerText = "Facing: " + Movement.getDirectionFromChild(pp, cp);
+    x.innerText = "Desired: " + b.rotationManager.desired;
+    y.innerText = "Facing: " +  b.rotationManager.facing;
 
     // z.innerText = "Z: " + Math.round(camera.position.z);
 }

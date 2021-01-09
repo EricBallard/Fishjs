@@ -20,7 +20,7 @@ export function loadAnimatedModel(params) {
 function onComplete() {
     setTimeout(function () {
 
-        for (let added = 0; added < 1; added++) {
+        for (let added = 0; added < 100; added++) {
             // Clone
             const fish = SkeletonUtils.clone(cachedModel);
 
@@ -31,7 +31,7 @@ function onComplete() {
                         mesh: e,
                         obj: fish
                     });
-                    
+
                     e.material = e.material.clone();
                     e.material.color.set((Math.random() * 0xffffff) | 0);
                 }
@@ -72,13 +72,12 @@ function onComplete() {
                 y: y,
                 z: z,
                 obj: fish,
-                child: directionPoint,
-                rManagers: cachedParams.rManagers
+                child: directionPoint
             });
 
-            cachedParams.spawned += 1;
             // Store boid in array
             cachedParams.boids.push(boid);
+            cachedParams.spawned += 1;
         }
 
         // Fade in 3D scene

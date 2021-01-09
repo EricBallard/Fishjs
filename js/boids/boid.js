@@ -24,16 +24,15 @@ export class Entity {
         // Rotation
         this.direction = Movement.velocityToDirection(this.velocity);
 
+        // Auto-rotate at start
+        rotateTo(this.direction, this.obj);
+
         this.rotationManager = new Managers.Rotation({
             boid: this,
-            facing: undefined,
+            facing: this.direction,
             desired: this.direction
         });
 
-        params.rManagers.push(this.rotationManager);
-
-        // Auto-rotate at start
-        rotateTo(this.direction, this.obj);
 
         // VIDEO @ 21:50
     }
@@ -156,9 +155,14 @@ export class Entity {
         const desiredDirection = Movement.velocityToDirection(this.velocity);
 
         if (desiredDirection != this.rotationManager.desired) {
-            console.log('Desired: ' + desiredDirection);
-            this.rotationManager.desired = desiredDirection;
+            this.rotationManager = new Managers.Rotation({
+                boid: this,
+                facing: this.rotationManager.facing,
+                desired: desiredDirection
+            });
         }
+
+        this.rotationManager.execute();
     }
 }
 
@@ -180,14 +184,6 @@ export function update(boids, bManagers, rManagers) {
             console.log("finished vbouncing");
             bManagers.splice(index, 1);
         }
-    }
-
-    // Update rotation managers
-    managerSize = rManagers.length;
-    for (let index = 0; index < managerSize; index++) {
-        const manager = rManagers[index];
-        if (manager != undefined)
-            manager.execute();
     }
 }
 

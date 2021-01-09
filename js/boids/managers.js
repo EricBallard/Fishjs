@@ -6,9 +6,9 @@ export class Rotation {
         this.obj = this.boid.obj;
         this.facing = params.facing;
         this.desired = params.desired;
-        
-        this.idleDirs = Movement.getNeighboringDirections(this.desired);
 
+        this.idleDirs = Movement.getNeighboringDirections(this.desired);
+        
         // Rotate quickest direction
         this.inverse = false;
         let inverseFrom = [],
@@ -62,22 +62,25 @@ export class Rotation {
 
     execute() {
         // Validate rotation
-        this.facing = Movement.getDirectionFromChild(this.boid.obj.getWorldPosition(), this.boid.child.getWorldPosition());
+        this.facing = Movement.getDirectionFromChild(this.obj.getWorldPosition(), this.boid.child.getWorldPosition());
 
-        if ((this.facing == this.desired && this.idleDir == undefined ||
+        if (((this.facing == this.desired && this.idleDir == undefined) ||
                 this.facing == this.idleDir)) {
+            // Rotate between neighboring direction to further sell swimming effect
 
-            if (this.idleDir != undefined) {
-                this.idleDir = this.inverse ? this.idleDirs.left : this.idleDirs.right;
+            this.idleDir = this.idleDir == undefined ?
+                (this.inverse ? this.idleDirs.left : this.idleDirs.right) :
+                this.idleDir == this.idleDirs.right ? this.idleDirs.left : this.idleDirs.right;
+
+            if ((this.idleDir == this.idleDirs.left && this.inverse) ||
+                (!this.inverse && this.idleDir == this.idleDirs.right))
                 this.inverse = !this.inverse;
-            } else {
-                this.idleDir = this.inverse ? this.idleDirs.right : this.idleDirs.left;
-            }
+
             return true;
         }
 
         // Generate random increments
-        let offset = THREE.Math.radToDeg(((Math.random() * (this.idleDir != undefined ? 4 : 8)) + 1) / 10000);
+        let offset = THREE.Math.radToDeg(((Math.random() * (this.idleDir != undefined ? 1 : 6)) + 1) / 10000);
         if (this.inverse) {
             offset -= offset * 2;
         }

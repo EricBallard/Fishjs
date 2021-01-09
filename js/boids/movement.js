@@ -106,9 +106,6 @@ export function velocityToDirection(velocity) {
     else if (z < 0 && Math.round(x) == 0)
         return direction.WEST;
 
-    // TODO - maybe? Refactor offset to use division to account for decimal
-    // eg; (1, 0, 0.25) is not registered as an offset despite x being *4 z
-
     // However this may not be noticable in final product
     let offset = x - z;
 

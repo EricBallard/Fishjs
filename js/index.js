@@ -38,8 +38,7 @@ let fishSpawned = 0,
 let boids = [],
     mixers = [],
     sceneObjects = [],
-    bounceManagers = [],
-    rotationManagers = [];
+    bounceManagers = [];
 
 
 export function initialize() {
@@ -48,6 +47,7 @@ export function initialize() {
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 60, 25000);
     camera.position.set(-1100, -500, -1000);
+   // camera.position.set(0, -200, 0);
 
     // Create raycaster
     const raycaster = new THREE.Raycaster();
@@ -138,7 +138,6 @@ export function initialize() {
         boids: boids,
         animations: mixers,
         bManagers: bounceManagers,
-        rManagers: rotationManagers,
 
         spawned: fishSpawned,
         fish: fishTracker,
