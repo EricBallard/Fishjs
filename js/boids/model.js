@@ -20,7 +20,7 @@ export function loadAnimatedModel(params) {
 function onComplete() {
     setTimeout(function () {
 
-        for (let added = 0; added < 1; added++) {
+        for (let added = 0; added < 100; added++) {
             // Clone
             const fish = SkeletonUtils.clone(cachedModel);
 

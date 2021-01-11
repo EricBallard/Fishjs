@@ -72,12 +72,10 @@
 }
 .link {
   text-decoration-thickness: 1px;
-
-  color: #505050;
   text-decoration-style: dotted;
   text-decoration-line: underline;
   pointer-events: auto;
-
+  color: #505050;
 }
 
 .debug {
@@ -95,6 +93,7 @@
 
 h1 {
   color: #252525;
+  font-weight:100;
 }
 
 /*

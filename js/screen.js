@@ -70,8 +70,14 @@ export function click(e, params) {
 
     // If ray intersects with an object and that object is not currently selected
     if (intersects.length > 0 &&
-        (selectedMesh = intersects[0].object) != undefined &&
-        (params.selected == undefined || params.selected.mesh != selectedMesh)) {
+        (selectedMesh = intersects[0].object) != undefined) {
+
+        // Deselect current
+        if (params.selected != undefined && params.selected.mesh == selectedMesh) {
+            params.selected = undefined;
+            params.outLine.selectedObjects = [];
+            return;
+        }
 
         const array = [];
         array.push(selectedMesh);
@@ -97,9 +103,6 @@ export function click(e, params) {
         };
 
         params.outLine.selectedObjects = array;
-    } else {
-        params.selected = undefined;
-        params.outLine.selectedObjects = [];
     }
 }
 
@@ -205,13 +208,12 @@ export function countFPS(params) {
 
     framesRendered += 1;
 
-    //const b = params.boids[0];
+   // let b;
 
-    //  if (b == undefined)
-    //   return;
+   // if ((b = params.boids[0]) == undefined)
+    //    return;
 
-    // x.innerText = "Desired: " + b.rotationManager.desired;
-    // y.innerText = "Facing: " +  b.rotationManager.facing;
-
-    // z.innerText = "Z: " + Math.round(camera.position.z);
+   // x.innerText = "X: " + b.obj.position.x + " | " + b.velocity.x;
+   // y.innerText = "Y: " + b.obj.position.y + " | " + b.velocity.y;
+    //z.innerText = "Z: " + b.obj.position.z + " | " + b.velocity.z;
 }

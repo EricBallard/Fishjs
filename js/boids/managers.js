@@ -8,7 +8,7 @@ export class Rotation {
         this.desired = params.desired;
 
         this.idleDirs = Movement.getNeighboringDirections(this.desired);
-        
+
         // Rotate quickest direction
         this.inverse = false;
         let inverseFrom = [],
@@ -91,16 +91,48 @@ export class Rotation {
 }
 
 export class Bounce {
+
     constructor(params) {
+        this.life = 150;
         this.boid = params.boid;
 
-        
+        if ((this.desiredVX = Math.round(params.desiredVX)) == 0)
+            this.desiredVX = params.desiredVX < 0 ? -1 : 1;
+
+        if ((this.desiredVY = Math.round(params.desiredVY)) == 0)
+            this.desiredVY = params.desiredVY < 0 ? -1 : 1;
+
+        if ((this.desiredVZ = Math.round(params.desiredVZ)) == 0)
+            this.desiredVZ = params.desiredVZ < 0 ? -1 : 1;
+
     }
 
     execute() {
         // Reflect entities velcoity, making it "bounce"
-      
+        let adjusted = false;
+        this.life--;
 
-        return false;
+        const v = this.boid.velocity,
+            p = this.boid.obj.position;
+
+        if (Math.round(v.x) != this.desiredVX) {
+            this.boid.velocity.x += ((this.desiredVX > 0 && v.x < this.desiredVX) || (this.desiredVX < 0 && v.x < this.desiredVX) ? Math.random() : -Math.random()) / (Math.random() * 10);
+            adjusted = true;
+        }
+
+        if (Math.round(v.y) != this.desiredVY) {
+            this.boid.velocity.y += ((this.desiredVY > 0 && v.y < this.desiredVY) || (this.desiredVY < 0 && v.y < this.desiredVY) ? Math.random() : -Math.random()) / (Math.random() * 10);
+            adjusted = true;
+        }
+
+        if (Math.round(v.z) != this.desiredVZ) {
+            this.boid.velocity.z += ((this.desiredVZ > 0 && v.z < this.desiredVZ) || (this.desiredVZ < 0 && v.z < this.desiredVZ) ? Math.random() : -Math.random()) / (Math.random() * 10);
+            adjusted = true;
+        }
+
+        return this.life < 1 || (!adjusted &&
+            p.x < 1250 && p.x > -1250 &&
+            p.y < 250 && p.y > 0 &&
+            p.z < 1250 && p.z > -1250);
     }
 }

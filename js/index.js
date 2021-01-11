@@ -162,36 +162,16 @@ export function initialize() {
     loadAnimatedModel(appInfo);
 
     // Add water-wave distortion effect
-    /*
-        const water = new Water(new THREE.PlaneBufferGeometry(4000, 4000), {
-            scale: .1,
-            textureWidth: 1048,
-            textureHeight: 1024,
-            flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg')
-        });
-
-
-        water.position.y = 1000;
-        water.rotation.x = Math.PI * 0.5;
-        scene.add(water);
-    */
-
-    //~~~~~! TEST
-    var material = new THREE.MeshBasicMaterial({
-        vertexColors: true,
-        color: '#000000',
-        side: THREE.DoubleSide
+    const water = new Water(new THREE.PlaneBufferGeometry(4000, 4000), {
+        scale: .1,
+        textureWidth: 1048,
+        textureHeight: 1024,
+        flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg')
     });
 
-    let plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), material);
-    plane.rotation.x = Math.PI / 2;
-    plane.position.y = -1000;
-    scene.add(plane);
-
-    plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), material);
-    plane.rotation.x = Math.PI / 2;
-    plane.position.y = 1000;
-    scene.add(plane);
+    water.position.y = 1000;
+    water.rotation.x = Math.PI * 0.5;
+    scene.add(water);
 
     // Add light to scene
     let light = new THREE.PointLight();
@@ -203,7 +183,7 @@ export function initialize() {
 
     // Audio
     const audio = new Audio('/resources/ambience_sound_compressed.wav');
-    audio.volume = 0.15;
+    audio.volume = 0.1;
     audio.loop = true;
 
     // Register selecting fish - ignores drags (supports pc and mobile)
@@ -242,16 +222,15 @@ export function initialize() {
         console.log("SCALE: " + scale);
         console.log('W: ' + w + ' H: ' + h);
 
-
-
         appInfo.width = w;
         appInfo.height = h;
 
-        appInfo.camera.aspect = w / h;
-        appInfo.camera.updateProjectionMatrix()
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix()
 
-        appInfo.renderer.setSize(w, h);
-        //appInfo.composer.setSize(w, h);
+        renderer.setSize(w, h);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        composer.setSize(w, h);
 
         effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     }, false);

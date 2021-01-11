@@ -1,31 +1,20 @@
 import * as Managers from '/js/boids/managers.js';
 import * as Movement from '/js/boids/movement.js';
 
-function getSeed() {
-    let seed = (Math.random() * 10);
-    return Math.random() < 0.5 ? seed : seed - (seed * 2);
-}
-
-const perception = 500;
-
 export class Entity {
     constructor(params) {
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
         this.child = params.child;
+        this.perception = 500;
 
         // Momentum
-        //this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
-        this.velocity = new THREE.Vector3(-5, 0, 0);
-
-        this.maxSpeed = 4;
+        this.maxSpeed = 8;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
-        // Rotation
+        this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
         this.direction = Movement.velocityToDirection(this.velocity);
-
-        this.rotateTo(this.direction, this.obj);
 
         this.rotationManager = new Managers.Rotation({
             boid: this,
@@ -37,44 +26,50 @@ export class Entity {
         // VIDEO @ 21:50
     }
 
-    bounce() {
-        const pos = this.obj.position,
-            v = this.velocity;
+    getSeed() {
+        let seed = (Math.random() * this.maxSpeed);
+        return Math.random() < 0.5 ? seed : seed - (seed * 2);
+    }
 
-        const vx = this.velocity.x,
+    bounce() {
+        // Update Bounce managers
+        if (this.bounceManager != undefined) {
+            if (this.bounceManager.execute())
+                this.bounceManager = undefined;
+            return;
+        }
+
+        // Detect if moving out of bounds
+        const pos = this.obj.position,
+            vx = this.velocity.x,
             vy = this.velocity.y,
             vz = this.velocity.z;
 
-        let inverse = false;
+        if ((pos.x > 1500 && (vx >= 0 || vz >= 0)) ||
+            (pos.x < -1500 && (vx < 0 || vz < 0))
 
-        if (pos.x >= 1500 || (inverse = pos.x <= -1500)) {
-            if (inverse ? vx < 0 : vx >= 0) {
-                this.velocity.x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
-            }
+            ||
+            (pos.y > 500 && vy >= 0) ||
+            (pos.y < 0 && vy < 0)
+
+            ||
+            (pos.z > 1500 && (vx >= 0 || vz >= 0)) ||
+            (pos.z < -1500 && (vx < 0 || vz < 0))
+        ) {
+
+            this.bounceManager = new Managers.Bounce({
+                boid: this,
+                desiredVX: vx - (vx * (Math.random() + 1)),
+                desiredVY: vy - (vy * (Math.random() + 1)),
+                desiredVZ: vz - (vz * (Math.random() + 1))
+            });
         }
-
-        if (pos.y >= 1500 || (inverse = pos.y <= 1500)) {
-            if (inverse ? vy < 0 : vy >= 0) {
-                this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
-            }
-        }
-
-        if (pos.z >= 1500 || (inverse = pos.z <= -1500)) {
-            if (inverse ? vz < 0 : vz >= 0) {
-                this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
-            }
-        }
-
-        this.bounceManager = new Managers.Bounce({
-
-        });
-
-        // Update Bounce managers
-        if (this.bounceManager != undefined && this.bounceManager.execute())
-            this.bounceManager = undefined;
     }
 
     align(boids) {
+        if (this.bounceManager != undefined)
+            return;
+
         const alignment = this.getAlignment(boids);
         this.acceleration = alignment;
     }
@@ -95,7 +90,7 @@ export class Entity {
                 continue;
 
             const pos = other.obj.position;
-            if (pos.distanceTo(position) > (nearBorder ? perception / 4 : perception))
+            if (pos.distanceTo(position) > (nearBorder ? this.perception / 4 : perception.perception))
                 continue;
 
             if (pos.x >= 1000 || pos.x <= -1000 ||
@@ -171,44 +166,6 @@ export class Entity {
         }
 
         this.rotationManager.execute();
-    }
-
-    rotateTo(direction, obj) {
-        // Auto-rotate at start
-        var seed = Math.random() * 250 / 1000,
-            desiredDegree;
-
-        switch (direction) {
-            case Movement.direction.NORTH:
-                desiredDegree = seed + 0.875;
-                if (desiredDegree > 1.0) desiredDegree = -1 + (desiredDegree - 1.0);
-                break;
-            case Movement.direction.NORTH_EAST:
-                desiredDegree = seed + 0.625;
-                break;
-            case Movement.direction.EAST:
-                desiredDegree = seed + 0.375;
-                break;
-            case Movement.direction.SOUTH_EAST:
-                desiredDegree = seed + 0.125;
-                break;
-            case Movement.direction.SOUTH:
-                desiredDegree = seed + -0.125;
-                break;
-            case Movement.direction.SOUTH_WEST:
-                desiredDegree = seed + -0.375;
-                break;
-            case Movement.direction.WEST:
-                desiredDegree = seed + -0.625;
-                break;
-            case Movement.direction.NORTH_WEST:
-                desiredDegree = seed + -0.875;
-                break;
-        }
-
-        var quaternion = new THREE.Quaternion();
-        quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * desiredDegree);
-        obj.applyQuaternion(quaternion);
     }
 }
 
