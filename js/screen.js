@@ -87,6 +87,7 @@ export function click(e, params) {
 
         if (selectedObj == undefined) {
             console.log('Selection failed - unable to find related object and mesh!');
+            params.selected = undefined;
             return;
         }
 
@@ -204,13 +205,13 @@ export function countFPS(params) {
 
     framesRendered += 1;
 
-    const b = params.boids[0];
+    //const b = params.boids[0];
 
-    if (b == undefined)
-        return;
+    //  if (b == undefined)
+    //   return;
 
-    x.innerText = "Desired: " + b.rotationManager.desired;
-    y.innerText = "Facing: " +  b.rotationManager.facing;
+    // x.innerText = "Desired: " + b.rotationManager.desired;
+    // y.innerText = "Facing: " +  b.rotationManager.facing;
 
     // z.innerText = "Z: " + Math.round(camera.position.z);
 }

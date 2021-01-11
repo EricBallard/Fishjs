@@ -76,7 +76,7 @@ export class Rotation {
                 (!this.inverse && this.idleDir == this.idleDirs.right))
                 this.inverse = !this.inverse;
 
-            return true;
+            return;
         }
 
         // Generate random increments
@@ -87,7 +87,6 @@ export class Rotation {
 
         // Rotate 
         this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
-        return false;
     }
 }
 
@@ -95,82 +94,13 @@ export class Bounce {
     constructor(params) {
         this.boid = params.boid;
 
-        const pos = this.boid.obj.position,
-            maxSpeed = this.boid.maxSpeed,
-            vv = this.boid.velocity;
-
-        this.start = vv;
-
-        if (this.reflectX = pos.x >= 2000 || pos.x <= -2000) {
-            let vx = vv.x;
-            vx = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
-
-            let desired = vx / ((Math.random() * 4) + .4);
-            desired = (desired > maxSpeed ? maxSpeed : desired);
-            console.log('EnterX: ' + this.boid.velocity.x + " | ExitX: " + desired);
-            this.boid.velocity.x = vx;
-            this.desiredVX = desired;
-        }
-
-        if (this.reflectY = pos.y >= 2000 || pos.y <= -2000) {
-            let vy = vv.y;
-            vy = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
-
-            this.boid.velocity.y = vy;
-            this.desiredVY = (vy > maxSpeed ? maxSpeed : vy) / (Math.random() * 4);
-        }
-
-        if (this.reflectZ = pos.z >= 2000 || pos.z <= -2000) {
-            let vz = vv.z;
-            vz = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
-
-            this.boid.velocity.z = vz;
-            this.desiredVZ = (vz > maxSpeed ? maxSpeed : vz) / (Math.random() * 4);
-        }
+        
     }
 
     execute() {
         // Reflect entities velcoity, making it "bounce"
-        const v = this.boid.velocity,
-            pos = this.boid.obj.position;
+      
 
-        let altered = false;
-
-        // X-Axis
-        if (this.reflectX) {
-            const inverted = this.desiredVX < 0;
-
-            if (inverted ? v.x > this.desiredVX : v.x < this.desiredVX) {
-                this.boid.velocity.x = inverted ? v.x - (v.x / (Math.random() * 4)) : v.x + (v.x / (Math.random() * 4));
-                altered = true;
-            }
-        }
-
-        // Y-Axis
-        if (this.reflectY) {
-            const inverted = this.desiredVY < 0,
-                vy = Math.abs(this.desiredVY / 10);
-
-            if (inverted ? this.start.y > this.desiredVY : this.start.y < this.desiredVY) {
-                this.boid.velocity.y = inverted ? v.y - vy : v.y + vy;
-                altered = true;
-            }
-        }
-
-        // Z-Axis
-        if (this.reflectZ) {
-            const inverted = this.desiredVZ < 0,
-                vz = Math.abs(this.desiredVZ / 10);
-
-            if (inverted ? this.start.z > this.desiredVZ : this.start.z < this.desiredVZ) {
-                this.boid.velocity.z = inverted ? v.z - vz : v.z + vz;
-                altered = true;
-            }
-        }
-
-        return !altered &&
-            (pos.x <= 1500 && pos.x >= -1500 &&
-                pos.y <= 1500 && pos.y >= -1500 &&
-                pos.z <= 1500 && pos.z >= -1500);
+        return false;
     }
 }

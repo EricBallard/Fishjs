@@ -14,19 +14,16 @@ import {
 } from '/js/libs/threejs/water/Water.js';
 
 import {
+    isMobile
+} from '/js/device.js';
+
+import {
     OutlinePass
 } from '/js/libs/threejs/post/pass/OutlinePass.js';
 
 import {
     FXAAShader
 } from '/js/libs/threejs/post/FXAAShader.js';
-
-/*
-  3D Graphics
-*/
-let scene = undefined,
-    width = window.innerWidth,
-    height = window.innerHeight;
 
 /*
   Stats & Info
@@ -37,17 +34,24 @@ let fishSpawned = 0,
 // Boid data
 let boids = [],
     mixers = [],
-    sceneObjects = [],
-    bounceManagers = [];
-
+    sceneObjects = [];
 
 export function initialize() {
-    // Create scene and camera
-    scene = new THREE.Scene();
+    const usingMobile = isMobile.any() != undefined;
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 60, 25000);
+    let w = window.innerWidth,
+        h = window.innerHeight;
+    console.log('W: ' + w + ' H: ' + h);
+
+    const body = document.body;
+
+
+
+    // Create scene and camera
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, w / h, 60, 25000);
     camera.position.set(-1100, -500, -1000);
-   // camera.position.set(0, -200, 0);
+    // camera.position.set(0, -200, 0);
 
     // Create raycaster
     const raycaster = new THREE.Raycaster();
@@ -60,12 +64,14 @@ export function initialize() {
         alpha: true
     });
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(w, h);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.localClippingEnabled = true;
 
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.domElement.id = 'canvas';
+
+    const canvas = renderer.domElement;
+    canvas.id = 'canvas';
 
     // Post-processesing
     const composer = new THREE.EffectComposer(renderer);
@@ -74,24 +80,21 @@ export function initialize() {
     composer.addPass(renderPass);
 
     const effectFXAA = new THREE.ShaderPass(FXAAShader);
-    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+    effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     composer.addPass(effectFXAA);
 
-    const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+    const outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera);
     outlinePass.edgeThickness = 1.0;
     outlinePass.edgeStrength = 2.5;
     outlinePass.edgeGlow = 0.1;
     outlinePass.pulsePeriod = 0;
-
     composer.addPass(outlinePass);
 
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load('/resources/tri_pattern.jpg', function (texture) {
-
         outlinePass.patternTexture = texture;
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-
     });
 
     const sceneElement = renderer.domElement
@@ -121,8 +124,8 @@ export function initialize() {
 
     // Cache app info obj
     const appInfo = {
-        width: width,
-        height: height,
+        width: w,
+        height: h,
         scene: scene,
         camera: camera,
         outLine: outlinePass,
@@ -137,7 +140,6 @@ export function initialize() {
 
         boids: boids,
         animations: mixers,
-        bManagers: bounceManagers,
 
         spawned: fishSpawned,
         fish: fishTracker,
@@ -160,17 +162,43 @@ export function initialize() {
     loadAnimatedModel(appInfo);
 
     // Add water-wave distortion effect
-    addWaterPhysFX();
+    /*
+        const water = new Water(new THREE.PlaneBufferGeometry(4000, 4000), {
+            scale: .1,
+            textureWidth: 1048,
+            textureHeight: 1024,
+            flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg')
+        });
+
+
+        water.position.y = 1000;
+        water.rotation.x = Math.PI * 0.5;
+        scene.add(water);
+    */
+
+    //~~~~~! TEST
+    var material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        color: '#000000',
+        side: THREE.DoubleSide
+    });
+
+    let plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), material);
+    plane.rotation.x = Math.PI / 2;
+    plane.position.y = -1000;
+    scene.add(plane);
+
+    plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), material);
+    plane.rotation.x = Math.PI / 2;
+    plane.position.y = 1000;
+    scene.add(plane);
 
     // Add light to scene
-    /*
-        FIND NEW LIBRARARY THIS SHIT IS TAAAAXING
-        Makes mobile nearly unusable 
-    */
-    addLight(0.01, 0.1, 0.1, 1000, 999, 1750);
+    let light = new THREE.PointLight();
+    light.position.set(1000, 999, 1750);
+    scene.add(light);
 
     // Add cached element to DOM
-    const body = document.body;
     body.appendChild(sceneElement);
 
     // Audio
@@ -203,36 +231,33 @@ export function initialize() {
             Screen.click(e, appInfo);
     }, false);
 
+    const c = document.getElementById('canvas');
+
     // Register resize listener
     window.addEventListener('resize', () => {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+        w = window.innerWidth,
+            h = window.innerHeight;
+
+        var scale = window.visualViewport.scale;
+        console.log("SCALE: " + scale);
+        console.log('W: ' + w + ' H: ' + h);
+
+
+
+        appInfo.width = w;
+        appInfo.height = h;
+
+        appInfo.camera.aspect = w / h;
+        appInfo.camera.updateProjectionMatrix()
+
+        appInfo.renderer.setSize(w, h);
+        //appInfo.composer.setSize(w, h);
+
+        effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     }, false);
 
     // Render-loop
     Screen.render(appInfo);
-}
-
-function addWaterPhysFX() {
-    const water = new Water(new THREE.PlaneBufferGeometry(4600, 4600), {
-        scale: 1,
-        textureWidth: 1024,
-        textureHeight: 1024,
-        flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg')
-    });
-
-
-    water.position.y = 1000;
-    water.rotation.x = Math.PI * 0.5;
-    scene.add(water);
-}
-
-function addLight(h, s, l, x, y, z) {
-    let light = new THREE.PointLight();
-    light.position.set(x, y, z);
-    scene.add(light);
-
 }
 
 Screen.getFrameRate();

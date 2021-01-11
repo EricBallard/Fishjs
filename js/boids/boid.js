@@ -15,7 +15,8 @@ export class Entity {
         this.child = params.child;
 
         // Momentum
-        this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
+        //this.velocity = new THREE.Vector3(getSeed(), 0, getSeed());
+        this.velocity = new THREE.Vector3(-5, 0, 0);
 
         this.maxSpeed = 4;
         this.maxForce = 0.2;
@@ -24,8 +25,7 @@ export class Entity {
         // Rotation
         this.direction = Movement.velocityToDirection(this.velocity);
 
-        // Auto-rotate at start
-        rotateTo(this.direction, this.obj);
+        this.rotateTo(this.direction, this.obj);
 
         this.rotationManager = new Managers.Rotation({
             boid: this,
@@ -47,23 +47,31 @@ export class Entity {
 
         let inverse = false;
 
-        if (pos.x >= 1000 || (inverse = pos.x <= -1000)) {
+        if (pos.x >= 1500 || (inverse = pos.x <= -1500)) {
             if (inverse ? vx < 0 : vx >= 0) {
                 this.velocity.x = vx < 0 ? Math.abs(vx) : vx - (vx * 2);
             }
         }
 
-        if (pos.y >= 1000 || (inverse = pos.y <= 1000)) {
+        if (pos.y >= 1500 || (inverse = pos.y <= 1500)) {
             if (inverse ? vy < 0 : vy >= 0) {
                 this.velocity.y = vy < 0 ? Math.abs(vy) : vy - (vy * 2);
             }
         }
 
-        if (pos.z >= 1000 || (inverse = pos.z <= -1000)) {
+        if (pos.z >= 1500 || (inverse = pos.z <= -1500)) {
             if (inverse ? vz < 0 : vz >= 0) {
                 this.velocity.z = vz < 0 ? Math.abs(vz) : vz - (vz * 2);
             }
         }
+
+        this.bounceManager = new Managers.Bounce({
+
+        });
+
+        // Update Bounce managers
+        if (this.bounceManager != undefined && this.bounceManager.execute())
+            this.bounceManager = undefined;
     }
 
     align(boids) {
@@ -164,10 +172,48 @@ export class Entity {
 
         this.rotationManager.execute();
     }
+
+    rotateTo(direction, obj) {
+        // Auto-rotate at start
+        var seed = Math.random() * 250 / 1000,
+            desiredDegree;
+
+        switch (direction) {
+            case Movement.direction.NORTH:
+                desiredDegree = seed + 0.875;
+                if (desiredDegree > 1.0) desiredDegree = -1 + (desiredDegree - 1.0);
+                break;
+            case Movement.direction.NORTH_EAST:
+                desiredDegree = seed + 0.625;
+                break;
+            case Movement.direction.EAST:
+                desiredDegree = seed + 0.375;
+                break;
+            case Movement.direction.SOUTH_EAST:
+                desiredDegree = seed + 0.125;
+                break;
+            case Movement.direction.SOUTH:
+                desiredDegree = seed + -0.125;
+                break;
+            case Movement.direction.SOUTH_WEST:
+                desiredDegree = seed + -0.375;
+                break;
+            case Movement.direction.WEST:
+                desiredDegree = seed + -0.625;
+                break;
+            case Movement.direction.NORTH_WEST:
+                desiredDegree = seed + -0.875;
+                break;
+        }
+
+        var quaternion = new THREE.Quaternion();
+        quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * desiredDegree);
+        obj.applyQuaternion(quaternion);
+    }
 }
 
+// Update boids
 export function update(boids, bManagers, rManagers) {
-    // Update boids
     for (let boid of boids) {
         boid.align(boids);
         boid.bounce();
@@ -175,51 +221,4 @@ export function update(boids, bManagers, rManagers) {
         boid.move();
         boid.rotate();
     }
-
-    // Update Bounce managers
-    let managerSize = bManagers.length;
-    for (let index = 0; index < managerSize; index++) {
-        const manager = bManagers[index];
-        if (manager != undefined && manager.execute()) {
-            console.log("finished vbouncing");
-            bManagers.splice(index, 1);
-        }
-    }
-}
-
-function rotateTo(direction, obj) {
-    var seed = Math.random() * 250 / 1000,
-        desiredDegree;
-
-    switch (direction) {
-        case Movement.direction.NORTH:
-            desiredDegree = seed + 0.875;
-            if (desiredDegree > 1.0) desiredDegree = -1 + (desiredDegree - 1.0);
-            break;
-        case Movement.direction.NORTH_EAST:
-            desiredDegree = seed + 0.625;
-            break;
-        case Movement.direction.EAST:
-            desiredDegree = seed + 0.375;
-            break;
-        case Movement.direction.SOUTH_EAST:
-            desiredDegree = seed + 0.125;
-            break;
-        case Movement.direction.SOUTH:
-            desiredDegree = seed + -0.125;
-            break;
-        case Movement.direction.SOUTH_WEST:
-            desiredDegree = seed + -0.375;
-            break;
-        case Movement.direction.WEST:
-            desiredDegree = seed + -0.625;
-            break;
-        case Movement.direction.NORTH_WEST:
-            desiredDegree = seed + -0.875;
-            break;
-    }
-
-    var quaternion = new THREE.Quaternion();
-    quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * desiredDegree);
-    obj.applyQuaternion(quaternion);
 }
