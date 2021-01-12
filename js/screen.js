@@ -245,9 +245,7 @@ export function countFPS(params) {
     //z.innerText = "Z: " + b.obj.position.z + " | " + b.velocity.z;
 }
 
-let lastFPS = undefined,
-    stableFPS = false,
-    addedFish = false;
+let lastFPS = undefined;
 
 async function manageFPS(params, currentFPS) {
     /*
@@ -257,17 +255,10 @@ async function manageFPS(params, currentFPS) {
     if (lastFPS != undefined) {
         const desiredFPS = params.frameRate;
 
-        if (stableFPS) {
-            if (currentFPS >= desiredFPS && lastFPS >= desiredFPS)
-                stableFPS = false;
-        } else if (currentFPS >= desiredFPS && lastFPS >= desiredFPS) {
-            addedFish = true;
+        if (currentFPS >= desiredFPS && lastFPS >= desiredFPS) {
             addFishToScene();
             await sleep(1000);
-        } else if (currentFPS < desiredFPS) {
-            if (addedFish)
-                stableFPS = true;
-            addedFish = false;
+        } else if (currentFPS < desiredFPS && lastFPS < desiredFPS) {
             removeFishFromScene();
             await sleep(1000);
         }

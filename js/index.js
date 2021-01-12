@@ -39,13 +39,12 @@ let boids = [],
 export function initialize(desiredFrameRate) {
     const usingMobile = isMobile.any() != undefined;
 
-    let w = window.innerWidth,
-        h = window.innerHeight;
+    let isLandScape = window.innerWidth > window.innerHeight;
+    let h = usingMobile ? (isLandScape ? screen.width : screen.height) : window.innerHeight;
+    let w = usingMobile ? (isLandScape ? screen.height : screen.width) : window.innerWidth;
+
     console.log('W: ' + w + ' H: ' + h);
-
     const body = document.body;
-
-
 
     // Create scene and camera
     const scene = new THREE.Scene();
@@ -61,13 +60,11 @@ export function initialize(desiredFrameRate) {
     // Configure renderer and cache its DOM element
     const renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: true
+        alpha: false
     });
 
     renderer.setSize(w, h);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.localClippingEnabled = true;
-
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const canvas = renderer.domElement;
@@ -131,7 +128,7 @@ export function initialize(desiredFrameRate) {
         composer: composer,
         renderer: renderer,
         frameRate: desiredFrameRate,
-        
+
         controls: controls,
         element: sceneElement,
         sceneObjects: sceneObjects,
@@ -215,12 +212,9 @@ export function initialize(desiredFrameRate) {
 
     // Register resize listener
     window.addEventListener('resize', () => {
-        w = window.innerWidth,
-            h = window.innerHeight;
-
-        var scale = window.visualViewport.scale;
-        console.log("SCALE: " + scale);
-        console.log('W: ' + w + ' H: ' + h);
+        isLandScape = window.innerWidth > window.innerHeight;
+        let h = usingMobile ? (isLandScape ? screen.width : screen.height) : window.innerHeight;
+        let w = usingMobile ? (isLandScape ? screen.height : screen.width) : window.innerWidth;
 
         appInfo.width = w;
         appInfo.height = h;
