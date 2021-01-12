@@ -96,19 +96,22 @@ function onError() {
     console.log('ERROR LOADING MODEL!');
 }
 
-function fadeIn(element, slowFade) {
+function fadeIn(element, slowFade, info) {
     var opacity = 0;
     var intervalID = setInterval(function () {
         if (opacity < 1) {
             opacity = opacity + 0.1
             element.style.opacity = opacity;
+
+            if (info != undefined)
+                info.style.opacity = opacity;
         } else {
             clearInterval(intervalID);
-            const infoStatus = document.getElementById('info');
+            const desc = document.getElementById('desc');
 
-            if (infoStatus.style.opacity != 0)
+            if (desc.style.opacity != 0)
                 return;
-            fadeIn(infoStatus, true);
+            fadeIn(desc, true, document.getElementById('info'));
         }
     }, (slowFade ? 100 : 50));
 }

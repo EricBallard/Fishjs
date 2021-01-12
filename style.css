@@ -1,5 +1,5 @@
 /*
-  Loading Identifier
+  Loading Identifier/Animation
 */
 .loader {
   display: flex;
@@ -47,7 +47,7 @@
 /*
   Description and information
 */
-.info {
+.desc {
   opacity: 0;
 
   top: 0px;
@@ -70,12 +70,23 @@
   pointer-events: none;
 
 }
+
 .link {
   text-decoration-thickness: 1px;
   text-decoration-style: dotted;
   text-decoration-line: underline;
   pointer-events: auto;
   color: #505050;
+}
+
+.info {
+  opacity: 0;
+  left: 25px;
+  bottom: 0px;
+
+  color: white;
+  text-align: left;
+  position: absolute;
 }
 
 .debug {
@@ -92,8 +103,9 @@
 }
 
 h1 {
+  font-weight: 100;
   color: #252525;
-  font-weight:100;
+  font-style: italic;
 }
 
 /*

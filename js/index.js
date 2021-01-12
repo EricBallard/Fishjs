@@ -121,7 +121,6 @@ export function initialize() {
         yTracker = document.getElementById('y'),
         zTracker = document.getElementById('z');
 
-
     // Cache app info obj
     const appInfo = {
         width: w,
