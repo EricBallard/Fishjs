@@ -1,6 +1,11 @@
 // Utils
 import * as Screen from '/js/screen.js';
 
+
+import {
+    isMobile
+} from '/js/device.js';
+
 import {
     createMaterialArray
 } from '/js/skybox.js';
@@ -14,16 +19,16 @@ import {
 } from '/js/libs/threejs/water/Water.js';
 
 import {
-    isMobile
-} from '/js/device.js';
-
-import {
     OutlinePass
 } from '/js/libs/threejs/post/pass/OutlinePass.js';
 
 import {
     FXAAShader
 } from '/js/libs/threejs/post/FXAAShader.js';
+
+import {
+    getViews
+} from '/js/views.js';
 
 /*
   Stats & Info
@@ -36,15 +41,12 @@ let boids = [],
     mixers = [],
     sceneObjects = [];
 
-export function initialize(desiredFrameRate) {
+export function initialize() {
     const usingMobile = isMobile.any() != undefined;
 
     let isLandScape = window.innerWidth > window.innerHeight;
     let h = usingMobile ? (isLandScape ? screen.width : screen.height) : window.innerHeight;
     let w = usingMobile ? (isLandScape ? screen.height : screen.width) : window.innerWidth;
-
-    console.log('W: ' + w + ' H: ' + h);
-    const body = document.body;
 
     // Create scene and camera
     const scene = new THREE.Scene();
@@ -122,12 +124,13 @@ export function initialize(desiredFrameRate) {
     const appInfo = {
         width: w,
         height: h,
+        isMobile: usingMobile,
+
         scene: scene,
         camera: camera,
         outLine: outlinePass,
         composer: composer,
         renderer: renderer,
-        frameRate: desiredFrameRate,
 
         controls: controls,
         element: sceneElement,
@@ -176,7 +179,7 @@ export function initialize(desiredFrameRate) {
     scene.add(light);
 
     // Add cached element to DOM
-    body.appendChild(sceneElement);
+    document.body.appendChild(sceneElement);
 
     // Audio
     const audio = new Audio('/resources/ambience_sound_compressed.wav');
@@ -208,8 +211,6 @@ export function initialize(desiredFrameRate) {
             Screen.click(e, appInfo);
     }, false);
 
-    const c = document.getElementById('canvas');
-
     // Register resize listener
     window.addEventListener('resize', () => {
         isLandScape = window.innerWidth > window.innerHeight;
@@ -229,8 +230,12 @@ export function initialize(desiredFrameRate) {
         effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     }, false);
 
+    // Load view counter data
+    //getViews();
+
     // Render-loop
     Screen.render(appInfo);
 }
 
-Screen.getFrameRate();
+// Init app
+initialize();

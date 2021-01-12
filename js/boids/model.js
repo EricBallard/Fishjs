@@ -100,9 +100,15 @@ export function loadAnimatedModel(params) {
 
 function onComplete() {
     setTimeout(function () {
+        // Add in fish to scene
+        const toAdd = cachedParams.isMobile ? 50 : 100;
 
-        for (let added = 0; added < 100; added++)
+        for (let added = 0; added < toAdd; added++)
             addFishToScene();
+
+
+        // Hide loading identifier
+        document.getElementById('loadStatus').style.display = 'none';
 
         // Fade in 3D scene
         fadeIn(cachedParams.element, false);

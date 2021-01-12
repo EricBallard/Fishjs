@@ -49,14 +49,14 @@
 */
 .desc {
   opacity: 0;
-
-  top: 0px;
   left: 25px;
   font-size: 18px;
   position: absolute;
 
   color: white;
   text-align: left;
+
+  touch-action: none;
 
   /*
     Prevent text selection and allow user to control scene
@@ -72,6 +72,8 @@
 }
 
 .link {
+  touch-action: none;
+
   text-decoration-thickness: 1px;
   text-decoration-style: dotted;
   text-decoration-line: underline;
@@ -80,6 +82,8 @@
 }
 
 .info {
+  touch-action: none;
+
   opacity: 0;
   left: 25px;
   bottom: 0px;
@@ -90,6 +94,8 @@
 }
 
 .debug {
+  touch-action: none;
+
   right: 0px;
   bottom: 0px;
 
@@ -120,4 +126,5 @@ body {
   position: absolute;
   background: #000000;
   overscroll-behavior: none;
+  touch-action: none;
 }
