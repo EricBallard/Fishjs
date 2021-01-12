@@ -160,59 +160,6 @@ function alignCameraToSelected(params) {
 /*
     Frame-rate
 */
-import {
-    initialize
-} from '/js/index.js';
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Calculate native rate
-export async function getFrameRate() {
-    const loadStatus = document.getElementById('loadStatus');
-
-    let requested = false;
-
-    let desiredFrameRate,
-        frameRate = undefined,
-        frameRateVerify = undefined;
-
-    while (true) {
-        if (!requested) {
-            getDesired().then(fps => frameRate = Math.floor(fps));
-            requested = true;
-        } else if (frameRate != undefined) {
-            if (frameRateVerify == undefined) {
-                frameRateVerify = frameRate;
-            } else {
-                desiredFrameRate = frameRate > frameRateVerify ? frameRate : frameRateVerify;
-                break;
-            }
-
-            frameRate = undefined;
-            requested = false;
-        }
-        await sleep(500);
-    }
-
-    // Normalize polled fps by roundomg to nearest 10th
-    desiredFrameRate = Math.round(desiredFrameRate / 10) * 10;
-    console.log('Desired Frame Rate: ' + desiredFrameRate);
-
-    // Hide loading identifier
-    loadStatus.style.display = 'none';
-
-    // Init app
-    initialize(desiredFrameRate);
-}
-
-const getDesired = () =>
-    new Promise(resolve =>
-        requestAnimationFrame(t1 =>
-            requestAnimationFrame(t2 => resolve(1000 / (t2 - t1)))
-        )
-    );
 
 // Track current rate
 let framesRendered = 0,
@@ -243,26 +190,55 @@ export function countFPS(params) {
     // x.innerText = "X: " + b.obj.position.x + " | " + b.velocity.x;
     // y.innerText = "Y: " + b.obj.position.y + " | " + b.velocity.y;
     //z.innerText = "Z: " + b.obj.position.z + " | " + b.velocity.z;
+
+
 }
 
-let lastFPS = undefined;
+let lastFPS = undefined,
+    targetFPS = undefined,
+    potentialTarget = undefined;
+
+const commonFrateRates = [24, 29, 59, 120, 144];
 
 async function manageFPS(params, currentFPS) {
     /*
         Add/Remove fish from scene to maintain
         optimal fps with maximum visual display
     */
-    if (lastFPS != undefined) {
-        const desiredFPS = params.frameRate;
 
-        if (currentFPS >= desiredFPS && lastFPS >= desiredFPS) {
-            addFishToScene();
-            await sleep(1000);
-        } else if (currentFPS < desiredFPS && lastFPS < desiredFPS) {
-            removeFishFromScene();
-            await sleep(1000);
+    // Detect optimal fps
+    if (targetFPS == undefined) {
+        if (lastFPS == undefined) {
+            lastFPS = currentFPS;
+        } else if (Math.abs(currentFPS - lastFPS) <= 2)
+            return;
+
+        for (let cfr of commonFrateRates) {
+            if (Math.abs(cfr - currentFPS) <= 2) {
+                if (potentialTarget != undefined) {
+                    if (potentialTarget == cfr) {
+                        console.log('Target FPS: ' + cfr);
+                        targetFPS = cfr;
+                        break;
+                    }
+                }
+
+                potentialTarget = cfr;
+                break;
+            }
         }
+        return;
     }
+
+    // Add/remove fish to maintain optimal fps
+    if (currentFPS >= targetFPS && lastFPS >= targetFPS) {
+        addFishToScene();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    } else if (currentFPS < targetFPS && lastFPS < targetFPS) {
+        removeFishFromScene();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
 
     lastFPS = currentFPS;
 }

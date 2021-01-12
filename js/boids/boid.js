@@ -9,7 +9,7 @@ export class Entity {
         this.perception = 1000;
 
         // Momentum
-        this.maxSpeed = 4;
+        this.maxSpeed = 2;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
