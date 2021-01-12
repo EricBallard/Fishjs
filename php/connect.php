@@ -1,9 +1,9 @@
 <?php
 
-$servername = "host";
-$database = "database";
-$username = "user";
-$password = "pass";
+$servername = "webbiker-database.czw3xqzkib0h.us-east-2.rds.amazonaws.com";
+$database = "portfolio_database";
+$username = "admin";
+$password = "Pa55word";
 
 // Create connection
 $dbc = new mysqli($servername, $username, $password, $database);

@@ -30,17 +30,17 @@
 @keyframes anim {
   0% {
     transform: rotate(0deg);
-    box-shadow: 1px 5px 2px #e65c00;
+    box-shadow: 1px 5px 2px #000833;
   }
 
   50% {
     transform: rotate(180deg);
-    box-shadow: 1px 5px 2px #18b201;
+    box-shadow: 1px 5px 2px #003308;
   }
 
   100% {
     transform: rotate(360deg);
-    box-shadow: 1px 5px 2px #0456c8;
+    box-shadow: 1px 5px 2px #000000;
   }
 }
 
