@@ -5,12 +5,15 @@ import {
     update
 } from '/js/boids/boid.js';
 
+import {
+    addFishToScene,
+    removeFishFromScene
+} from '/js/boids/model.js';
 
 // Track time between frame renders - used to limit animation framte
 let clock = new THREE.Clock();
 
-let desiredFrameRate = -1,
-    interval = 1 / 30,
+let interval = 1 / 60,
     delta = 0;
 
 // Process updates
@@ -33,7 +36,7 @@ export function render(params) {
                 alignCameraToSelected(params);
 
             // Update animations TODO: update via gsap
-            for (let i = 0; i < params.animations.length; i++) params.animations[i].update((Math.random() * 20 + 10) / 1000);
+            for (let i = 0; i < params.animations.length; i++) params.animations[i].update(.01);
 
             // Update boids
             update(params.boids, params.bManagers, params.rManagers);
@@ -169,17 +172,39 @@ function sleep(ms) {
 export async function getFrameRate() {
     const loadStatus = document.getElementById('loadStatus');
 
-    getDesired().then(fps => desiredFrameRate = Math.floor(fps));
+    let requested = false;
 
-    while (desiredFrameRate == -1) {
-        console.log('Calculating frame rate...');
-        await sleep(1000);
+    let desiredFrameRate,
+        frameRate = undefined,
+        frameRateVerify = undefined;
+
+    while (true) {
+        if (!requested) {
+            getDesired().then(fps => frameRate = Math.floor(fps));
+            requested = true;
+        } else if (frameRate != undefined) {
+            if (frameRateVerify == undefined) {
+                frameRateVerify = frameRate;
+            } else {
+                desiredFrameRate = frameRate > frameRateVerify ? frameRate : frameRateVerify;
+                break;
+            }
+
+            frameRate = undefined;
+            requested = false;
+        }
+        await sleep(500);
     }
 
+    // Normalize polled fps by roundomg to nearest 10th
+    desiredFrameRate = Math.round(desiredFrameRate / 10) * 10;
     console.log('Desired Frame Rate: ' + desiredFrameRate);
+
+    // Hide loading identifier
     loadStatus.style.display = 'none';
 
-    initialize();
+    // Init app
+    initialize(desiredFrameRate);
 }
 
 const getDesired = () =>
@@ -199,6 +224,8 @@ export function countFPS(params) {
     const newSecond = now - secondTracker >= 1000;
 
     if (newSecond) {
+        manageFPS(params, framesRendered);
+
         // Update FPS
         params.fps.innerText = framesRendered;
         params.fish.innerText = params.spawned;
@@ -208,12 +235,43 @@ export function countFPS(params) {
 
     framesRendered += 1;
 
-   // let b;
+    // let b;
 
-   // if ((b = params.boids[0]) == undefined)
+    // if ((b = params.boids[0]) == undefined)
     //    return;
 
-   // x.innerText = "X: " + b.obj.position.x + " | " + b.velocity.x;
-   // y.innerText = "Y: " + b.obj.position.y + " | " + b.velocity.y;
+    // x.innerText = "X: " + b.obj.position.x + " | " + b.velocity.x;
+    // y.innerText = "Y: " + b.obj.position.y + " | " + b.velocity.y;
     //z.innerText = "Z: " + b.obj.position.z + " | " + b.velocity.z;
+}
+
+let lastFPS = undefined,
+    stableFPS = false,
+    addedFish = false;
+
+async function manageFPS(params, currentFPS) {
+    /*
+        Add/Remove fish from scene to maintain
+        optimal fps with maximum visual display
+    */
+    if (lastFPS != undefined) {
+        const desiredFPS = params.frameRate;
+
+        if (stableFPS) {
+            if (currentFPS >= desiredFPS && lastFPS >= desiredFPS)
+                stableFPS = false;
+        } else if (currentFPS >= desiredFPS && lastFPS >= desiredFPS) {
+            addedFish = true;
+            addFishToScene();
+            await sleep(1000);
+        } else if (currentFPS < desiredFPS) {
+            if (addedFish)
+                stableFPS = true;
+            addedFish = false;
+            removeFishFromScene();
+            await sleep(1000);
+        }
+    }
+
+    lastFPS = currentFPS;
 }

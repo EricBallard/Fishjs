@@ -6,10 +6,10 @@ export class Entity {
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
         this.child = params.child;
-        this.perception = 500;
+        this.perception = 1000;
 
         // Momentum
-        this.maxSpeed = 8;
+        this.maxSpeed = 4;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
@@ -86,18 +86,12 @@ export class Entity {
         let othersInPerception = 0;
 
         for (let other of boids) {
-            if (other == this)
+            if (other == this || other.bounceManager != undefined)
                 continue;
 
             const pos = other.obj.position;
             if (pos.distanceTo(position) > (nearBorder ? this.perception / 4 : perception.perception))
                 continue;
-
-            if (pos.x >= 1000 || pos.x <= -1000 ||
-                pos.y >= 1000 || pos.y <= -1000 ||
-                pos.z >= 1000 || pos.z <= -1000) {
-                continue;
-            }
 
             perceivedVelocity.x += other.velocity.x;
             perceivedVelocity.y += other.velocity.y;

@@ -2,8 +2,8 @@
 
 $servername = "host";
 $database = "database";
-$username = "user";
-$password = "pass";
+$username = "username";
+$password = "password";
 
 // Create connection
 $dbc = new mysqli($servername, $username, $password, $database);

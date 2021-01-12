@@ -36,7 +36,7 @@ let boids = [],
     mixers = [],
     sceneObjects = [];
 
-export function initialize() {
+export function initialize(desiredFrameRate) {
     const usingMobile = isMobile.any() != undefined;
 
     let w = window.innerWidth,
@@ -130,7 +130,8 @@ export function initialize() {
         outLine: outlinePass,
         composer: composer,
         renderer: renderer,
-
+        frameRate: desiredFrameRate,
+        
         controls: controls,
         element: sceneElement,
         sceneObjects: sceneObjects,

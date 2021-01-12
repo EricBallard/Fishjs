@@ -80,7 +80,7 @@ export class Rotation {
         }
 
         // Generate random increments
-        let offset = THREE.Math.radToDeg(((Math.random() * (this.idleDir != undefined ? 1 : 6)) + 1) / 10000);
+        let offset = THREE.Math.radToDeg((Math.random() + 1) / 10000);
         if (this.inverse) {
             offset -= offset * 2;
         }
@@ -93,7 +93,7 @@ export class Rotation {
 export class Bounce {
 
     constructor(params) {
-        this.life = 150;
+        this.life = 300;
         this.boid = params.boid;
 
         if ((this.desiredVX = Math.round(params.desiredVX)) == 0)
