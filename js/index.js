@@ -97,7 +97,6 @@ export function initialize() {
     });
 
     const sceneElement = renderer.domElement
-    sceneElement.style.opacity = 0;
 
     // Configure user-controls
     const controls = new THREE.OrbitControls(camera, sceneElement);
@@ -115,10 +114,16 @@ export function initialize() {
     const fpsTracker = document.getElementById('fpsCount'),
         fishTracker = document.getElementById('fishCount');
 
-    // Debug
-    const xTracker = document.getElementById('x'),
-        yTracker = document.getElementById('y'),
-        zTracker = document.getElementById('z');
+    // Selected fish info
+    const info = document.getElementById('info'),
+        selInfo = document.getElementById('selected_info');
+
+    // Format info in center for mobile
+    if (usingMobile) {
+        info.style.left = '25vw';
+        info.style.top = '75vh';
+        info.style.textAlign = 'center';
+    }
 
     // Cache app info obj
     const appInfo = {
@@ -135,20 +140,18 @@ export function initialize() {
         controls: controls,
         element: sceneElement,
         sceneObjects: sceneObjects,
+
         raycaster: raycaster,
         selected: selectedFish,
+        selectedInfo: selInfo,
+        info: info,
 
         boids: boids,
         animations: mixers,
 
         spawned: fishSpawned,
         fish: fishTracker,
-        fps: fpsTracker,
-
-
-        x: xTracker,
-        y: yTracker,
-        z: zTracker
+        fps: fpsTracker
     };
 
     // Create skybox textured mesh and add to scene
