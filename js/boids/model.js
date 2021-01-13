@@ -1,6 +1,6 @@
 import {
     SkeletonUtils
-} from "/js/libs/threejs/models/SkeletonUtils.js";
+} from '/js/libs/threejs/models/SkeletonUtils.js';
 
 import * as Boids from '/js/boids/boid.js';
 
@@ -26,6 +26,14 @@ export function removeFishFromScene() {
         break;
     }
 }
+
+// Generate random name
+var names = ['Angel', 'Boss', 'Charlie', 'Don', 'Eric',
+    'Felicia', 'George', 'Hilda', 'Isiah', 'Jacob',
+    'Kendall', 'Lisa', 'Marceline', 'Nina', 'Olivia',
+    'Pete', 'Quinn', 'Rose', 'Sarah', 'Trevor', 'Urijah',
+    'Veronica', 'Weston', 'Xavier', 'Yoana', 'Zen'
+];
 
 export function addFishToScene() {
     // Clone
@@ -58,7 +66,7 @@ export function addFishToScene() {
     const y = Math.round(Math.random() * 1500) - 1000;
     const z = Math.round(Math.random() * 1500) - 1000;
 
-    fish.name = 'FISH' + (Math.random() * 1000);
+    fish.name = names[Math.round(Math.random() * names.length)] + '_' + (Math.random() * 1000);
     fish.position.set(x, y, z);
     fish.receiveShadow = true;
     fish.castShadow = true;
@@ -105,13 +113,6 @@ function onComplete() {
 
         for (let added = 0; added < toAdd; added++)
             addFishToScene();
-
-
-        // Hide loading identifier
-        document.getElementById('loadStatus').style.display = 'none';
-
-        // Fade in 3D scene
-        fadeIn(cachedParams.element, false);
     }, 10);
 }
 
@@ -124,24 +125,4 @@ function onProgress(xhr) {
 
 function onError() {
     console.log('ERROR LOADING MODEL!');
-}
-
-function fadeIn(element, slowFade, info) {
-    var opacity = 0;
-    var intervalID = setInterval(function () {
-        if (opacity < 1) {
-            opacity = opacity + 0.1
-            element.style.opacity = opacity;
-
-            if (info != undefined)
-                info.style.opacity = opacity;
-        } else {
-            clearInterval(intervalID);
-            const desc = document.getElementById('desc');
-
-            if (desc.style.opacity != 0)
-                return;
-            fadeIn(desc, true, document.getElementById('info'));
-        }
-    }, (slowFade ? 100 : 50));
 }

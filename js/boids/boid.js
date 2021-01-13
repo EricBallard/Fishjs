@@ -6,7 +6,8 @@ export class Entity {
         // Cache obj to reflect/update position based on momentum
         this.obj = params.obj;
         this.child = params.child;
-        this.perception = 1000;
+        this.othersInPerception = 0;
+        this.perception = 2000;
 
         // Momentum
         this.maxSpeed = 2;
@@ -122,6 +123,7 @@ export class Entity {
                 perceivedVelocity.z = -this.maxForce;
         }
 
+        this.othersInPerception = othersInPerception;
         return perceivedVelocity;
     }
 
@@ -149,13 +151,13 @@ export class Entity {
     }
 
     rotate() {
-        const desiredDirection = Movement.velocityToDirection(this.velocity);
+        this.direction = Movement.velocityToDirection(this.velocity);
 
-        if (desiredDirection != this.rotationManager.desired) {
+        if (this.direction != this.rotationManager.desired) {
             this.rotationManager = new Managers.Rotation({
                 boid: this,
                 facing: this.rotationManager.facing,
-                desired: desiredDirection
+                desired: this.direction
             });
         }
 

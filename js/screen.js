@@ -10,14 +10,45 @@ import {
     removeFishFromScene
 } from '/js/boids/model.js';
 
+//Util
+function fadeIn(element, slowFade, fadeIn) {
+    var opacity = fadeIn ? 0 : 1;
+
+    var intervalID = setInterval(function () {
+        if (fadeIn ? opacity < 1 : opacity > 0) {
+            opacity = opacity + (fadeIn ? 0.1 : -0.1);
+            element.style.opacity = opacity;
+        } else {
+            clearInterval(intervalID);
+        }
+    }, (slowFade ? 100 : 50));
+}
+
 // Track time between frame renders - used to limit animation framte
 let clock = new THREE.Clock();
 
 let interval = 1 / 60,
     delta = 0;
 
+let loaded = false,
+    hidLoadingScreen = false;
 // Process updates
 export function render(params) {
+    if (!loaded) {
+        if (!hidLoadingScreen) {
+            // Hide loading identifier
+            document.getElementById('loadStatus').style.display = 'none';
+            hidLoadingScreen = true;
+
+            // Fade in 3D scene
+            fadeIn(params.element, true, true);
+        } else if (params.element.style.opacity >= 0.9) {
+            // Fade in description
+            fadeIn(document.getElementById('desc'), true, true);
+            loaded = true;
+        }
+    }
+
     // Auto-rotate/update controls and camera
     params.controls.update();
 
@@ -45,6 +76,10 @@ export function render(params) {
         // FPS counter
         countFPS(params);
 
+        // Update selected info
+        if (params.selected != null)
+            params.selectedInfo.innerText = getSelectedInfo(params.selected.boid);
+
         // Loop
         render(params);
     });
@@ -58,6 +93,17 @@ function getPosition(e, width, height) {
     const x = ((e.changedTouches ? e.changedTouches[0].clientX : e.clientX) / width) * 2 - 1,
         y = -((e.changedTouches ? e.changedTouches[0].clientY : e.clientY) / height) * 2 + 1;
     return new THREE.Vector2(x, y);
+}
+
+function getSelectedInfo(boid) {
+    // Format info 
+    const name = boid.obj.name.split('_')[0],
+        dir = boid.direction.toString();
+
+    // Set selected info
+    return name + ' is moving ' + dir + '.' +
+        '\n' + boid.othersInPerception + ' other' + (boid.othersInPerception == 1 ? '' : 's') + ' within perception!';
+
 }
 
 export function click(e, params) {
@@ -79,12 +125,15 @@ export function click(e, params) {
         if (params.selected != undefined && params.selected.mesh == selectedMesh) {
             params.selected = undefined;
             params.outLine.selectedObjects = [];
+
+            // Fade out selected in
+            fadeIn(params.info, true, false);
             return;
         }
 
+        // Select current
         const array = [];
         array.push(selectedMesh);
-
         let selectedObj = undefined;
 
         for (let so of params.sceneObjects) {
@@ -100,12 +149,33 @@ export function click(e, params) {
             return;
         }
 
+        let boid = undefined;
+        for (let b of params.boids) {
+            if (b.obj == selectedObj) {
+                boid = b;
+                break;
+            }
+        }
+
+        if (boid == undefined) {
+            console.log('Selection failed - unable to find related boid!');
+            params.selected = undefined;
+            return;
+        }
+
+        // Set as selected
         params.selected = {
             mesh: selectedMesh,
-            obj: selectedObj
+            obj: selectedObj,
+            boid: boid
         };
 
         params.outLine.selectedObjects = array;
+        params.selectedInfo.innerText = getSelectedInfo(boid);
+
+        // Fade in selected info
+        if (params.info.style.opacity < 1)
+            fadeIn(params.info, true, true);
     }
 }
 
@@ -181,24 +251,13 @@ export function countFPS(params) {
     }
 
     framesRendered += 1;
-
-    // let b;
-
-    // if ((b = params.boids[0]) == undefined)
-    //    return;
-
-    // x.innerText = "X: " + b.obj.position.x + " | " + b.velocity.x;
-    // y.innerText = "Y: " + b.obj.position.y + " | " + b.velocity.y;
-    //z.innerText = "Z: " + b.obj.position.z + " | " + b.velocity.z;
-
-
 }
 
 let lastFPS = undefined,
     targetFPS = undefined,
     potentialTarget = undefined;
 
-const commonFrateRates = [24, 29, 59, 120, 144];
+const commonFrateRates = [25, 30, 60, 120, 144];
 
 async function manageFPS(params, currentFPS) {
     /*
@@ -234,7 +293,7 @@ async function manageFPS(params, currentFPS) {
     if (currentFPS >= targetFPS && lastFPS >= targetFPS) {
         addFishToScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
-    } else if (currentFPS < targetFPS && lastFPS < targetFPS) {
+    } else if (currentFPS <= targetFPS - 3 && lastFPS <= targetFPS - 3) {
         removeFishFromScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
