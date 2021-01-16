@@ -6,7 +6,6 @@ export class Rotation {
         this.obj = this.boid.obj;
         this.facing = params.facing;
         this.desired = params.desired;
-
         this.idleDirs = Movement.getNeighboringDirections(this.desired);
 
         // Rotate quickest direction
@@ -61,13 +60,26 @@ export class Rotation {
     }
 
     execute() {
-        // Validate rotation
-        this.facing = Movement.getDirectionFromChild(this.obj.getWorldPosition(), this.boid.child.getWorldPosition());
+        const pp = this.obj.getWorldPosition(),
+            cp = this.boid.child.getWorldPosition();
 
+        // Validate rotation
+        this.facing = Movement.getDirectionFromChild(pp, cp);
+
+        if (this.desired == undefined) {
+            if (this.facing != null) {
+                this.desired = this.facing;
+                this.idleDirs = Movement.getNeighboringDirections(this.desired);
+            }
+            return;
+        }
+
+
+        // Validate complete rotation - invert to opposite neighboring direction of desired
         if (((this.facing == this.desired && this.idleDir == undefined) ||
                 this.facing == this.idleDir)) {
-            // Rotate between neighboring direction to further sell swimming effect
 
+            // Rotate between neighboring direction to further sell swimming effect
             this.idleDir = this.idleDir == undefined ?
                 (this.inverse ? this.idleDirs.left : this.idleDirs.right) :
                 this.idleDir == this.idleDirs.right ? this.idleDirs.left : this.idleDirs.right;
@@ -85,8 +97,36 @@ export class Rotation {
             offset -= offset * 2;
         }
 
-        // Rotate 
+        // Rotate X-axis (longitudinal)
+        // if (this.idleDir != undefined)
+        //  this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), offset);
+
+        // // Rotate Y-axis (horizontal)
         this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
+
+        // Rotate Z-axis (vertical)
+        let y = this.boid.velocity.y,
+            vertPer = (y / this.boid.maxSpeed);
+
+        if (vertPer >= 0.90)
+            vertPer = 0.90;
+        else if (vertPer <= -0.90)
+            vertPer = -0.90;
+
+        let ry = Movement.getVertPerFromChild(pp, cp);
+
+        if (vertPer >= 0 && ry >= 0 ? ry < vertPer : vertPer < 0 && ry > vertPer) {
+           // console.log(vertPer + '% | R: ' + ry);
+
+            if (vertPer < 0 && offset < 0)
+                offset = Math.abs(offset);
+            else if (vertPer >= 0 && offset >= 0)
+                offset -= (offset * 2);
+
+
+
+            this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), offset);
+        }
     }
 }
 

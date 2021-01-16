@@ -102,8 +102,8 @@ export function initialize() {
     const controls = new THREE.OrbitControls(camera, sceneElement);
     controls.enabled = true;
 
-    //controls.enablePan = false;
-    // controls.autoRotate = true;
+    controls.enablePan = false;
+    controls.autoRotate = true;
     controls.rotateSpeed = 0.45;
     controls.autoRotateSpeed = 0.30;
 
@@ -165,8 +165,8 @@ export function initialize() {
     loadAnimatedModel(appInfo);
 
     // Add water-wave distortion effect
-    const water = new Water(new THREE.PlaneBufferGeometry(4000, 4000), {
-        scale: .1,
+    const water = new Water(new THREE.PlaneBufferGeometry(4500, 4500), {
+        scale: 1,
         textureWidth: 1048,
         textureHeight: 1024,
         flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg')
