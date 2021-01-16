@@ -14,6 +14,7 @@ export class Entity {
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
+        //this.velocity = new THREE.Vector3(0, 0.2, 0);
         this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
         this.direction = Movement.velocityToDirection(this.velocity);
 
@@ -151,9 +152,9 @@ export class Entity {
     }
 
     rotate() {
-        this.direction = Movement.velocityToDirection(this.velocity);
+        if ((this.direction = Movement.velocityToDirection(this.velocity)) != undefined &&
+            this.direction != this.rotationManager.desired) {
 
-        if (this.direction != this.rotationManager.desired) {
             this.rotationManager = new Managers.Rotation({
                 boid: this,
                 facing: this.rotationManager.facing,
@@ -171,7 +172,7 @@ export function update(boids, bManagers, rManagers) {
         boid.align(boids);
         boid.bounce();
 
-        boid.move();
+       // boid.move();
         boid.rotate();
     }
 }

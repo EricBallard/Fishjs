@@ -79,13 +79,11 @@
 }
 
 .info {
-  opacity: 0;
+  opacity: 100;
   left: 2.5vw;
   top: 85vh;
 
   font-size: 1.15rem;
-  font-style: italic;
-
   color: #757575;
   text-align: center;
   position: absolute;

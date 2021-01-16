@@ -55,10 +55,18 @@ export function getNeighboringDirections(direction) {
     }
 }
 
+export function getVertPerFromChild(parentPos, childPos) {
+    const y = parentPos.y - childPos.y;
+    return (y * 2) / 100;
+}
+
 // half = 12.5
 export function getDirectionFromChild(parentPos, childPos) {
     const x = parentPos.x - childPos.x,
+        y = parentPos.y - childPos.y,
         z = parentPos.z - childPos.z;
+
+    console.log('x: ' + x + ' y: ' + y + ' z: ' + z);
 
     // North
     if (x >= 37.5 && z >= -12.5 && z <= 12.5)
@@ -91,11 +99,14 @@ export function getDirectionFromChild(parentPos, childPos) {
     // North-West
     if (x >= 12.5 && z <= -12.5)
         return direction.NORTH_WEST;
+
+    return null;
 }
 
 export function velocityToDirection(velocity) {
-    let x = velocity.x;
-    let z = velocity.z;
+    let x = velocity.x,
+        y = velocity.y,
+        z = velocity.z;
 
     if (x > 0 && Math.round(z) == 0)
         return direction.NORTH;
@@ -140,6 +151,5 @@ export function velocityToDirection(velocity) {
             return x > z ? direction.WEST : direction.SOUTH;
         }
     }
-
     return null;
 }

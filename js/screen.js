@@ -11,7 +11,7 @@ import {
 } from '/js/boids/model.js';
 
 //Util
-function fadeIn(element, slowFade, fadeIn) {
+function fade(element, slowFade, fadeIn) {
     var opacity = fadeIn ? 0 : 1;
 
     var intervalID = setInterval(function () {
@@ -41,10 +41,10 @@ export function render(params) {
             hidLoadingScreen = true;
 
             // Fade in 3D scene
-            fadeIn(params.element, true, true);
+            fade(params.element, true, true);
         } else if (params.element.style.opacity >= 0.9) {
             // Fade in description
-            fadeIn(document.getElementById('desc'), true, true);
+            fade(document.getElementById('desc'), true, true);
             loaded = true;
         }
     }
@@ -67,7 +67,7 @@ export function render(params) {
                 alignCameraToSelected(params);
 
             // Update animations TODO: update via gsap
-            for (let i = 0; i < params.animations.length; i++) params.animations[i].update(.01);
+            for (let i = 0; i < params.animations.length; i++) params.animations[i].update(.0025);
 
             // Update boids
             update(params.boids, params.bManagers, params.rManagers);
@@ -97,8 +97,13 @@ function getPosition(e, width, height) {
 
 function getSelectedInfo(boid) {
     // Format info 
-    const name = boid.obj.name.split('_')[0],
-        dir = boid.direction.toString();
+    const name = boid.obj.name.split('_')[0];
+    let dir = boid.direction;
+
+    if (dir == null) {
+        const y = boid.velocity.y;
+        dir = (y > 0 ? 'up' : y < 0 ? 'down' : 'stationary');
+    }
 
     // Set selected info
     return name + ' is moving ' + dir + '.' +
@@ -123,11 +128,14 @@ export function click(e, params) {
 
         // Deselect current
         if (params.selected != undefined && params.selected.mesh == selectedMesh) {
-            params.selected = undefined;
-            params.outLine.selectedObjects = [];
-
             // Fade out selected in
-            fadeIn(params.info, true, false);
+            fade(params.info, true, false);
+
+            // Set selected to undefined
+            params.outLine.selectedObjects = [];
+            params.selected = undefined;
+
+            params.controls.autoRotate = true;
             return;
         }
 
@@ -170,12 +178,13 @@ export function click(e, params) {
             boid: boid
         };
 
+        params.controls.autoRotate = false;
         params.outLine.selectedObjects = array;
         params.selectedInfo.innerText = getSelectedInfo(boid);
 
         // Fade in selected info
         if (params.info.style.opacity < 1)
-            fadeIn(params.info, true, true);
+            fade(params.info, true, true);
     }
 }
 
@@ -241,7 +250,7 @@ export function countFPS(params) {
     const newSecond = now - secondTracker >= 1000;
 
     if (newSecond) {
-        manageFPS(params, framesRendered);
+        //manageFPS(params, framesRendered);
 
         // Update FPS
         params.fps.innerText = framesRendered;
@@ -257,7 +266,7 @@ let lastFPS = undefined,
     targetFPS = undefined,
     potentialTarget = undefined;
 
-const commonFrateRates = [25, 30, 60, 120, 144];
+const commonFrateRates = [24, 29, 59, 74, 89, 119, 143];
 
 async function manageFPS(params, currentFPS) {
     /*
@@ -293,7 +302,7 @@ async function manageFPS(params, currentFPS) {
     if (currentFPS >= targetFPS && lastFPS >= targetFPS) {
         addFishToScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
-    } else if (currentFPS <= targetFPS - 3 && lastFPS <= targetFPS - 3) {
+    } else if (currentFPS <= targetFPS - 3 && lastFPS <= targetFPS - 2) {
         removeFishFromScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
