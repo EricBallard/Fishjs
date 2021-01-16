@@ -215,13 +215,13 @@ function alignCameraToSelected(params) {
 
             // Animate camera position via gsap api
             gsap.to(camera, {
-                duration: 4,
+                duration: 2.5,
                 zoom: camera.zoom,
                 onUpdate: () => camera.updateProjectionMatrix()
             });
 
             gsap.to(camera.position, {
-                duration: 4,
+                duration: 2.5,
                 x: pos.x < 0 ? Math.abs(pos.x) : pos.x - (pos.x * 2),
                 y: pos.y < 0 ? Math.abs(pos.y) : pos.y - (pos.y * 2),
                 z: pos.z < 0 ? Math.abs(pos.z) : pos.z - (pos.z * 2),

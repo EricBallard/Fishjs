@@ -56,32 +56,38 @@ export function getNeighboringDirections(direction) {
 }
 
 export function getVertPerFromChild(parentPos, childPos) {
-    const y = parentPos.y - childPos.y;
+    let x = parentPos.x - childPos.x,
+        y = parentPos.y - childPos.y,
+        z = parentPos.z - childPos.z;
+
+    //console.log('x: ' + x + ' y: ' + y + ' z: ' + z);
+
+     y = parentPos.y - childPos.y;
     return (y * 2) / 100;
 }
 
 // half = 12.5
 export function getDirectionFromChild(parentPos, childPos) {
-    const x = parentPos.x - childPos.x,
+    let x = parentPos.x - childPos.x,
         y = parentPos.y - childPos.y,
         z = parentPos.z - childPos.z;
 
-    console.log('x: ' + x + ' y: ' + y + ' z: ' + z);
+    // console.log('x: ' + x + ' y: ' + y + ' z: ' + z);
 
     // North
-    if (x >= 37.5 && z >= -12.5 && z <= 12.5)
+    if (x >= 12.5 && z >= -12.5 && z <= 12.5)
         return direction.NORTH;
 
     // East
-    if (x <= 12.5 && x >= -12.5 && z >= 37.5)
+    if (x <= 12.5 && x >= -12.5 && z >= 12.5)
         return direction.EAST;
 
     // South
-    if (x <= -37.5 && z >= -12.5 && z <= 12.5)
+    if (x <= -12.5 && z >= -12.5 && z <= 12.5)
         return direction.SOUTH;
 
     // West
-    if (x <= 12.5 && x >= -12.5 && z <= -37.5)
+    if (x <= 12.5 && x >= -12.5 && z <= -12.5)
         return direction.WEST;
 
     // North-East

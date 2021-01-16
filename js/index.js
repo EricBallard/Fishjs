@@ -102,13 +102,13 @@ export function initialize() {
     const controls = new THREE.OrbitControls(camera, sceneElement);
     controls.enabled = true;
 
-    controls.enablePan = false;
-    controls.autoRotate = true;
+    controls.enablePan = true;
+    controls.autoRotate = false;
     controls.rotateSpeed = 0.45;
     controls.autoRotateSpeed = 0.30;
 
-    controls.minDistance = 250;
-    controls.maxDistance = 1500;
+    controls.minDistance = 0;
+    controls.maxDistance = 2000;
 
     // Cache DOM elements
     const fpsTracker = document.getElementById('fpsCount'),
