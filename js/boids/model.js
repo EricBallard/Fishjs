@@ -62,9 +62,9 @@ export function addFishToScene() {
     }
 
     // Randomly position
-    const x = 0;//Math.round(Math.random() * 1500) - 1000;
-    const y = 0;//Math.round(Math.random() * 1500) - 1000;
-    const z = 0;//Math.round(Math.random() * 1500) - 1000;
+    const x = Math.round(Math.random() * 1500) - 1000;
+    const y = Math.round(Math.random() * 1500) - 1000;
+    const z = Math.round(Math.random() * 1500) - 1000;
 
     fish.name = names[Math.round(Math.random() * names.length)] + '_' + (Math.random() * 1000);
     fish.position.set(x, y, z);
@@ -73,6 +73,9 @@ export function addFishToScene() {
 
     fish.updateMatrixWorld();
     cachedParams.scene.add(fish);
+
+    //debug
+    //const directionPoint = new THREE.Mesh(new THREE.CubeGeometry(1, 25, 1));
 
     // Attach point to determine direction
     const directionPoint = new THREE.Mesh(new THREE.Vector3(0, 0, 0));
@@ -109,7 +112,7 @@ export function loadAnimatedModel(params) {
 function onComplete() {
     setTimeout(function () {
         // Add in fish to scene
-        const toAdd = cachedParams.isMobile ? 50 : 1;
+        const toAdd = cachedParams.isMobile ? 50 : 100;
 
         for (let added = 0; added < toAdd; added++)
             addFishToScene();

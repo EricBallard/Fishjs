@@ -10,14 +10,52 @@ export class Entity {
         this.perception = 2000;
 
         // Momentum
-        this.maxSpeed = 2;
+        this.maxSpeed = 8;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
-        //this.velocity = new THREE.Vector3(0, 0.2, 0);
         this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
         this.direction = Movement.velocityToDirection(this.velocity);
 
+        // Auto-rotate on spawn (horizontally)
+        var seed = Math.random() * 250 / 1000,
+            desiredDegree;
+
+        switch (this.direction) {
+            case Movement.direction.NORTH:
+                desiredDegree = seed + 0.875;
+                if (desiredDegree > 1.0) desiredDegree = -1 + (desiredDegree - 1.0);
+                break;
+            case Movement.direction.NORTH_EAST:
+                desiredDegree = seed + 0.625;
+                break;
+            case Movement.direction.EAST:
+                desiredDegree = seed + 0.375;
+                break;
+            case Movement.direction.SOUTH_EAST:
+                desiredDegree = seed + 0.125;
+                break;
+            case Movement.direction.SOUTH:
+                desiredDegree = seed + -0.125;
+                break;
+            case Movement.direction.SOUTH_WEST:
+                desiredDegree = seed + -0.375;
+                break;
+            case Movement.direction.WEST:
+                desiredDegree = seed + -0.625;
+                break;
+            case Movement.direction.NORTH_WEST:
+                desiredDegree = seed + -0.875;
+                break;
+        }
+
+        var quaternion = new THREE.Quaternion();
+        quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * desiredDegree);
+        this.obj.applyQuaternion(quaternion);
+        this.obj.updateMatrixWorld();
+
+
+        // Set rotation manager (idle rotation + handles new directions)
         this.rotationManager = new Managers.Rotation({
             boid: this,
             facing: this.direction,
@@ -29,7 +67,7 @@ export class Entity {
     }
 
     getSeed() {
-        let seed = (Math.random() * this.maxSpeed);
+        let seed = Math.random();
         return Math.random() < 0.5 ? seed : seed - (seed * 2);
     }
 
@@ -172,7 +210,7 @@ export function update(boids, bManagers, rManagers) {
         boid.align(boids);
         boid.bounce();
 
-       // boid.move();
+        boid.move();
         boid.rotate();
     }
 }

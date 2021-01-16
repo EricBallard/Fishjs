@@ -86,7 +86,9 @@ export class Rotation {
 
             if ((this.idleDir == this.idleDirs.left && this.inverse) ||
                 (!this.inverse && this.idleDir == this.idleDirs.right))
-                this.inverse = !this.inverse;
+                this.inverse = this.idleDir == this.idleDirs.right ? this.inverse = true :
+                this.idleDir == this.idleDirs.left ? this.inverse = false :
+                this.inverse;
 
             return;
         }
@@ -97,14 +99,9 @@ export class Rotation {
             offset -= offset * 2;
         }
 
-        // Rotate X-axis (longitudinal)
-        // if (this.idleDir != undefined)
-        //  this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), offset);
-
-        // // Rotate Y-axis (horizontal)
+        // Rotate Y-axis (horizontal)
         this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
 
-        // Rotate Z-axis (vertical)
         let y = this.boid.velocity.y,
             vertPer = (y / this.boid.maxSpeed);
 
@@ -115,18 +112,19 @@ export class Rotation {
 
         let ry = Movement.getVertPerFromChild(pp, cp);
 
-        if (vertPer >= 0 && ry >= 0 ? ry < vertPer : vertPer < 0 && ry > vertPer) {
-           // console.log(vertPer + '% | R: ' + ry);
+        if (vertPer >= 0 ? ry < vertPer / 1.3 : vertPer < 0 ? ry > vertPer / 1.3 : false) {
+            if (this.boid.velocity.y >= 0) {
+                if (offset >= 0)
+                    offset -= offset * 2;
+            } else {
+                if (offset < 0)
+                    offset = Math.abs(offset);
+            }
 
-            if (vertPer < 0 && offset < 0)
-                offset = Math.abs(offset);
-            else if (vertPer >= 0 && offset >= 0)
-                offset -= (offset * 2);
-
-
-
-            this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), offset);
+            // Rotate Z-axis (vertical)
+            this.obj.rotation.z += offset;
         }
+
     }
 }
 
