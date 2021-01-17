@@ -10,6 +10,10 @@ import {
     removeFishFromScene
 } from '/js/boids/model.js';
 
+import {
+    getSpeed
+} from '/js/boids/movement.js';
+
 //Util
 function fade(element, slowFade, fadeIn) {
     var opacity = fadeIn ? 0 : 1;
@@ -76,9 +80,6 @@ export function render(params) {
         // FPS counter
         countFPS(params);
 
-        // Update selected info
-        if (params.selected != null)
-            params.selectedInfo.innerText = getSelectedInfo(params.selected.boid);
 
         // Loop
         render(params);
@@ -97,18 +98,20 @@ function getPosition(e, width, height) {
 
 function getSelectedInfo(boid) {
     // Format info 
-    const name = boid.obj.name.split('_')[0];
-    let dir = boid.direction;
+    let dir = 'going ' + boid.direction;
 
     if (dir == null) {
         const y = boid.velocity.y;
-        dir = (y > 0 ? 'up' : y < 0 ? 'down' : 'stationary');
+        dir = (y > 0 ? 'going up' : y < 0 ? ' going down' : 'stationary');
     }
 
     // Set selected info
-    return name + ' is moving ' + dir + '.' +
-        '\n' + boid.othersInPerception + ' other' + (boid.othersInPerception == 1 ? '' : 's') + ' within perception!';
-
+    return boid.obj.name.split('_')[0] +
+        ' is ' + dir + ' - moving at \n' +
+        getSpeed(boid.velocity).toFixed(2) +
+        ' cm/s with ' + boid.othersInPerception +
+        ' other' + (boid.othersInPerception == 1 ? '' : 's') +
+        ' in perception!';
 }
 
 export function click(e, params) {
@@ -250,6 +253,10 @@ export function countFPS(params) {
     const newSecond = now - secondTracker >= 1000;
 
     if (newSecond) {
+        // Update selected info
+        if (params.selected != null)
+            params.selectedInfo.innerText = getSelectedInfo(params.selected.boid);
+
         //manageFPS(params, framesRendered);
 
         // Update FPS

@@ -112,7 +112,7 @@ export class Rotation {
 
         let ry = Movement.getVertPerFromChild(pp, cp);
 
-        if (vertPer >= 0 ? ry < vertPer / 1.3 : vertPer < 0 ? ry > vertPer / 1.3 : false) {
+        if (vertPer >= 0 ? ry < vertPer / 2 : vertPer < 0 ? ry > vertPer / 2 : false) {
             if (this.boid.velocity.y >= 0) {
                 if (offset >= 0)
                     offset -= offset * 2;
@@ -131,32 +131,42 @@ export class Rotation {
 export class Bounce {
 
     constructor(params) {
-        this.life = 300;
         this.boid = params.boid;
+        this.life = 300;
 
-        if ((this.desiredVX = Math.round(params.desiredVX)) == 0)
-            this.desiredVX = params.desiredVX < 0 ? -1 : 1;
-
-        if ((this.desiredVY = Math.round(params.desiredVY)) == 0)
-            this.desiredVY = params.desiredVY < 0 ? -1 : 1;
-
-        if ((this.desiredVZ = Math.round(params.desiredVZ)) == 0)
-            this.desiredVZ = params.desiredVZ < 0 ? -1 : 1;
+        const v = this.boid.velocity;
+        this.desiredVX = params.x ? v < 0 ? this.getSeed(false) : this.getSeed(true) : v.x;
 
     }
 
+    getSeed(negative) {
+        const seed = Math.random() * this.boid.maxSpeed;
+        return negative ? seed - (seed * 2) : seed;
+    }
+
     execute() {
-        // Reflect entities velcoity, making it "bounce"
+        // Limit movement pass bounds
+        const p = this.boid.obj.position;
+        if (p.x > 2000 || p.x < -2000)
+            this.boid.obj.position.x = p.x < 0 ? -1500 : 1500;
+        if (p.y > 500 || p.y < -500)
+            this.boid.obj.position.y = p.y < 0 ? -500 : 500;
+        if (p.z > 2000 || p.z < -2000)
+            this.boid.obj.position.z = p.z < 0 ? -1500 : 1500;
+
+        // Reflect entities velocity, making it "bounce"
         let adjusted = false;
         this.life--;
 
-        const v = this.boid.velocity,
-            p = this.boid.obj.position;
+        const v = this.boid.velocity;
 
         if (Math.round(v.x) != this.desiredVX) {
             this.boid.velocity.x += ((this.desiredVX > 0 && v.x < this.desiredVX) || (this.desiredVX < 0 && v.x < this.desiredVX) ? Math.random() : -Math.random()) / (Math.random() * 10);
             adjusted = true;
+
+            console.log('adj x: ' + this.desiredVX);
         }
+        /*
 
         if (Math.round(v.y) != this.desiredVY) {
             this.boid.velocity.y += ((this.desiredVY > 0 && v.y < this.desiredVY) || (this.desiredVY < 0 && v.y < this.desiredVY) ? Math.random() : -Math.random()) / (Math.random() * 10);
@@ -167,7 +177,7 @@ export class Bounce {
             this.boid.velocity.z += ((this.desiredVZ > 0 && v.z < this.desiredVZ) || (this.desiredVZ < 0 && v.z < this.desiredVZ) ? Math.random() : -Math.random()) / (Math.random() * 10);
             adjusted = true;
         }
-
+        */
         return this.life < 1 || (!adjusted &&
             p.x < 1250 && p.x > -1250 &&
             p.y < 250 && p.y > 0 &&

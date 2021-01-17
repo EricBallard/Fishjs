@@ -62,7 +62,7 @@ export function getVertPerFromChild(parentPos, childPos) {
 
     //console.log('x: ' + x + ' y: ' + y + ' z: ' + z);
 
-     y = parentPos.y - childPos.y;
+    y = parentPos.y - childPos.y;
     return (y * 2) / 100;
 }
 
@@ -158,4 +158,13 @@ export function velocityToDirection(velocity) {
         }
     }
     return null;
+}
+
+export function getSpeed(velocity) {
+    const x = Math.abs(velocity.x),
+        y = Math.abs(velocity.y),
+        z = Math.abs(velocity.z);
+
+    const dif = Math.abs(x - z);
+    return Number(y > x && y > z ? (y - dif) : dif);
 }

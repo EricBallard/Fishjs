@@ -10,11 +10,12 @@ export class Entity {
         this.perception = 2000;
 
         // Momentum
-        this.maxSpeed = 8;
+        this.maxSpeed = 4;
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
-        this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
+        //this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
+        this.velocity = new THREE.Vector3(4, 0, 0);
         this.direction = Movement.velocityToDirection(this.velocity);
 
         // Auto-rotate on spawn (horizontally)
@@ -74,34 +75,40 @@ export class Entity {
     bounce() {
         // Update Bounce managers
         if (this.bounceManager != undefined) {
-            if (this.bounceManager.execute())
+            if (this.bounceManager.execute()) {
                 this.bounceManager = undefined;
+                console.log('vounce complete!');
+            }
             return;
         }
 
         // Detect if moving out of bounds
+        let nearX, nearY, nearZ;
+
         const pos = this.obj.position,
             vx = this.velocity.x,
             vy = this.velocity.y,
             vz = this.velocity.z;
 
-        if ((pos.x > 1500 && (vx >= 0 || vz >= 0)) ||
-            (pos.x < -1500 && (vx < 0 || vz < 0))
+
+        if ((nearX = (pos.x > 1500 && (vx >= 0 || vz >= 0)) ||
+                (pos.x < -1500 && (vx < 0 || vz < 0)))
 
             ||
-            (pos.y > 500 && vy >= 0) ||
-            (pos.y < 0 && vy < 0)
+            (nearY = (pos.y > 400 && vy >= 0) ||
+                (pos.y < -400 && vy < 0))
 
             ||
-            (pos.z > 1500 && (vx >= 0 || vz >= 0)) ||
-            (pos.z < -1500 && (vx < 0 || vz < 0))
+            (nearZ = (pos.z > 1500 && (vx >= 0 || vz >= 0)) ||
+                (pos.z < -1500 && (vx < 0 || vz < 0)))
         ) {
 
+            console.log('bouncing..');
             this.bounceManager = new Managers.Bounce({
                 boid: this,
-                desiredVX: vx - (vx * (Math.random() + 1)),
-                desiredVY: vy - (vy * (Math.random() + 1)),
-                desiredVZ: vz - (vz * (Math.random() + 1))
+                x: nearX,
+                y: nearY,
+                z: nearZ
             });
         }
     }
