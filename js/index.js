@@ -120,9 +120,9 @@ export function initialize() {
 
     // Format info in center for mobile
     if (usingMobile) {
-        info.style.left = '25vw';
         info.style.top = '75vh';
         info.style.textAlign = 'center';
+        info.style.left = isLandScape ? '35vw' : '17.5vw';
     }
 
     // Cache app info obj
@@ -181,6 +181,7 @@ export function initialize() {
     light.position.set(1000, 999, 1750);
     scene.add(light);
 
+
     // Add cached element to DOM
     document.body.appendChild(sceneElement);
 
@@ -217,6 +218,8 @@ export function initialize() {
     // Register resize listener
     window.addEventListener('resize', () => {
         isLandScape = window.innerWidth > window.innerHeight;
+        info.style.left = isLandScape ? '35vw' : '17.5vw';
+
         let h = usingMobile ? (isLandScape ? screen.width : screen.height) : window.innerHeight;
         let w = usingMobile ? (isLandScape ? screen.height : screen.width) : window.innerWidth;
 
@@ -232,6 +235,21 @@ export function initialize() {
 
         effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     }, false);
+
+
+    // DEBUG
+    var geo = new THREE.PlaneBufferGeometry(3000, 3000);
+    var mat = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.25
+    });
+    var plane = new THREE.Mesh(geo, mat);
+    plane.rotateX(-Math.PI / 2);
+    plane.position.y = -500;
+
+    scene.add(plane);
 
     // Load view counter data
     //getViews();
