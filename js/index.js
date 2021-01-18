@@ -129,6 +129,7 @@ export function initialize() {
     const appInfo = {
         width: w,
         height: h,
+        targetFPS: -1,
         isMobile: usingMobile,
 
         scene: scene,

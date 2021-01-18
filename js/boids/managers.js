@@ -94,14 +94,15 @@ export class Rotation {
         }
 
         // Generate random increments
-        let offset = THREE.Math.radToDeg((Math.random() + 1) / 10000);
+        let offset = THREE.Math.radToDeg(((Math.random() + 1) * Movement.getSpeed(this.boid.velocity)) / 10000);
         if (this.inverse) {
             offset -= offset * 2;
         }
 
         // Rotate Y-axis (horizontal)
-        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), offset);
+        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset / this.boid.maxSpeed : offset * 2);
 
+        // Rotate Z-axis (vertical)
         let y = this.boid.velocity.y,
             vertPer = (y / this.boid.maxSpeed);
 
@@ -121,10 +122,8 @@ export class Rotation {
                     offset = Math.abs(offset);
             }
 
-            // Rotate Z-axis (vertical)
             this.obj.rotation.z += offset;
         }
-
     }
 }
 
@@ -132,55 +131,61 @@ export class Bounce {
 
     constructor(params) {
         this.boid = params.boid;
-        this.life = 300;
+        this.fps = params.fps;
+        this.life = this.fps * 5;
 
         const v = this.boid.velocity;
-        this.desiredVX = params.x ? v < 0 ? this.getSeed(false) : this.getSeed(true) : v.x;
-
+        this.desiredVX = params.x ? (v.x >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.x;
+        this.desiredVY = params.y ? (v.y >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.y;
+        this.desiredVZ = params.z ? (v.z >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.z;
     }
 
     getSeed(negative) {
-        const seed = Math.random() * this.boid.maxSpeed;
+        const seed = (Math.random() * (this.boid.maxSpeed - 1)) + 1;
         return negative ? seed - (seed * 2) : seed;
     }
 
     execute() {
         // Limit movement pass bounds
         const p = this.boid.obj.position;
-        if (p.x > 2000 || p.x < -2000)
-            this.boid.obj.position.x = p.x < 0 ? -1500 : 1500;
-        if (p.y > 500 || p.y < -500)
-            this.boid.obj.position.y = p.y < 0 ? -500 : 500;
-        if (p.z > 2000 || p.z < -2000)
-            this.boid.obj.position.z = p.z < 0 ? -1500 : 1500;
+        if (p.x > 2450 || p.x < -2450)
+            this.boid.obj.position.x = p.x < 0 ? -2450 : 2450;
+        if (p.y > 950 || p.y < -1500)
+            this.boid.obj.position.y = p.y < 0 ? -1500 : 950;
+        if (p.z > 2450 || p.z < -2450)
+            this.boid.obj.position.z = p.z < 0 ? -2450 : 2450;
 
-        // Reflect entities velocity, making it "bounce"
+        // Reflect entities' velocity, making it "bounce"
         let adjusted = false;
         this.life--;
 
         const v = this.boid.velocity;
 
-        if (Math.round(v.x) != this.desiredVX) {
-            this.boid.velocity.x += ((this.desiredVX > 0 && v.x < this.desiredVX) || (this.desiredVX < 0 && v.x < this.desiredVX) ? Math.random() : -Math.random()) / (Math.random() * 10);
-            adjusted = true;
-
-            console.log('adj x: ' + this.desiredVX);
-        }
-        /*
-
-        if (Math.round(v.y) != this.desiredVY) {
-            this.boid.velocity.y += ((this.desiredVY > 0 && v.y < this.desiredVY) || (this.desiredVY < 0 && v.y < this.desiredVY) ? Math.random() : -Math.random()) / (Math.random() * 10);
+        // X
+        if ((this.desiredVX < 0 && this.desiredVX < v.x) || (this.desiredVX >= 0 && this.desiredVX > v.x)) {
+            const seed = Math.abs(this.desiredVX / (Movement.getSpeed(this.boid.velocity) * (this.fps / 4)));
+            this.boid.velocity.x += this.desiredVX >= 0 ? seed : -seed;
             adjusted = true;
         }
 
-        if (Math.round(v.z) != this.desiredVZ) {
-            this.boid.velocity.z += ((this.desiredVZ > 0 && v.z < this.desiredVZ) || (this.desiredVZ < 0 && v.z < this.desiredVZ) ? Math.random() : -Math.random()) / (Math.random() * 10);
+        // Y
+        if ((this.desiredVY < 0 && this.desiredVY < v.y) || (this.desiredVY >= 0 && this.desiredVY > v.y)) {
+            const seed = Math.abs(this.desiredVY / (Movement.getSpeed(this.boid.velocity) * (this.fps / 4)));
+            this.boid.velocity.y += this.desiredVY >= 0 ? seed : -seed;
             adjusted = true;
         }
-        */
+
+        // Z
+        if ((this.desiredVZ < 0 && this.desiredVZ < v.z) || (this.desiredVZ >= 0 && this.desiredVZ > v.z)) {
+            const seed = Math.abs(this.desiredVZ / (Movement.getSpeed(this.boid.velocity) * (this.fps / 4)));
+            this.boid.velocity.z += this.desiredVZ >= 0 ? seed : -seed;
+            adjusted = true;
+        }
+
+        //this.life < 1 ||
         return this.life < 1 || (!adjusted &&
-            p.x < 1250 && p.x > -1250 &&
-            p.y < 250 && p.y > 0 &&
-            p.z < 1250 && p.z > -1250);
+            (p.x < 1250 && p.x > -1250 &&
+                p.y < 250 && p.y > -1250 &&
+                p.z < 1250 && p.z > -1250));
     }
 }

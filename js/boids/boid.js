@@ -14,8 +14,8 @@ export class Entity {
         this.maxForce = 0.2;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
-        //this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
-        this.velocity = new THREE.Vector3(4, 0, 0);
+          this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
+       // this.velocity = new THREE.Vector3(4, 0, 0);
         this.direction = Movement.velocityToDirection(this.velocity);
 
         // Auto-rotate on spawn (horizontally)
@@ -68,11 +68,11 @@ export class Entity {
     }
 
     getSeed() {
-        let seed = Math.random();
+        let seed = Math.random() * this.maxSpeed;
         return Math.random() < 0.5 ? seed : seed - (seed * 2);
     }
 
-    bounce() {
+    bounce(targetFPS) {
         // Update Bounce managers
         if (this.bounceManager != undefined) {
             if (this.bounceManager.execute()) {
@@ -95,16 +95,16 @@ export class Entity {
                 (pos.x < -1500 && (vx < 0 || vz < 0)))
 
             ||
-            (nearY = (pos.y > 400 && vy >= 0) ||
-                (pos.y < -400 && vy < 0))
+            (nearY = (pos.y > 500 && vy >= 0) ||
+                (pos.y < -1500 && vy < 0))
 
             ||
             (nearZ = (pos.z > 1500 && (vx >= 0 || vz >= 0)) ||
                 (pos.z < -1500 && (vx < 0 || vz < 0)))
         ) {
 
-            console.log('bouncing..');
             this.bounceManager = new Managers.Bounce({
+                fps: targetFPS,
                 boid: this,
                 x: nearX,
                 y: nearY,
@@ -153,16 +153,20 @@ export class Entity {
             perceivedVelocity.z = (perceivedVelocity.z / othersInPerception);
 
             // Limit force of velocity
+
+            // X
             if (perceivedVelocity.x > this.maxForce)
                 perceivedVelocity.x = this.maxForce;
             if (perceivedVelocity.x < -this.maxForce)
                 perceivedVelocity.x = -this.maxForce;
 
+            // Y
             if (perceivedVelocity.y > this.maxForce)
                 perceivedVelocity.y = this.maxForce;
             if (perceivedVelocity.y < -this.maxForce)
                 perceivedVelocity.y = -this.maxForce;
 
+            // Z
             if (perceivedVelocity.z > this.maxForce)
                 perceivedVelocity.z = this.maxForce;
             if (perceivedVelocity.z < -this.maxForce)
@@ -178,25 +182,32 @@ export class Entity {
         this.velocity.add(this.acceleration);
         const v = this.velocity;
 
+        // Limit speed
+
+        // X
         if (v.x > this.maxSpeed)
             this.velocity.x = this.maxSpeed;
         if (v.x < -this.maxSpeed)
             this.velocity.x = -this.maxSpeed;
 
+        // Y
         if (v.y > this.maxSpeed)
             this.velocity.y = this.maxSpeed;
         if (v.y < -this.maxSpeed)
             this.velocity.y = -this.maxSpeed;
 
+        // Z
         if (v.z > this.maxSpeed)
             this.velocity.z = this.maxSpeed;
         if (v.z < -this.maxSpeed)
             this.velocity.z = -this.maxSpeed;
 
+        // Apply momentum
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
     }
 
     rotate() {
+        // Rotate towards velocity
         if ((this.direction = Movement.velocityToDirection(this.velocity)) != undefined &&
             this.direction != this.rotationManager.desired) {
 
@@ -212,10 +223,10 @@ export class Entity {
 }
 
 // Update boids
-export function update(boids, bManagers, rManagers) {
-    for (let boid of boids) {
-        boid.align(boids);
-        boid.bounce();
+export function update(params) {
+    for (let boid of params.boids) {
+        boid.bounce(params.targetFPS);
+       // boid.align(params.boids);
 
         boid.move();
         boid.rotate();
