@@ -55,7 +55,7 @@ export function getNeighboringDirections(direction) {
     }
 }
 
-export function getVertPerFromChild(parentPos, childPos) {
+export function getVertRotFromChild(parentPos, childPos) {
     let x = parentPos.x - childPos.x,
         y = parentPos.y - childPos.y,
         z = parentPos.z - childPos.z;

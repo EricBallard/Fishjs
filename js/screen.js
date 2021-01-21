@@ -108,7 +108,7 @@ function getSelectedInfo(boid) {
     // Set selected info
     return boid.obj.name.split('_')[0] +
         ' is ' + dir + ' - moving at \n' +
-        getSpeed(boid.velocity).toFixed(2) +
+        boid.velocity.x.toFixed(2) + ', ' + boid.velocity.y.toFixed(2) +', ' + boid.velocity.z.toFixed(2) +
         ' cm/s with ' + boid.othersInPerception +
         ' other' + (boid.othersInPerception == 1 ? '' : 's') +
         ' in perception!';
@@ -306,7 +306,7 @@ async function manageFPS(params, currentFPS) {
 
     // Add/remove fish to maintain optimal fps
     if (currentFPS >= params.targetFPS && lastFPS >= params.targetFPS) {
-        //addFishToScene();
+       // addFishToScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
     } else if (currentFPS <= params.targetFPS - 3 && lastFPS <= params.targetFPS - 2) {
         removeFishFromScene();

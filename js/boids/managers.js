@@ -4,11 +4,13 @@ export class Rotation {
     constructor(params) {
         this.boid = params.boid;
         this.obj = this.boid.obj;
+
+        // Calculate directions
         this.facing = params.facing;
         this.desired = params.desired;
         this.idleDirs = Movement.getNeighboringDirections(this.desired);
 
-        // Rotate quickest direction
+        // Rotate quickest direction towards desired
         this.inverse = false;
         let inverseFrom = [],
             oppositeDir;
@@ -76,44 +78,56 @@ export class Rotation {
 
 
         // Validate complete rotation - invert to opposite neighboring direction of desired
-        if (((this.facing == this.desired && this.idleDir == undefined) ||
-                this.facing == this.idleDir)) {
+
+        // Fifhs has rotated to desired direction
+        if ((this.facing == this.desired && this.idleDir == undefined) ||
+            // Fish has rotated to neighboring direction
+            this.facing == this.idleDir ||
+            // Fish has over-rotated (fix by inversing)
+            (this.idleDir == undefined && (this.facing == this.idleDirs.left ||
+                this.facing == this.idleDirs.right))) {
 
             // Rotate between neighboring direction to further sell swimming effect
             this.idleDir = this.idleDir == undefined ?
                 (this.inverse ? this.idleDirs.left : this.idleDirs.right) :
                 this.idleDir == this.idleDirs.right ? this.idleDirs.left : this.idleDirs.right;
 
+            // Correct rotation direction based on direction
             if ((this.idleDir == this.idleDirs.left && this.inverse) ||
-                (!this.inverse && this.idleDir == this.idleDirs.right))
+                (this.idleDir == this.idleDirs.right && !this.inverse))
+
                 this.inverse = this.idleDir == this.idleDirs.right ? this.inverse = true :
                 this.idleDir == this.idleDirs.left ? this.inverse = false :
                 this.inverse;
-
             return;
         }
 
         // Generate random increments
-        let offset = THREE.Math.radToDeg(((Math.random() + 1) * Movement.getSpeed(this.boid.velocity)) / 10000);
+        let speed = Movement.getSpeed(this.boid.velocity);
+        speed = speed > this.boid.maxSpeed ? this.boid.maxSpeed : speed;
+
+        let offset = THREE.Math.radToDeg(((Math.random() + 1) * (speed / 2)) / 10000);
         if (this.inverse) {
             offset -= offset * 2;
         }
 
         // Rotate Y-axis (horizontal)
-        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset / this.boid.maxSpeed : offset * 2);
+        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset : offset * 2);
 
         // Rotate Z-axis (vertical)
         let y = this.boid.velocity.y,
-            vertPer = (y / this.boid.maxSpeed);
+            desiredRot = (y / this.boid.maxSpeed);
 
-        if (vertPer >= 0.90)
-            vertPer = 0.90;
-        else if (vertPer <= -0.90)
-            vertPer = -0.90;
+        // Limit
+        if (desiredRot >= 0.90)
+            desiredRot = 0.90;
+        else if (desiredRot <= -0.90)
+            desiredRot = -0.90;
 
-        let ry = Movement.getVertPerFromChild(pp, cp);
+        let currentRot = Movement.getVertRotFromChild(pp, cp);
 
-        if (vertPer >= 0 ? ry < vertPer / 2 : vertPer < 0 ? ry > vertPer / 2 : false) {
+        // Rotate
+        if (desiredRot >= 0 ? currentRot < desiredRot / 2 : desiredRot < 0 ? currentRot > desiredRot / 2 : false) {
             if (this.boid.velocity.y >= 0) {
                 if (offset >= 0)
                     offset -= offset * 2;
@@ -122,7 +136,7 @@ export class Rotation {
                     offset = Math.abs(offset);
             }
 
-            this.obj.rotation.z += offset;
+            this.boid.obj.rotateOnAxis(new THREE.Vector3(0, 0, 1), offset);
         }
     }
 }
@@ -131,61 +145,82 @@ export class Bounce {
 
     constructor(params) {
         this.boid = params.boid;
-        this.fps = params.fps;
-        this.life = this.fps * 5;
+        this.life = 200;
+
+        this.changeX = params.x;
+        this.changeY = params.y;
+        this.changeZ = params.z;
 
         const v = this.boid.velocity;
-        this.desiredVX = params.x ? (v.x >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.x;
-        this.desiredVY = params.y ? (v.y >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.y;
-        this.desiredVZ = params.z ? (v.z >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.z;
+        this.desiredVX = params.x ? (v.x >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.x + (Math.random() < 0.5 ? Math.random() : -Math.random());
+        this.desiredVY = params.y ? (v.y >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.y + (Math.random() < 0.5 ? Math.random() : -Math.random());
+        this.desiredVZ = params.z ? (v.z >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.z + (Math.random() < 0.5 ? Math.random() : -Math.random());
+
+        
+
     }
 
     getSeed(negative) {
-        const seed = (Math.random() * (this.boid.maxSpeed - 1)) + 1;
+        const seed = (Math.random() * (this.boid.maxSpeed - 2)) + 1;
         return negative ? seed - (seed * 2) : seed;
     }
 
     execute() {
+        let onBorder = false;
+
         // Limit movement pass bounds
         const p = this.boid.obj.position;
-        if (p.x > 2450 || p.x < -2450)
+        if (onBorder = onBorder || p.x > 2450 || p.x < -2450)
             this.boid.obj.position.x = p.x < 0 ? -2450 : 2450;
-        if (p.y > 950 || p.y < -1500)
+        if (onBorder = (p.y > 950 || p.y < -1500))
             this.boid.obj.position.y = p.y < 0 ? -1500 : 950;
-        if (p.z > 2450 || p.z < -2450)
+        if (onBorder = (p.z > 2450 || p.z < -2450))
             this.boid.obj.position.z = p.z < 0 ? -2450 : 2450;
 
         // Reflect entities' velocity, making it "bounce"
         let adjusted = false;
         this.life--;
 
-        const v = this.boid.velocity;
+        const v = this.boid.velocity,
+            max = this.boid.maxSpeed,
+            pos = this.boid.obj.position;
+
+        let speed = Movement.getSpeed(v);
+        speed = speed > max ? max : speed;
 
         // X
-        if ((this.desiredVX < 0 && this.desiredVX < v.x) || (this.desiredVX >= 0 && this.desiredVX > v.x)) {
-            const seed = Math.abs(this.desiredVX / (Movement.getSpeed(this.boid.velocity) * (this.fps / 4)));
+        if (!this.changeX && (pos.x >= 1500 || pos.x <= -1500)) {
+            this.changeX = true;
+            this.desiredVX = v.x >= 0 ? this.getSeed(true) : this.getSeed(false);
+        } else if ((this.desiredVX < 0 && this.desiredVX < v.x) || (this.desiredVX >= 0 && this.desiredVX > v.x)) {
+            let seed = Math.abs(this.desiredVX / (speed + Math.random() * 50));
             this.boid.velocity.x += this.desiredVX >= 0 ? seed : -seed;
             adjusted = true;
         }
 
         // Y
-        if ((this.desiredVY < 0 && this.desiredVY < v.y) || (this.desiredVY >= 0 && this.desiredVY > v.y)) {
-            const seed = Math.abs(this.desiredVY / (Movement.getSpeed(this.boid.velocity) * (this.fps / 4)));
+        if (!this.changeY && (pos.y >= 500 || pos.y <= -1500)) {
+            this.changeY = true;
+            this.desiredVY = v.y >= 0 ? this.getSeed(true) : this.getSeed(false);
+        } else if ((this.desiredVY < 0 && this.desiredVY < v.y) || (this.desiredVY >= 0 && this.desiredVY > v.y)) {
+            let seed = Math.abs(this.desiredVY / (speed + Math.random() * 50));
             this.boid.velocity.y += this.desiredVY >= 0 ? seed : -seed;
             adjusted = true;
         }
 
         // Z
-        if ((this.desiredVZ < 0 && this.desiredVZ < v.z) || (this.desiredVZ >= 0 && this.desiredVZ > v.z)) {
-            const seed = Math.abs(this.desiredVZ / (Movement.getSpeed(this.boid.velocity) * (this.fps / 4)));
+        if (!this.changeZ && (pos.z >= 1500 || pos.z <= -1500)) {
+            this.changeZ = true;
+            this.desiredVZ = v.z >= 0 ? this.getSeed(true) : this.getSeed(false);
+        } else if ((this.desiredVZ < 0 && this.desiredVZ < v.z) || (this.desiredVZ >= 0 && this.desiredVZ > v.z)) {
+            let seed = Math.abs(this.desiredVZ / (speed + Math.random() * 50));
             this.boid.velocity.z += this.desiredVZ >= 0 ? seed : -seed;
             adjusted = true;
         }
 
-        //this.life < 1 ||
         return this.life < 1 || (!adjusted &&
-            (p.x < 1250 && p.x > -1250 &&
-                p.y < 250 && p.y > -1250 &&
-                p.z < 1250 && p.z > -1250));
+            (p.x < 1000 && p.x > -1000 &&
+                p.y < 500 && p.y > -1000 &&
+                p.z < 1000 && p.z > -1000));
     }
 }
