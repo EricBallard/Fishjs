@@ -7,7 +7,7 @@ export class Entity {
         this.obj = params.obj;
         this.child = params.child;
         this.othersInPerception = 0;
-        this.perception = 500;
+        this.perception = 1500;
 
         // Momentum
         this.maxSpeed = 4;
