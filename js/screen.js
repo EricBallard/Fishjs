@@ -10,10 +10,6 @@ import {
     removeFishFromScene
 } from '/js/boids/model.js';
 
-import {
-    getSpeed
-} from '/js/boids/movement.js';
-
 //Util
 function fade(element, slowFade, fadeIn) {
     var opacity = fadeIn ? 0 : 1;
@@ -29,13 +25,14 @@ function fade(element, slowFade, fadeIn) {
 }
 
 // Track time between frame renders - used to limit animation framte
-let clock = new THREE.Clock();
+let clock = new THREE.Clock(),
+    renderInterval = undefined;
 
-let interval = 1 / 60,
-    delta = 0;
+let delta = 0;
 
-let loaded = false,
+let loaded = true,
     hidLoadingScreen = false;
+
 // Process updates
 export function render(params) {
     if (!loaded) {
@@ -60,21 +57,29 @@ export function render(params) {
     params.composer.render();
 
     window.requestAnimationFrame(() => {
-        delta += clock.getDelta();
+        if (renderInterval != undefined) {
 
-        // Update fishses' position
-        if (delta > interval) {
-            delta = delta % interval;
+            delta += clock.getDelta();
 
-            // Check if selected fished is visible
-            if (params.selected != undefined)
-                alignCameraToSelected(params);
+            // Update fishses' position
+            if (delta > renderInterval) {
+                delta = delta % renderInterval;
 
-            // Update animations TODO: update via gsap
-            for (let i = 0; i < params.animations.length; i++) params.animations[i].update(.0025);
+                // Check if selected fished is visible
+                if (params.selected != undefined)
+                    alignCameraToSelected(params);
 
-            // Update boids
-            update(params);
+                // Update animations TODO: update via gsap
+                for (let i = 0; i < params.animations.length; i++) params.animations[i].update(.0025);
+
+                // Update boids
+                update(params);
+            }
+        } else {
+            if (params.targetFPS != -1) {
+                renderInterval = 1 / 25;//params.targetFPS;
+                loaded = false;
+            }
         }
 
         // FPS counter
@@ -98,7 +103,7 @@ function getPosition(e, width, height) {
 
 function getSelectedInfo(boid) {
     // Format info 
-    let dir = 'going ' + boid.direction;
+    let dir = 'going ' + boid.rotationManager.facing + ' (' + boid.rotationManager.desired + ') / ' + boid.direction;
 
     if (dir == null) {
         const y = boid.velocity.y;
@@ -108,7 +113,7 @@ function getSelectedInfo(boid) {
     // Set selected info
     return boid.obj.name.split('_')[0] +
         ' is ' + dir + ' - moving at \n' +
-        boid.velocity.x.toFixed(2) + ', ' + boid.velocity.y.toFixed(2) +', ' + boid.velocity.z.toFixed(2) +
+        boid.velocity.x.toFixed(2) + ', ' + boid.velocity.y.toFixed(2) + ', ' + boid.velocity.z.toFixed(2) +
         ' cm/s with ' + boid.othersInPerception +
         ' other' + (boid.othersInPerception == 1 ? '' : 's') +
         ' in perception!';
@@ -306,7 +311,7 @@ async function manageFPS(params, currentFPS) {
 
     // Add/remove fish to maintain optimal fps
     if (currentFPS >= params.targetFPS && lastFPS >= params.targetFPS) {
-       // addFishToScene();
+        // addFishToScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
     } else if (currentFPS <= params.targetFPS - 3 && lastFPS <= params.targetFPS - 2) {
         removeFishFromScene();
