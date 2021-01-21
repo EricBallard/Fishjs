@@ -237,21 +237,6 @@ export function initialize() {
         effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     }, false);
 
-
-    // DEBUG
-    var geo = new THREE.PlaneBufferGeometry(3000, 3000);
-    var mat = new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.25
-    });
-    var plane = new THREE.Mesh(geo, mat);
-    plane.rotateX(-Math.PI / 2);
-    plane.position.y = -500;
-
-    scene.add(plane);
-
     // Load view counter data
     //getViews();
 
