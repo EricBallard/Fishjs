@@ -1,6 +1,6 @@
-import { SkeletonUtils } from "/js/libs/threejs/models/SkeletonUtils.js";
+import { SkeletonUtils } from '/js/libs/threejs/models/SkeletonUtils.js';
 
-import * as Boids from "/js/boids/boid.js";
+import * as Boids from '/js/boids/boid.js';
 
 // Cache
 let cachedModel, cachedParams;
@@ -25,50 +25,38 @@ export function removeFishFromScene() {
   }
 }
 
-// Generate random name
-var names = [
-  "Angel",
-  "Boss",
-  "Charlie",
-  "Don",
-  "Eric",
-  "Felicia",
-  "George",
-  "Hilda",
-  "Isiah",
-  "Jacob",
-  "Kendall",
-  "Lisa",
-  "Marceline",
-  "Nina",
-  "Olivia",
-  "Pete",
-  "Quinn",
-  "Rose",
-  "Sarah",
-  "Trevor",
-  "Urijah",
-  "Veronica",
-  "Weston",
-  "Xavier",
-  "Yoana",
-  "Zen",
+// Generate random names & colors
+const names = ['Angel', 'Boss', 'Charlie', 'Don', 'Eric', 'Felicia',
+  'George', 'Hilda', 'Isiah', 'Jacob', 'Kendall', 'Lisa', 'Marceline',
+  'Nina', 'Olivia', 'Pete', 'Quinn', 'Rose', 'Sarah', 'Trevor', 'Urijah',
+  'Veronica', 'Weston', 'Xavier', 'Yoana', 'Zen',
 ];
 
-export function addFishToScene() {
-  // Clone
+const getRandomColor = () => {
+  const color = THREE.Color();
+  color.setStyle();
+  return THREE.Color()
+}
+
+
+export function addFishToScene(spawnBubbles) {
+  // Clone model, bones, and anims
   const fish = SkeletonUtils.clone(cachedModel);
+  const size = Number(Math.random() * 2 + 1);
+  fish.scale.set(size, size, size);
 
   // Apply texture and cache mesh for fish selection
   fish.traverse((e) => {
     if (e.isMesh) {
+      // Cache mesh for raycast selection
       cachedParams.sceneObjects.push({
         mesh: e,
         obj: fish,
       });
 
+      // Set mesh to random color
       e.material = e.material.clone();
-      e.material.color.set((Math.random() * 0xffffff) | 0);
+      e.material.color.set((Math.random() * 0xffffff) | 0)
     }
   });
 
@@ -83,16 +71,11 @@ export function addFishToScene() {
 
   // Randomly position
   const seed = cachedParams.spawned * 10;
-  const x =
-    Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
+  const x = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
   const y = Math.round(Math.random()) + (Math.random() < 0.5 ? -seed : seed);
-  const z =
-    Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
+  const z = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
 
-  fish.name =
-    names[Math.floor(Math.random() * names.length)] +
-    "_" +
-    Math.random() * 1000;
+  fish.name = names[Math.floor(Math.random() * names.length)] + '_' + Math.random() * 1000;
 
   fish.position.set(x, y, z);
   fish.receiveShadow = true;
@@ -124,29 +107,24 @@ export function addFishToScene() {
   // Store boid in array
   cachedParams.boids.push(boid);
   cachedParams.spawned += 1;
+
 }
 
 export function loadAnimatedModel(params) {
   var manager = new THREE.LoadingManager(onComplete);
   var loader = new THREE.FBXLoader(manager);
 
-  loader.load(
-    "/resources/fish.fbx",
-    (model) => {
-      cachedModel = model;
-      cachedParams = params;
-    },
-    onProgress,
-    onError,
-    null,
-    false
+  loader.load('/resources/fish.fbx', (model) => {
+    cachedModel = model;
+    cachedParams = params;
+  }, onProgress, onError, null, false
   );
 }
 
 function onComplete() {
   setTimeout(function () {
     // Add in fish to scene
-    const toAdd = cachedParams.isMobile ? 25 : 25;
+    const toAdd = cachedParams.isMobile ? 40 : 100;
 
     for (let added = 0; added < toAdd; added++) addFishToScene();
   }, 10);
@@ -155,12 +133,10 @@ function onComplete() {
 function onProgress(xhr) {
   if (xhr.lengthComputable) {
     var percentComplete = (xhr.loaded / xhr.total) * 100;
-    console.log("Loading Model: " + Math.round(percentComplete, 2) + "%");
+    console.log('Loading Model: ' + Math.round(percentComplete, 2) + '%');
   }
 }
 
 function onError() {
-  alert(
-    "Error loading fish model! Please check your internet connection and try again."
-  );
+  alert('Error loading fish model! Please check your internet connection and try again.');
 }

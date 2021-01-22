@@ -34,16 +34,8 @@ export function initialize() {
   const usingMobile = isMobile.any() != undefined;
 
   let isLandScape = window.innerWidth > window.innerHeight;
-  let h = usingMobile ?
-    isLandScape ?
-      screen.width :
-      screen.height :
-    window.innerHeight;
-  let w = usingMobile ?
-    isLandScape ?
-      screen.height :
-      screen.width :
-    window.innerWidth;
+  let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
+  let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
 
   // Create scene and camera
   const scene = new THREE.Scene();
@@ -59,7 +51,7 @@ export function initialize() {
   // Configure renderer and cache its DOM element
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
-    alpha: false,
+    alpha: true,
   });
 
   renderer.setSize(w, h);
@@ -158,6 +150,7 @@ export function initialize() {
 
     boids: boids,
     animations: mixers,
+    particles: undefined,
 
     spawned: fishSpawned,
     fish: fishTracker,
@@ -165,22 +158,16 @@ export function initialize() {
   };
 
   // Create skybox textured mesh and add to scene
-  const materialArray = createMaterialArray({
-    threejs: THREE,
-  });
+  const materialArray = createMaterialArray(THREE);
 
-  scene.add(
-    new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materialArray)
-  );
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materialArray));
 
   // Add water-wave distortion effect
   const water = new Water(new THREE.PlaneBufferGeometry(4500, 4500), {
     scale: 1,
     textureWidth: 1048,
     textureHeight: 1024,
-    flowMap: new THREE.TextureLoader().load(
-      "/resources/water/Water_1_M_Flow.jpg"
-    ),
+    flowMap: new THREE.TextureLoader().load("/resources/water/Water_1_M_Flow.jpg"),
   });
 
   water.position.y = 1000;
@@ -196,7 +183,8 @@ export function initialize() {
   scene.add(light);
 
   // Add cached element to DOM
-  document.body.appendChild(sceneElement);
+  const body = document.body;
+  body.appendChild(sceneElement);
 
   // Audio
   const audio = new Audio("/resources/ambience_sound_compressed.wav");
@@ -212,9 +200,7 @@ export function initialize() {
 
     const p = camera.position;
     startPos = new THREE.Vector3(p.x, p.y, p.z);
-  },
-    false
-  );
+  }, false);
 
   window.addEventListener("pointerup", (e) => {
     // Register as selection if mouse hasn't majorily moved during click
@@ -234,7 +220,7 @@ export function initialize() {
 
     let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
     let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
-
+    
     appInfo.width = w;
     appInfo.height = h;
 
@@ -246,11 +232,11 @@ export function initialize() {
     composer.setSize(w, h);
 
     effectFXAA.uniforms["resolution"].value.set(1 / w, 1 / h);
+    window.scrollTo(0, 0);
   }, false);
 
   // Disable scrolling
-  window.onscroll = () => window.scrollTo(0, 0);
-
+  window.onscroll = (e) => e.preventDefault() && window.scrollTo(0, 0);
 
   // Load view counter data
   //getViews();

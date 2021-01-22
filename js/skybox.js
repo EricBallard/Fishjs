@@ -5,8 +5,7 @@ function createPathStrings() {
     return pathStings;
 }
 
-export function createMaterialArray(params) {
-    const THREE = params.threejs;
+export function createMaterialArray(THREE) {
     const skyboxImagepaths = createPathStrings();
     const materialArray = skyboxImagepaths.map(image => {
         // Load texture image
