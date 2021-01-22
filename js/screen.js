@@ -6,6 +6,10 @@ import {
 } from '/js/boids/boid.js';
 
 import {
+    ParticleSystem
+} from '/js/particles.js';
+
+import {
     addFishToScene,
     removeFishFromScene
 } from '/js/boids/model.js';
@@ -28,7 +32,7 @@ function fade(element, slowFade, fadeIn) {
 let clock = new THREE.Clock(),
     renderInterval = undefined;
 
-let delta = 0;
+let delta = 0, lastFrame = undefined;
 
 let loaded = true,
     hidLoadingScreen = false;
@@ -39,13 +43,17 @@ export function render(params) {
         if (!hidLoadingScreen) {
             // Hide loading identifier
             document.getElementById('loadStatus').style.display = 'none';
-            hidLoadingScreen = true;
 
             // Fade in 3D scene
             fade(params.element, true, true);
+            hidLoadingScreen = true;
         } else if (params.element.style.opacity >= 0.9) {
             // Fade in description
             fade(document.getElementById('desc'), true, true);
+
+            // Init particle system
+            params.particles = new ParticleSystem(params);
+
             loaded = true;
         }
     }
@@ -56,9 +64,8 @@ export function render(params) {
     // Render scene with post-processing
     params.composer.render();
 
-    window.requestAnimationFrame(() => {
+    window.requestAnimationFrame((frame) => {
         if (renderInterval != undefined) {
-
             delta += clock.getDelta();
 
             // Update fishses' position
@@ -69,7 +76,13 @@ export function render(params) {
                 if (params.selected != undefined)
                     alignCameraToSelected(params);
 
-                // Update animations TODO: update via gsap
+                // Update particles
+                if (lastFrame && params.particles)
+                    params.particles.update((frame - lastFrame) * 0.001);
+
+                lastFrame = frame;
+
+                // Update animations - TODO: update via gsap or remove gsap and write local util
                 for (let i = 0; i < params.animations.length; i++) params.animations[i].update(.0025);
 
                 // Update boids
@@ -77,7 +90,7 @@ export function render(params) {
             }
         } else {
             if (params.targetFPS != -1) {
-                renderInterval = 1 / 25;//params.targetFPS;
+                renderInterval = 1 / params.targetFPS;
                 loaded = false;
             }
         }
@@ -120,6 +133,10 @@ function getSelectedInfo(boid) {
 }
 
 export function click(e, params) {
+    // Prevent selected fish before fully loaded/presented
+    if (!hidLoadingScreen || !loaded)
+        return;
+
     const pos = getPosition(e, params.width, params.height);
     params.raycaster.setFromCamera(pos, params.camera);
 
@@ -311,13 +328,12 @@ async function manageFPS(params, currentFPS) {
 
     // Add/remove fish to maintain optimal fps
     if (currentFPS >= params.targetFPS && lastFPS >= params.targetFPS) {
-        // addFishToScene();
+        //addFishToScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
     } else if (currentFPS <= params.targetFPS - 3 && lastFPS <= params.targetFPS - 2) {
         removeFishFromScene();
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
-
 
     lastFPS = currentFPS;
 }

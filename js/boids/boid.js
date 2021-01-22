@@ -7,7 +7,7 @@ export class Entity {
         this.obj = params.obj;
         this.child = params.child;
         this.othersInPerception = 0;
-        this.perception = 1500;
+        this.perception = 500;
 
         // Momentum
         this.maxSpeed = 4;
@@ -61,7 +61,6 @@ export class Entity {
             desired: this.direction
         });
 
-
         // VIDEO @ 21:50
     }
 
@@ -107,49 +106,41 @@ export class Entity {
                 isMovingOutBounds(other, -500))
                 continue;
 
-
-            perceivedVelocity.x += other.velocity.x;
-            perceivedVelocity.y += other.velocity.y;
-            perceivedVelocity.z += other.velocity.z;
+            perceivedVelocity.add(other.velocity);
             othersInPerception += 1;
         }
 
         if (othersInPerception > 0) {
-            // Determine average velocity
-            perceivedVelocity.x = (perceivedVelocity.x / othersInPerception);
-            perceivedVelocity.y = (perceivedVelocity.y / othersInPerception);
-            perceivedVelocity.z = (perceivedVelocity.z / othersInPerception);
+            // Determine average
+            perceivedVelocity.divideScalar(othersInPerception);
+
+            // Set magntiude
+            const magnitude = Math.sqrt(Math.pow(perceivedVelocity.x, 2) + Math.pow(perceivedVelocity.y, 2) + Math.pow(perceivedVelocity.z, 2));
+            const angle = Math.atan2(perceivedVelocity.y, perceivedVelocity.x);
+
+            perceivedVelocity.x = Math.cos(angle) * magnitude;
+            perceivedVelocity.y = Math.sin(angle) * magnitude;
+            perceivedVelocity.z = Math.tan(Math.atan2(perceivedVelocity.y, perceivedVelocity.z)) * magnitude;
+
+            // Negate current
+            perceivedVelocity.sub(this.velocity);
+
+            // Limit speed
+            limitToMax(perceivedVelocity, this.maxSpeed);
         }
 
         this.othersInPerception = othersInPerception;
         return perceivedVelocity;
     }
 
+    // TODO: add drag? https://en.wikipedia.org/wiki/Drag_%28physics%29
     move(boids) {
         // Update momentum 
         this.acceleration = this.getAlignment(boids);
         this.velocity.add(this.acceleration);
-        const v = this.velocity;
 
         // Limit speed
-
-        // X
-        if (v.x > this.maxSpeed)
-            this.velocity.x = this.maxSpeed;
-        if (v.x < -this.maxSpeed)
-            this.velocity.x = -this.maxSpeed;
-
-        // Y
-        if (v.y > this.maxSpeed)
-            this.velocity.y = this.maxSpeed;
-        if (v.y < -this.maxSpeed)
-            this.velocity.y = -this.maxSpeed;
-
-        // Z
-        if (v.z > this.maxSpeed)
-            this.velocity.z = this.maxSpeed;
-        if (v.z < -this.maxSpeed)
-            this.velocity.z = -this.maxSpeed;
+        limitToMax(this.velocity, this.maxSpeed);
 
         // Apply momentum
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
@@ -169,6 +160,23 @@ export class Entity {
 
         this.rotationManager.execute();
     }
+}
+
+function limitToMax(v, mx) {
+    if (v.x > mx)
+        v.x = mx;
+    else if (v.x < -mx)
+        v.x = -mx;
+
+    if (v.y > mx)
+        v.y = mx;
+    else if (v.y < -mx)
+        v.y = -mx;
+
+    if (v.z > mx)
+        v.z = mx;
+    else if (v.z < -mx)
+        v.z = -mx;
 }
 
 function isMovingOutBounds(boid, offset) {

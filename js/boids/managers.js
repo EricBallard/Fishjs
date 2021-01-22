@@ -106,7 +106,7 @@ export class Rotation {
         let speed = Movement.getSpeed(this.boid.velocity);
         speed = speed > this.boid.maxSpeed ? this.boid.maxSpeed : speed;
 
-        let offset = THREE.Math.radToDeg(((Math.random() + 1) * (speed / 2) + 1) / 10000);
+        let offset = THREE.Math.radToDeg(((Math.random() + 1) * ((speed + 1) / 2)) / 10000);
         if (this.inverse) {
             offset -= offset * 2;
         }
@@ -115,7 +115,6 @@ export class Rotation {
         this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset : offset * 2);
 
         // Rotate Z-axis (vertical)
-
         let y = this.boid.velocity.y,
             desiredRot = (y / this.boid.maxSpeed);
 
@@ -137,7 +136,7 @@ export class Rotation {
                     offset = Math.abs(offset);
             }
 
-            this.boid.obj.rotateOnAxis(new THREE.Vector3(0, 0, 1), offset);
+            this.boid.obj.rotateOnAxis(new THREE.Vector3(0, 0, 1), offset / (Math.random() + 1));
         }
     }
 }
