@@ -112,7 +112,7 @@ export class Rotation {
         }
 
         // Rotate Y-axis (horizontal)
-        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset : offset * 2);
+        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset  : offset * 2);
 
         // Rotate Z-axis (vertical)
         let y = this.boid.velocity.y,
@@ -124,8 +124,9 @@ export class Rotation {
         else if (desiredRot <= -0.90)
             desiredRot = -0.90;
 
+        
         let currentRot = Movement.getVertRotFromChild(pp, cp);
-
+    
         // Rotate
         if (desiredRot >= 0 ? currentRot < desiredRot / 2 : desiredRot < 0 ? currentRot > desiredRot / 2 : false) {
             if (this.boid.velocity.y >= 0) {
