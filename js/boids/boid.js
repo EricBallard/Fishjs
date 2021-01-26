@@ -69,6 +69,21 @@ export class Entity {
         return Math.random() < 0.5 ? seed : seed - (seed * 2);
     }
 
+    rotate() {
+        // Rotate towards velocity
+        if ((this.direction = Movement.velocityToDirection(this.velocity)) != undefined &&
+            this.direction != this.rotationManager.desired) {
+
+            this.rotationManager = new Managers.Rotation({
+                boid: this,
+                facing: this.rotationManager.facing,
+                desired: this.direction
+            });
+        }
+
+        this.rotationManager.execute();
+    }
+
     bounce() {
         // Update Bounce managers
         if (this.bounceManager != undefined) {
@@ -90,75 +105,127 @@ export class Entity {
         }
     }
 
-    getAlignment(boids) {
-        let perceivedVelocity = new THREE.Vector3(0, 0, 0);
-
-        if (this.bounceManager != undefined)
-            return perceivedVelocity;
-
+    getOthersInPerception(boids) {
         const position = this.obj.position;
-        let othersInPerception = 0;
+        let others = [];
 
         for (let other of boids) {
+            // Other is me
             if (other == this ||
+                // Other is bouncing
                 other.bounceManager != undefined ||
+                // Other is out of perception range
                 other.obj.position.distanceTo(position) > this.perception ||
+                // Other is moving towards border
                 isMovingOutBounds(other, -500))
                 continue;
 
-            perceivedVelocity.add(other.velocity);
-            othersInPerception += 1;
+            // Other is in perception
+            others.push(other);
         }
 
-        if (othersInPerception > 0) {
-            // Determine average
-            perceivedVelocity.divideScalar(othersInPerception);
-
-            // Set magntiude
-            const magnitude = Math.sqrt(Math.pow(perceivedVelocity.x, 2) + Math.pow(perceivedVelocity.y, 2) + Math.pow(perceivedVelocity.z, 2));
-            const angle = Math.atan2(perceivedVelocity.y, perceivedVelocity.x);
-
-            perceivedVelocity.x = Math.cos(angle) * magnitude;
-            perceivedVelocity.y = Math.sin(angle) * magnitude;
-            perceivedVelocity.z = Math.tan(Math.atan2(perceivedVelocity.y, perceivedVelocity.z)) * magnitude;
-
-            // Negate current
-            perceivedVelocity.sub(this.velocity);
-
-            // Limit speed
-            limitToMax(perceivedVelocity, this.maxSpeed);
-        }
-
-        this.othersInPerception = othersInPerception;
-        return perceivedVelocity;
+        return others
     }
 
-    // TODO: add drag? https://en.wikipedia.org/wiki/Drag_%28physics%29
+    getAlignment(alignment, othersInPerception) {
+        // Determine average
+        alignment.divideScalar(othersInPerception);
+
+        // Set magntiude
+        //const magnitude = Math.sqrt(Math.pow(perceivedVelocity.x, 2) + Math.pow(perceivedVelocity.y, 2) + Math.pow(perceivedVelocity.z, 2));
+        // const angle = Math.atan2(perceivedVelocity.y, perceivedVelocity.x);
+
+        // perceivedVelocity.x = Math.cos(angle) * magnitude;
+        // perceivedVelocity.y = Math.sin(angle) * magnitude;
+        //perceivedVelocity.z = Math.tan(Math.atan2(perceivedVelocity.y, perceivedVelocity.z)) * magnitude;
+
+        // Negate current
+        alignment.sub(this.velocity);
+
+        // Limit speed
+        limitToMax(alignment, this.maxSpeed);
+    }
+
+    getCohesion(cohesion, othersInPerception) {
+        cohesion.divideScalar(othersInPerception);
+
+        cohesion.sub(this.obj.position);
+
+        //cohesion.setMag(this.maxSpeed);
+
+        cohesion.sub(this.velocity);
+
+        limitToMax(cohesion, this.maxSpeed);
+
+    }
+
+    getSeparation(boids, separation, othersInPerception) {
+        const pos = this.obj.position;
+
+        for (const other of boids) {
+            const otherPos = other.obj.position,
+                dist = otherPos.distanceTo(pos);
+
+            let diff = new THREE.Vector3(pos.x, pos.y, pos.z).sub(otherPos);
+            diff.divideScalar(Math.pow(dist, 2));
+
+            separation.add(diff);
+        }
+
+        separation.divideScalar(othersInPerception);
+
+        // seperation.setMag(this.maxSpeed);
+
+        separation.sub(this.velocity);
+
+        limitToMax(separation, this.maxSpeed);
+    }
+
     move(boids) {
-        // Update momentum 
-        this.acceleration = this.getAlignment(boids);
-        this.velocity.add(this.acceleration);
+
+        if (this.bounceManager == undefined) {
+            // Get percievable boids
+            const others = this.getOthersInPerception(boids),
+                othersInPerception = others.length;
+
+            if (othersInPerception > 0) {
+                // Update momentum
+                let alignment = new THREE.Vector3(0, 0, 0),
+                    cohesion = new THREE.Vector3(0, 0, 0),
+                    separation = new THREE.Vector3(0, 0, 0);
+
+                for (const other of others) {
+                    alignment.add(other.velocity);
+                   // cohesion.add(other.obj.position);
+                }
+
+                // Calculate alignment
+                this.getAlignment(alignment, othersInPerception);
+
+                // Calculate cohesion
+               // this.getCohesion(cohesion, othersInPerception);
+
+                // Calculate seperation
+               // this.getSeparation(boids, separation, othersInPerception);
+
+                // Apply
+                this.acceleration.add(alignment);
+               // this.acceleration.add(cohesion);
+               // this.acceleration.add(separation);
+
+                this.velocity.add(this.acceleration);
+            }
+        }
+        // Reset acceleration
+        this.acceleration.setScalar(0);
+
+        // TODO: add drag? https://en.wikipedia.org/wiki/Drag_%28physics%29
 
         // Limit speed
         limitToMax(this.velocity, this.maxSpeed);
 
         // Apply momentum
         this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
-    }
-
-    rotate() {
-        // Rotate towards velocity
-        if ((this.direction = Movement.velocityToDirection(this.velocity)) != undefined &&
-            this.direction != this.rotationManager.desired) {
-
-            this.rotationManager = new Managers.Rotation({
-                boid: this,
-                facing: this.rotationManager.facing,
-                desired: this.direction
-            });
-        }
-
-        this.rotationManager.execute();
     }
 }
 

@@ -26,7 +26,7 @@ export function removeFishFromScene() {
 }
 
 // Generate random names & colors
-const names = ['Angel', 'Boss', 'Charlie', 'Don', 'Eric', 'Felicia',
+const names = ['Angel', 'Boss', 'Charlie', 'Don', 'Eric', 'Finn',
   'George', 'Hilda', 'Isiah', 'Jacob', 'Kendall', 'Lisa', 'Marceline',
   'Nina', 'Olivia', 'Pete', 'Quinn', 'Rose', 'Sarah', 'Trevor', 'Urijah',
   'Veronica', 'Weston', 'Xavier', 'Yoana', 'Zen',
