@@ -88,6 +88,10 @@ export function render(params) {
 
                 // Update boids
                 update(params);
+
+                // Noise
+                params.noise += 0.001;
+                params.pass.uniforms['amount'].value = params.noise;
             }
         } else {
             if (params.targetFPS != -1) {
@@ -97,9 +101,9 @@ export function render(params) {
             }
         }
 
+
         // FPS counter
         countFPS(params);
-
 
         // Loop
         render(params);
@@ -127,7 +131,7 @@ function getSelectedInfo(boid) {
 
     // Set selected info
     return boid.obj.name.split('_')[0] +
-        ' is ' + dir + ' - moving at \n' +
+        ' is ' + dir + ', moving at \n' +
         ' cm/s with ' + boid.othersInPerception +
         ' other' + (boid.othersInPerception == 1 ? '' : 's') +
         ' in perception!';
