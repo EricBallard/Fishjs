@@ -15,7 +15,7 @@ import {
 } from '/js/boids/model.js';
 
 //Util
-function fade(element, slowFade, fadeIn) {
+function fade(element, fadeIn) {
     var opacity = fadeIn ? 0 : 1;
 
     var intervalID = setInterval(function () {
@@ -25,11 +25,12 @@ function fade(element, slowFade, fadeIn) {
         } else {
             clearInterval(intervalID);
         }
-    }, (slowFade ? 100 : 50));
+    }, 50);
 }
 
 // Track time between frame renders - used to limit animation framte
 let clock = new THREE.Clock(),
+    safeInterval = undefined,
     renderInterval = undefined;
 
 let delta = 0, lastFrame = undefined;
@@ -90,7 +91,8 @@ export function render(params) {
             }
         } else {
             if (params.targetFPS != -1) {
-                renderInterval = 1 / params.targetFPS;
+                renderInterval = 1 / (params.targetFPS > 90 ? 60 : 30);
+                safeInterval = params.targetFPS / 3;
                 loaded = false;
             }
         }
@@ -116,7 +118,7 @@ function getPosition(e, width, height) {
 
 function getSelectedInfo(boid) {
     // Format info 
-    let dir = 'going ' + boid.rotationManager.facing + ' (' + boid.rotationManager.desired + ') / ' + boid.direction;
+    let dir = 'going ' + boid.rotationManager.facing;
 
     if (dir == null) {
         const y = boid.velocity.y;
@@ -126,7 +128,6 @@ function getSelectedInfo(boid) {
     // Set selected info
     return boid.obj.name.split('_')[0] +
         ' is ' + dir + ' - moving at \n' +
-        boid.velocity.x.toFixed(2) + ', ' + boid.velocity.y.toFixed(2) + ', ' + boid.velocity.z.toFixed(2) +
         ' cm/s with ' + boid.othersInPerception +
         ' other' + (boid.othersInPerception == 1 ? '' : 's') +
         ' in perception!';
@@ -154,7 +155,7 @@ export function click(e, params) {
         // Deselect current
         if (params.selected != undefined && params.selected.mesh == selectedMesh) {
             // Fade out selected in
-            fade(params.info, true, false);
+            fade(params.info, false);
 
             // Set selected to undefined
             params.outLine.selectedObjects = [];
@@ -209,7 +210,7 @@ export function click(e, params) {
 
         // Fade in selected info
         if (params.info.style.opacity < 1)
-            fade(params.info, true, true);
+            fade(params.info, true);
     }
 }
 
@@ -328,11 +329,11 @@ async function manageFPS(params, currentFPS) {
 
     // Add/remove fish to maintain optimal fps
     if (currentFPS >= params.targetFPS && lastFPS >= params.targetFPS) {
-        //addFishToScene();
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    } else if (currentFPS <= params.targetFPS - 3 && lastFPS <= params.targetFPS - 2) {
+        addFishToScene();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    } else if (currentFPS < lastFPS && currentFPS <= params.targetFPS - safeInterval && lastFPS <= params.targetFPS - safeInterval) {
         removeFishFromScene();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     lastFPS = currentFPS;

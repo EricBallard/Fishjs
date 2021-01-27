@@ -42,7 +42,7 @@ var Water = function (geometry, options) {
 	var clipBias = options.clipBias || 0;
 	var flowDirection = options.flowDirection || new Vector2(1, 0);
 	var flowSpeed = options.flowSpeed || 0.03;
-	var reflectivity = options.reflectivity || 0.02;
+	var reflectivity = options.reflectivity || 0;
 	var scale = options.scale || 1;
 	var shader = options.shader || Water.WaterShader;
 	var encoding = options.encoding !== undefined ? options.encoding : LinearEncoding;
