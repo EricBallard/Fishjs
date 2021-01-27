@@ -11,11 +11,10 @@ export class Entity {
 
         // Momentum
         this.maxSpeed = 4;
-        this.maxForce = 0.2;
+        this.maxForce = 2.0;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
-        //this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
-        this.velocity = new THREE.Vector3(-4, 4, 4);
+        this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
         this.direction = Movement.getDirection(this.velocity);
 
         // Auto-rotate on spawn (horizontally)
@@ -60,13 +59,10 @@ export class Entity {
             facing: this.direction,
             desired: this.direction
         });
-
-        // VIDEO @ 21:50
     }
 
     getSeed() {
-        let seed = Math.random() * this.maxSpeed;
-        return Math.random() < 0.5 ? seed : seed - (seed * 2);
+        return Math.random() < 0.5 ? -this.maxSpeed : this.maxSpeed;
     }
 
     rotate() {
@@ -115,9 +111,7 @@ export class Entity {
                 // Other is bouncing
                 other.bounceManager != undefined ||
                 // Other is out of perception range
-                other.obj.position.distanceTo(position) > this.perception ||
-                // Other is moving towards border
-                isMovingOutBounds(other, -500))
+                other.obj.position.distanceTo(position) > this.perception)
                 continue;
 
             // Other is in perception
@@ -127,65 +121,34 @@ export class Entity {
         return others
     }
 
-    getAlignment(alignment, othersInPerception) {
-        // Determine average
-        //alignment.divideScalar(othersInPerception);
-
-        // Set magntiude
-        //const magnitude = Math.sqrt(Math.pow(perceivedVelocity.x, 2) + Math.pow(perceivedVelocity.y, 2) + Math.pow(perceivedVelocity.z, 2));
-        // const angle = Math.atan2(perceivedVelocity.y, perceivedVelocity.x);
-
-        // perceivedVelocity.x = Math.cos(angle) * magnitude;
-        // perceivedVelocity.y = Math.sin(angle) * magnitude;
-        //perceivedVelocity.z = Math.tan(Math.atan2(perceivedVelocity.y, perceivedVelocity.z)) * magnitude;
-
-        // Negate current
-        // alignment.sub(this.velocity);
-
-        // Limit speed
-        //limitToMax(alignment, this.maxSpeed);
-
-        alignment.div(othersInPerception);
+    getAlignment(alignment) {
+        alignment.div(this.othersInPerception);
         alignment.setMag(this.maxSpeed);
         alignment.sub(this.velocity);
         alignment.limit(this.maxForce);
     }
 
-    getCohesion(cohesion, othersInPerception) {
-        /*
-        cohesion.divideScalar(othersInPerception);
-
-        cohesion.sub(this.obj.position);
-
-        //cohesion.setMag(this.maxSpeed);
-
-        cohesion.sub(this.velocity);
-
-        limitToMax(cohesion, this.maxSpeed);
-        */
-
-        cohesion.div(othersInPerception);
+    getCohesion(cohesion) {
+        cohesion.div(this.othersInPerception);
         cohesion.sub(this.obj.position);
         cohesion.setMag(this.maxSpeed);
         cohesion.sub(this.velocity);
         cohesion.limit(this.maxForce);
     }
 
-    getSeparation(separation, othersInPerception) {
-        separation.div(othersInPerception);
+    getSeparation(separation) {
+        separation.div(this.othersInPerception);
         separation.setMag(this.maxSpeed);
         separation.sub(this.velocity);
         separation.limit(this.maxForce);
     }
 
-
     move(boids) {
         if (this.bounceManager == undefined) {
             // Get percievable boids
-            const others = this.getOthersInPerception(boids),
-                othersInPerception = others.length;
+            const others = this.getOthersInPerception(boids);
 
-            if (othersInPerception > 0) {
+            if ((this.othersInPerception = others.length) > 0) {
                 // Update momentum
                 const pos = this.obj.position;
 
@@ -218,17 +181,17 @@ export class Entity {
                 }
 
                 // Calculate Alignment
-                this.getAlignment(alignment, othersInPerception);
+                this.getAlignment(alignment);
                 if (!(isNaN(alignment.x) || isNaN(alignmenty.y) || isNaN(alignment.z)))
                     this.acceleration.add(alignment.x, alignment.y, alignment.z);
 
                 // Calculate Cohesion
-                this.getCohesion(cohesion, othersInPerception);
+                this.getCohesion(cohesion);
                 if (!(isNaN(cohesion.x) || isNaN(cohesion.y) || isNaN(cohesion.z)))
                     this.acceleration.add(cohesion.x, cohesion.y, cohesion.z);
 
                 // Calculate Separation
-                this.getSeparation(separation, othersInPerception);
+                this.getSeparation(separation);
                 if (!(isNaN(separation.x) || isNaN(separation.y) || isNaN(separation.z)))
                     this.acceleration.add(separation.x, separation.y, separation.z);
 
@@ -239,8 +202,6 @@ export class Entity {
 
         // Reset acceleration
         this.acceleration.setScalar(0);
-
-        // TODO: add drag? https://en.wikipedia.org/wiki/Drag_%28physics%29
 
         // Limit speed
         limitToMax(this.velocity, this.maxSpeed);

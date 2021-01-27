@@ -72,7 +72,7 @@ export function addFishToScene(spawnBubbles) {
   // Randomly position
   const seed = cachedParams.spawned * 10;
   const x = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
-  const y = Math.round(Math.random()) + (Math.random() < 0.5 ? -seed : seed);
+  const y = Math.round(Math.random()) + (Math.random() < 0.5 ? -seed : seed) - 100;
   const z = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
 
   fish.name = names[Math.floor(Math.random() * names.length)] + '_' + Math.random() * 1000;

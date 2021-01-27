@@ -40,8 +40,7 @@ export function initialize() {
   // Create scene and camera
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, w / h, 60, 25000);
-  camera.position.set(-1100, -500, -1000);
-  // camera.position.set(0, -200, 0);
+  camera.position.set(-1000, -500 -1000);
 
   // Create raycaster used for selecting fish to focus
   const raycaster = new THREE.Raycaster();
@@ -93,14 +92,13 @@ export function initialize() {
   // Configure user-controls
   const controls = new THREE.OrbitControls(camera, sceneElement);
   controls.enabled = true;
-
-  controls.enablePan = true;
-  controls.autoRotate = false;
+  controls.enablePan = false;
+  controls.autoRotate = true;
   controls.rotateSpeed = 0.45;
   controls.autoRotateSpeed = 0.3;
 
   controls.minDistance = 0;
-  controls.maxDistance = 2000;
+  controls.maxDistance = 1500;
 
   // Cache DOM elements
   const fpsTracker = document.getElementById("fpsCount"),
@@ -163,9 +161,9 @@ export function initialize() {
   scene.add(new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materialArray));
 
   // Add water-wave distortion effect
-  const water = new Water(new THREE.PlaneBufferGeometry(4500, 4500), {
+  const water = new Water(new THREE.PlaneBufferGeometry(4250, 4250), {
     scale: 1,
-    textureWidth: 1048,
+    textureWidth: 1024,
     textureHeight: 1024,
     flowMap: new THREE.TextureLoader().load("/resources/water/Water_1_M_Flow.jpg"),
   });
@@ -220,7 +218,7 @@ export function initialize() {
 
     let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
     let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
-    
+
     appInfo.width = w;
     appInfo.height = h;
 
@@ -239,7 +237,7 @@ export function initialize() {
   window.onscroll = (e) => e.preventDefault() && window.scrollTo(0, 0);
 
   // Load view counter data
-  //getViews();
+ // getViews();
 
   // Render-loop
   Screen.render(appInfo);
