@@ -109,7 +109,7 @@ export function getDirectionFromChild(parentPos, childPos) {
     return null;
 }
 
-export function velocityToDirection(velocity) {
+export function getDirection(velocity) {
     let x = velocity.x,
         y = velocity.y,
         z = velocity.z;

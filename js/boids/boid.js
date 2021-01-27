@@ -16,7 +16,7 @@ export class Entity {
 
         //this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
         this.velocity = new THREE.Vector3(-4, 4, 4);
-        this.direction = Movement.velocityToDirection(this.velocity);
+        this.direction = Movement.getDirection(this.velocity);
 
         // Auto-rotate on spawn (horizontally)
         var seed = Math.random() * 250 / 1000,
@@ -71,7 +71,7 @@ export class Entity {
 
     rotate() {
         // Rotate towards velocity
-        if ((this.direction = Movement.velocityToDirection(this.velocity)) != undefined &&
+        if ((this.direction = Movement.getDirection(this.velocity)) != undefined &&
             this.direction != this.rotationManager.desired) {
 
             this.rotationManager = new Managers.Rotation({
@@ -129,7 +129,7 @@ export class Entity {
 
     getAlignment(alignment, othersInPerception) {
         // Determine average
-        alignment.divideScalar(othersInPerception);
+        //alignment.divideScalar(othersInPerception);
 
         // Set magntiude
         //const magnitude = Math.sqrt(Math.pow(perceivedVelocity.x, 2) + Math.pow(perceivedVelocity.y, 2) + Math.pow(perceivedVelocity.z, 2));
@@ -140,13 +140,19 @@ export class Entity {
         //perceivedVelocity.z = Math.tan(Math.atan2(perceivedVelocity.y, perceivedVelocity.z)) * magnitude;
 
         // Negate current
-        alignment.sub(this.velocity);
+        // alignment.sub(this.velocity);
 
         // Limit speed
-        limitToMax(alignment, this.maxSpeed);
+        //limitToMax(alignment, this.maxSpeed);
+
+        alignment.div(othersInPerception);
+        alignment.setMag(this.maxSpeed);
+        alignment.sub(this.velocity);
+        alignment.limit(this.maxForce);
     }
 
     getCohesion(cohesion, othersInPerception) {
+        /*
         cohesion.divideScalar(othersInPerception);
 
         cohesion.sub(this.obj.position);
@@ -156,33 +162,24 @@ export class Entity {
         cohesion.sub(this.velocity);
 
         limitToMax(cohesion, this.maxSpeed);
+        */
 
+        cohesion.div(othersInPerception);
+        cohesion.sub(this.obj.position);
+        cohesion.setMag(this.maxSpeed);
+        cohesion.sub(this.velocity);
+        cohesion.limit(this.maxForce);
     }
 
-    getSeparation(boids, separation, othersInPerception) {
-        const pos = this.obj.position;
-
-        for (const other of boids) {
-            const otherPos = other.obj.position,
-                dist = otherPos.distanceTo(pos);
-
-            let diff = new THREE.Vector3(pos.x, pos.y, pos.z).sub(otherPos);
-            diff.divideScalar(Math.pow(dist, 2));
-
-            separation.add(diff);
-        }
-
-        separation.divideScalar(othersInPerception);
-
-        // seperation.setMag(this.maxSpeed);
-
+    getSeparation(separation, othersInPerception) {
+        separation.div(othersInPerception);
+        separation.setMag(this.maxSpeed);
         separation.sub(this.velocity);
-
-        limitToMax(separation, this.maxSpeed);
+        separation.limit(this.maxForce);
     }
+
 
     move(boids) {
-
         if (this.bounceManager == undefined) {
             // Get percievable boids
             const others = this.getOthersInPerception(boids),
@@ -190,32 +187,56 @@ export class Entity {
 
             if (othersInPerception > 0) {
                 // Update momentum
-                let alignment = new THREE.Vector3(0, 0, 0),
-                    cohesion = new THREE.Vector3(0, 0, 0),
-                    separation = new THREE.Vector3(0, 0, 0);
+                const pos = this.obj.position;
 
+                let alignment = createVector(),
+                    cohesion = createVector(),
+                    separation = createVector();
+
+                // Cache sum of other's position and velocity
                 for (const other of others) {
-                    alignment.add(other.velocity);
-                   // cohesion.add(other.obj.position);
+                    const ov = other.velocity,
+                        op = other.obj.position;
+
+                    // Add to sum of percievable velocity
+                    alignment.add(ov.x, ov.y, ov.z);
+
+                    // Add to sum of percievable position
+                    cohesion.add(op.x, op.y, op.z);
+
+                    // Add to sum of the average percievable position
+                    let diff = createVector(pos.x, pos.y, pos.z);
+                    diff.sub(op.x, op.y, op.z);
+
+                    const dist = op.distanceTo(pos),
+                        dist2 = dist * dist;
+
+                    if (dist2 != 0 && !isNaN(dist2)) {
+                        diff.div(dist2, dist2, dist2);
+                        separation.add(diff);
+                    }
                 }
 
-                // Calculate alignment
+                // Calculate Alignment
                 this.getAlignment(alignment, othersInPerception);
+                if (!(isNaN(alignment.x) || isNaN(alignmenty.y) || isNaN(alignment.z)))
+                    this.acceleration.add(alignment.x, alignment.y, alignment.z);
 
-                // Calculate cohesion
-               // this.getCohesion(cohesion, othersInPerception);
+                // Calculate Cohesion
+                this.getCohesion(cohesion, othersInPerception);
+                if (!(isNaN(cohesion.x) || isNaN(cohesion.y) || isNaN(cohesion.z)))
+                    this.acceleration.add(cohesion.x, cohesion.y, cohesion.z);
 
-                // Calculate seperation
-               // this.getSeparation(boids, separation, othersInPerception);
+                // Calculate Separation
+                this.getSeparation(separation, othersInPerception);
+                if (!(isNaN(separation.x) || isNaN(separation.y) || isNaN(separation.z)))
+                    this.acceleration.add(separation.x, separation.y, separation.z);
 
-                // Apply
-                this.acceleration.add(alignment);
-               // this.acceleration.add(cohesion);
-               // this.acceleration.add(separation);
-
+                // Appy 
                 this.velocity.add(this.acceleration);
             }
         }
+
         // Reset acceleration
         this.acceleration.setScalar(0);
 

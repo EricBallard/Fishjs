@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="HandheldFriendly" content="true" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="HandheldFriendly" content="true" />
+
 <head>
     <title>Fishjs</title>
     <link rel="stylesheet" href="style.css" type="text/css">
@@ -17,16 +18,16 @@
 
     <!-- Description -->
     <div id="desc" class="desc">
-            <!-- Boid/FPS counter -->
-            <br>
-            <br>
-            At this moment, you're watching
-            <br>
-            <t id="fishCount" class="fishCount">0</t>
-            fish being simulated at
-            <t id="fpsCount" class="fpsCount">0</t>
-            fps.
-            <br>
+        <!-- Boid/FPS counter -->
+        <br>
+        <br>
+        At this moment, you're watching
+        <br>
+        <t id="fishCount" class="fishCount">0</t>
+        fish being simulated at
+        <t id="fpsCount" class="fpsCount">0</t>
+        fps.
+        <br>
         </p>
 
         <!-- View counter -->
@@ -55,9 +56,9 @@
     <div id="info" class="info">
         <!-- Info -->
         <p>
-        <u>Selected</u>
-        <br>
-        <t id="selected_info" class="selected_info">undefined</t>
+            <u>Selected</u>
+            <br>
+            <t id="selected_info" class="selected_info">undefined</t>
         </p>
     </div>
 
@@ -77,6 +78,10 @@
 
     <!-- GSAP API (https://greensock.com/gsap/) -->
     <script src="/js/libs/gsap.min.js"></script>
+
+    <!-- p5 API (https://p5js.org/) -->
+    <script src="/js/libs/p5.min.js"></script>
+    <script src="/js/sketch.js"></script>
 
     <!-- App -->
     <script type="module" src="/js/index.js"></script>
