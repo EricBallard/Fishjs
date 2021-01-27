@@ -1,33 +1,33 @@
 // Utils
-import * as Screen from "/js/screen.js";
+import * as Screen from '/js/screen.js';
 
 import {
   isMobile
-} from "/js/device.js";
+} from '/js/device.js';
 
 import {
   createMaterialArray
-} from "/js/skybox.js";
+} from '/js/skybox.js';
 
 import {
   loadAnimatedModel
-} from "/js/boids/model.js";
+} from '/js/boids/model.js';
 
 import {
   Water
-} from "/js/libs/threejs/water/Water.js";
+} from '/js/libs/threejs/water/Water.js';
 
 import {
   OutlinePass
-} from "/js/libs/threejs/post/pass/OutlinePass.js";
+} from '/js/libs/threejs/post/pass/OutlinePass.js';
 
 import {
   FXAAShader
-} from "/js/libs/threejs/post/FXAAShader.js";
+} from '/js/libs/threejs/post/FXAAShader.js';
 
 import {
   getViews
-} from "/js/views.js";
+} from '/js/views.js';
 
 export function initialize() {
   // Cache device traits
@@ -40,7 +40,7 @@ export function initialize() {
   // Create scene and camera
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, w / h, 60, 25000);
-  camera.position.set(-1000, -500 -1000);
+  camera.position.set(-1000, -500 - 1000);
 
   // Create raycaster used for selecting fish to focus
   const raycaster = new THREE.Raycaster();
@@ -66,7 +66,7 @@ export function initialize() {
 
   // FXAA
   const effectFXAA = new THREE.ShaderPass(FXAAShader);
-  effectFXAA.uniforms["resolution"].value.set(1 / w, 1 / h);
+  effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
   composer.addPass(effectFXAA);
 
   // Selection outline
@@ -77,9 +77,45 @@ export function initialize() {
   outlinePass.pulsePeriod = 0;
   composer.addPass(outlinePass);
 
+  // Noise
+  let noiseCounter = 0.0;
+  let noise = {
+    uniforms: {
+      'tDiffuse': { value: null },
+      'amount': { value: noiseCounter }
+    },
+    vertexShader: `
+    varying vec2 vUv;
+    void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix  * vec4( position, 1.0 );
+    }`,
+    fragmentShader: `
+    uniform float amount;
+    uniform sampler2D tDiffuse;
+    varying vec2 vUv;
+
+    float random( vec2 p ) {
+      vec2 K1 = vec2(23.14069263277926, 2.665144142690225);
+      return fract( cos( dot(p,K1) ) * 12345.6789 );
+    }
+
+    void main() {
+      vec4 color = texture2D( tDiffuse, vUv );
+      vec2 uvRandom = vUv;
+      uvRandom.y *= random(vec2(uvRandom.y,amount));
+      color.rgb += random(uvRandom)*0.03;
+      gl_FragColor = vec4( color  );
+    }`
+  }
+
+  let noisePass = new THREE.ShaderPass(noise);
+  noisePass.renderToScreen = true;
+  composer.addPass(noisePass);
+
   // Load selection outline texture
   const textureLoader = new THREE.TextureLoader();
-  textureLoader.load("/resources/tri_pattern.jpg", function (texture) {
+  textureLoader.load('/resources/tri_pattern.jpg', function (texture) {
     outlinePass.patternTexture = texture;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
@@ -101,18 +137,18 @@ export function initialize() {
   controls.maxDistance = 1500;
 
   // Cache DOM elements
-  const fpsTracker = document.getElementById("fpsCount"),
-    fishTracker = document.getElementById("fishCount");
+  const fpsTracker = document.getElementById('fpsCount'),
+    fishTracker = document.getElementById('fishCount');
 
   // Selected fish info
-  const info = document.getElementById("info"),
-    selInfo = document.getElementById("selected_info");
+  const info = document.getElementById('info'),
+    selInfo = document.getElementById('selected_info');
 
   // Format info in center for mobile
   if (usingMobile) {
-    info.style.top = "75vh";
-    info.style.textAlign = "center";
-    info.style.left = isLandScape ? "35vw" : "17.5vw";
+    info.style.top = '75vh';
+    info.style.textAlign = 'center';
+    info.style.left = isLandScape ? '35vw' : '17.5vw';
   }
 
   // Stats & Info
@@ -136,6 +172,9 @@ export function initialize() {
     outLine: outlinePass,
     composer: composer,
     renderer: renderer,
+
+    noise: noiseCounter,
+    pass: noisePass,
 
     controls: controls,
     element: sceneElement,
@@ -165,7 +204,7 @@ export function initialize() {
     scale: 1,
     textureWidth: 1024,
     textureHeight: 1024,
-    flowMap: new THREE.TextureLoader().load("/resources/water/Water_1_M_Flow.jpg"),
+    flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg'),
   });
 
   water.position.y = 1000;
@@ -180,27 +219,28 @@ export function initialize() {
   light.position.set(1000, 999, 1750);
   scene.add(light);
 
+
   // Add cached element to DOM
   const body = document.body;
   body.appendChild(sceneElement);
 
   // Audio
-  const audio = new Audio("/resources/ambience_sound_compressed.wav");
-  audio.volume = 0.1;
+  const audio = new Audio('/resources/ambience_sound_compressed.mp3');
+  audio.volume = 0.75;
   audio.loop = true;
 
   // Register selecting fish - ignores drags (supports pc and mobile)
   let startPos;
 
-  window.addEventListener("pointerdown", () => {
-    // if (audio.paused)
-    //    audio.play();
+  window.addEventListener('pointerdown', () => {
+    if (audio.paused)
+      audio.play();
 
     const p = camera.position;
     startPos = new THREE.Vector3(p.x, p.y, p.z);
   }, false);
 
-  window.addEventListener("pointerup", (e) => {
+  window.addEventListener('pointerup', (e) => {
     // Register as selection if mouse hasn't majorily moved during click
     const p = camera.position;
     if (p == undefined) return;
@@ -212,9 +252,9 @@ export function initialize() {
   }, false);
 
   // Register resize listener
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     isLandScape = window.innerWidth > window.innerHeight;
-    info.style.left = isLandScape ? "35vw" : "17.5vw";
+    info.style.left = isLandScape ? '35vw' : '17.5vw';
 
     let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
     let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
@@ -229,7 +269,7 @@ export function initialize() {
     renderer.setPixelRatio(window.devicePixelRatio);
     composer.setSize(w, h);
 
-    effectFXAA.uniforms["resolution"].value.set(1 / w, 1 / h);
+    effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     window.scrollTo(0, 0);
   }, false);
 
@@ -237,7 +277,7 @@ export function initialize() {
   window.onscroll = (e) => e.preventDefault() && window.scrollTo(0, 0);
 
   // Load view counter data
- // getViews();
+  // getViews();
 
   // Render-loop
   Screen.render(appInfo);
