@@ -112,7 +112,7 @@ export class Rotation {
         }
 
         // Rotate Y-axis (horizontal)
-        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset * Math.random()  : offset * 2);
+        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset : offset * 2);
 
         // Rotate Z-axis (vertical)
         let y = this.boid.velocity.y,
@@ -171,12 +171,12 @@ export class Bounce {
 
         // Limit movement pass bounds
         const p = this.boid.obj.position;
-        if (onBorder = onBorder || p.x > 2450 || p.x < -2450)
-            this.boid.obj.position.x = p.x < 0 ? -2450 : 2450;
-        if (onBorder = (p.y > 950 || p.y < -1500))
-            this.boid.obj.position.y = p.y < 0 ? -1500 : 950;
-        if (onBorder = (p.z > 2450 || p.z < -2450))
-            this.boid.obj.position.z = p.z < 0 ? -2450 : 2450;
+        if (onBorder = onBorder || p.x > 3450 || p.x < -3450)
+            this.boid.obj.position.x = p.x < 0 ? -3450 : 3450;
+        if (onBorder = (p.y > 950 || p.y < -3450))
+            this.boid.obj.position.y = p.y < 0 ? -3450 : 950;
+        if (onBorder = (p.z > 3450 || p.z < -3450))
+            this.boid.obj.position.z = p.z < 0 ? -3450 : 3450;
 
         // Reflect entities' velocity, making it "bounce"
         let adjusted = false;
@@ -190,7 +190,7 @@ export class Bounce {
         speed = speed > max ? max : speed;
 
         // X
-        if (!this.changeX && (pos.x >= 1500 || pos.x <= -1500)) {
+        if (!this.changeX && (pos.x >= 3000 || pos.x <= -3000)) {
             this.changeX = true;
             this.desiredVX = v.x >= 0 ? this.getSeed(true) : this.getSeed(false);
         } else if ((this.desiredVX < 0 && this.desiredVX < v.x) || (this.desiredVX >= 0 && this.desiredVX > v.x)) {
@@ -200,7 +200,7 @@ export class Bounce {
         }
 
         // Y
-        if (!this.changeY && (pos.y >= 500 || pos.y <= -1500)) {
+        if (!this.changeY && (pos.y >= 500 || pos.y <= -3000)) {
             this.changeY = true;
             this.desiredVY = v.y >= 0 ? this.getSeed(true) : this.getSeed(false);
         } else if ((this.desiredVY < 0 && this.desiredVY < v.y) || (this.desiredVY >= 0 && this.desiredVY > v.y)) {
@@ -210,7 +210,7 @@ export class Bounce {
         }
 
         // Z
-        if (!this.changeZ && (pos.z >= 1500 || pos.z <= -1500)) {
+        if (!this.changeZ && (pos.z >= 3000 || pos.z <= -3000)) {
             this.changeZ = true;
             this.desiredVZ = v.z >= 0 ? this.getSeed(true) : this.getSeed(false);
         } else if ((this.desiredVZ < 0 && this.desiredVZ < v.z) || (this.desiredVZ >= 0 && this.desiredVZ > v.z)) {
@@ -220,8 +220,8 @@ export class Bounce {
         }
 
         return this.life < 1 || (!adjusted &&
-            (p.x < 1000 && p.x > -1000 &&
-                p.y < 500 && p.y > -1000 &&
-                p.z < 1000 && p.z > -1000));
+            (p.x < 2000 && p.x > -2000 &&
+                p.y < 500 && p.y > -2000 &&
+                p.z < 2000 && p.z > -2000));
     }
 }

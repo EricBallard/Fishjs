@@ -54,7 +54,7 @@ export function render(params) {
 
             // Init particle system
             params.particles = new ParticleSystem(params);
-
+            params.controls.enabled = true;
             loaded = true;
         }
     }
@@ -65,6 +65,7 @@ export function render(params) {
     // Render scene with post-processing
     params.composer.render();
 
+    // Update boids
     window.requestAnimationFrame((frame) => {
         if (renderInterval != undefined) {
             delta += clock.getDelta();
@@ -88,15 +89,11 @@ export function render(params) {
 
                 // Update boids
                 update(params);
-
-                // Noise
-                params.noise += 0.001;
-                params.pass.uniforms['amount'].value = params.noise;
             }
         } else {
             if (params.targetFPS != -1) {
+                safeInterval = Math.round((params.targetFPS / 20) * params.targetFPS / 30);
                 renderInterval = 1 / (params.targetFPS > 90 ? 60 : 30);
-                safeInterval = params.targetFPS / 3;
                 loaded = false;
             }
         }
@@ -284,6 +281,7 @@ export function countFPS(params) {
         if (params.selected != null)
             params.selectedInfo.innerText = getSelectedInfo(params.selected.boid);
 
+        // Manage fps by removing/adding fish
         manageFPS(params, framesRendered);
 
         // Update FPS
@@ -301,7 +299,7 @@ let lastFPS = undefined,
 
 const commonFrateRates = [24, 29, 59, 74, 89, 119, 143];
 
-async function manageFPS(params, currentFPS) {
+function manageFPS(params, currentFPS) {
     /*
         Add/Remove fish from scene to maintain
         optimal fps with maximum visual display
@@ -333,11 +331,9 @@ async function manageFPS(params, currentFPS) {
 
     // Add/remove fish to maintain optimal fps
     if (currentFPS >= params.targetFPS && lastFPS >= params.targetFPS) {
-        addFishToScene();
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    } else if (currentFPS < lastFPS && currentFPS <= params.targetFPS - safeInterval && lastFPS <= params.targetFPS - safeInterval) {
+        //addFishToScene();
+    } else if (currentFPS < lastFPS + 2 && currentFPS <= params.targetFPS - safeInterval && lastFPS <= params.targetFPS - safeInterval) {
         removeFishFromScene();
-        await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     lastFPS = currentFPS;

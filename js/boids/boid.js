@@ -7,11 +7,11 @@ export class Entity {
         this.obj = params.obj;
         this.child = params.child;
         this.othersInPerception = 0;
-        this.perception = 1000;
+        this.perception = 3000;
 
         // Momentum
-        this.maxSpeed = 4;
-        this.maxForce = 2.0;
+        this.maxSpeed = 5;
+        this.maxForce = 0.5;
         this.acceleration = new THREE.Vector3(0, 0, 0);
 
         this.velocity = new THREE.Vector3(this.getSeed(), this.getSeed(), this.getSeed());
@@ -234,7 +234,7 @@ function isMovingOutBounds(boid, offset) {
         vy = boid.velocity.y,
         vz = boid.velocity.z;
 
-    const bounds = 1500 + offset;
+    const bounds = 3000 + offset;
     // X
     let nearX = (pos.x >= bounds && (vx >= 0 || vz >= 0)) ||
         (pos.x <= -bounds && (vx < 0 || vz < 0));
