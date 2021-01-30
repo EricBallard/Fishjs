@@ -39,7 +39,7 @@ const getRandomColor = () => {
 }
 
 
-export function addFishToScene(spawnBubbles) {
+export function addFishToScene() {
   // Clone model, bones, and anims
   const fish = SkeletonUtils.clone(cachedModel);
   const size = Number(Math.random() * 2 + 1);
@@ -48,15 +48,21 @@ export function addFishToScene(spawnBubbles) {
   // Apply texture and cache mesh for fish selection
   fish.traverse((e) => {
     if (e.isMesh) {
+      // Set mesh to random color
+      e.material = new THREE.MeshPhysicalMaterial({
+        color: Math.random() * 0xffffff,
+        roughness: 0,
+        metalness: 0,
+        reflectivity: 1,
+        clearcoat: 1,
+        clearcoatRoughness: 0
+      });
+
       // Cache mesh for raycast selection
       cachedParams.sceneObjects.push({
         mesh: e,
-        obj: fish,
+        obj: fish
       });
-
-      // Set mesh to random color
-      e.material = e.material.clone();
-      e.material.color.set((Math.random() * 0xffffff) | 0)
     }
   });
 
@@ -72,7 +78,7 @@ export function addFishToScene(spawnBubbles) {
   // Randomly position
   const seed = cachedParams.spawned * 10;
   const x = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
-  const y = Math.round(Math.random()) + (Math.random() < 0.5 ? -seed : seed) - 200;
+  const y = Math.round(Math.random()) + (Math.random() < 0.5 ? -seed : seed) - 300;
   const z = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
 
   fish.name = names[Math.floor(Math.random() * names.length)] + '_' + Math.random() * 1000;

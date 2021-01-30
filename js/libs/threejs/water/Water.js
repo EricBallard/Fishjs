@@ -37,8 +37,8 @@ var Water = function (geometry, options) {
 	options = options || {};
 
 	var color = (options.color !== undefined) ? new Color(options.color) : new Color(0xFFFFFF);
-	var textureWidth = options.textureWidth || 512;
-	var textureHeight = options.textureHeight || 512;
+	var textureWidth = options.textureWidth || 1024;
+	var textureHeight = options.textureHeight || 1024;
 	var clipBias = options.clipBias || 0;
 	var flowDirection = options.flowDirection || new Vector2(1, 0);
 	var flowSpeed = options.flowSpeed || 0.03;
@@ -203,6 +203,8 @@ var Water = function (geometry, options) {
 
 		reflector.onBeforeRender(renderer, scene, camera);
 		refractor.onBeforeRender(renderer, scene, camera);
+
+		scene.background = this.material;
 
 		scope.visible = true;
 

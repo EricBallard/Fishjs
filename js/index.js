@@ -6,7 +6,7 @@ import {
 } from '/js/device.js';
 
 import {
-  createMaterialArray
+  createMaterialArray, createPathStrings
 } from '/js/skybox.js';
 
 import {
@@ -22,52 +22,45 @@ import {
 } from '/js/libs/threejs/post/pass/OutlinePass.js';
 
 import {
-  FXAAShader
-} from '/js/libs/threejs/post/FXAAShader.js';
-
-import {
   getViews
 } from '/js/views.js';
 
+
 export function initialize() {
+  // Configure renderer
+  const renderer = new THREE.WebGLRenderer({
+    physicallyCorrectLights: true,
+    logarithmicDepthBuffer: true,
+    antialias: true,
+    alpha: true
+  });
+
   // Cache device traits
   const usingMobile = isMobile.any() != undefined;
-
   let isLandScape = window.innerWidth > window.innerHeight;
   let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
   let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
 
-  // Create scene and camera
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, w / h, 60, 25000);
-  camera.position.set(-1000, -500 - 1000);
-
-  // Create raycaster used for selecting fish to focus
-  const raycaster = new THREE.Raycaster();
-  raycaster.far = 25000;
-  raycaster.near = 60;
-
-  // Configure renderer and cache its DOM element
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,
-  });
-
+  // Apply to renderer
   renderer.setSize(w, h);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+  // Create scene and camera
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, w / h, 60, 25000);
+  camera.position.set(-1000, 500, -2000);
+
+  //const loader = new THREE.TextureLoader();
+  // const bgTexture = loader.load('/resources/skybox/uw_up.jpg');
+  // scene.background = new THREE.Color('#026F8E');
+
   // Configure Post-processesing
   const composer = new THREE.EffectComposer(renderer);
 
-  // Renders scene from camera's perspective
+  // Render scene from camera perspective
   const renderPass = new THREE.RenderPass(scene, camera);
   composer.addPass(renderPass);
-
-  // FXAA
-  const effectFXAA = new THREE.ShaderPass(FXAAShader);
-  effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
-  composer.addPass(effectFXAA);
 
   // Selection outline
   const outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera);
@@ -76,42 +69,6 @@ export function initialize() {
   outlinePass.edgeGlow = 0.1;
   outlinePass.pulsePeriod = 0;
   composer.addPass(outlinePass);
-
-  // Noise
-  let noiseCounter = 0.0;
-  let noise = {
-    uniforms: {
-      'tDiffuse': { value: null },
-      'amount': { value: noiseCounter }
-    },
-    vertexShader: `
-    varying vec2 vUv;
-    void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix  * vec4( position, 1.0 );
-    }`,
-    fragmentShader: `
-    uniform float amount;
-    uniform sampler2D tDiffuse;
-    varying vec2 vUv;
-
-    float random( vec2 p ) {
-      vec2 K1 = vec2(23.14069263277926, 2.665144142690225);
-      return fract( cos( dot(p,K1) ) * 12345.6789 );
-    }
-
-    void main() {
-      vec4 color = texture2D( tDiffuse, vUv );
-      vec2 uvRandom = vUv;
-      uvRandom.y *= random(vec2(uvRandom.y,amount));
-      color.rgb += random(uvRandom)*0.03;
-      gl_FragColor = vec4( color  );
-    }`
-  }
-
-  let noisePass = new THREE.ShaderPass(noise);
-  noisePass.renderToScreen = true;
-  composer.addPass(noisePass);
 
   // Load selection outline texture
   const textureLoader = new THREE.TextureLoader();
@@ -127,14 +84,20 @@ export function initialize() {
 
   // Configure user-controls
   const controls = new THREE.OrbitControls(camera, sceneElement);
-  controls.enabled = true;
-  controls.enablePan = false;
+  controls.enabled = false;
+  controls.enablePan = true;
   controls.autoRotate = true;
+
   controls.rotateSpeed = 0.45;
   controls.autoRotateSpeed = 0.3;
 
   controls.minDistance = 0;
   controls.maxDistance = 1500;
+
+  // Create raycaster used for selecting fish to focus
+  const raycaster = new THREE.Raycaster();
+  raycaster.far = 25000;
+  raycaster.near = 60;
 
   // Cache DOM elements
   const fpsTracker = document.getElementById('fpsCount'),
@@ -173,9 +136,6 @@ export function initialize() {
     composer: composer,
     renderer: renderer,
 
-    noise: noiseCounter,
-    pass: noisePass,
-
     controls: controls,
     element: sceneElement,
     sceneObjects: sceneObjects,
@@ -195,28 +155,70 @@ export function initialize() {
   };
 
   // Create skybox textured mesh and add to scene
-  const materialArray = createMaterialArray(THREE);
+  const skyboxImagepaths = createPathStrings();
 
-  scene.add(new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materialArray));
+  let index = 0;
+  skyboxImagepaths.map(image => {
+    const geo = new THREE.PlaneBufferGeometry(10000, 10000);
+    const mat = new THREE.MeshStandardMaterial({
+      map: new THREE.TextureLoader().load(image)
+    });
 
-  // Add water-wave distortion effect
-  const water = new Water(new THREE.PlaneBufferGeometry(4250, 4250), {
-    scale: 1,
-    textureWidth: 1024,
-    textureHeight: 1024,
-    flowMap: new THREE.TextureLoader().load('/resources/water/Water_1_M_Flow.jpg'),
+    let plane = new THREE.Mesh(geo, mat);
+
+    // Position and rotate based on index
+    switch (index) {
+      case 0: // Front
+        plane.rotation.y = Math.PI * -0.5;
+        plane.position.set(5000, 0, 0);
+        break;
+      case 1:  // Back
+        plane.rotation.y = Math.PI * 0.5;
+        plane.position.set(-5000, 0, 0);
+        break;
+      case 2:  // Top
+        plane.rotation.x = Math.PI * 0.5;
+        plane.position.set(0, 5000, 0);
+        break;
+      case 3: // Bottom
+        plane.rotation.x = Math.PI * -0.5;
+        plane.rotation.x = Math.PI * -0.5;
+        plane.position.set(0, -5000, 0);
+        break;
+      case 4: // Left
+        plane.position.set(0, 0, -5000);
+        break;
+      case 5: // Right
+        plane.rotation.y = Math.PI * 1;
+        plane.position.set(0, 0, 5000);
+        break;
+    }
+
+    // Add to scene
+    scene.add(plane);
+    index++;
   });
 
-  water.position.y = 1000;
+  // Add water-wave distortion effect
+  const water = new Water(new THREE.PlaneBufferGeometry(8500, 8500));
   water.rotation.x = Math.PI * 0.5;
+  water.position.y = 1000;
   scene.add(water);
 
   // Add models to scene
   loadAnimatedModel(appInfo);
 
   // Add light to scene
-  let light = new THREE.PointLight();
-  light.position.set(1000, 999, 1750);
+
+  // Ambient light
+  const color = new THREE.Color('#088DB1');
+  let light = new THREE.PointLight(color, 1);
+  light.distance = Infinity;
+  light.power = 4;
+  light.decay = 2;
+  scene.add(light);
+
+  light = new THREE.AmbientLight(color, 0.15);
   scene.add(light);
 
 
@@ -230,7 +232,7 @@ export function initialize() {
   audio.loop = true;
 
   // Register selecting fish - ignores drags (supports pc and mobile)
-  let startPos;
+  let startPos = new THREE.Vector3(0, 0, 0);
 
   window.addEventListener('pointerdown', () => {
     if (audio.paused)
@@ -269,7 +271,7 @@ export function initialize() {
     renderer.setPixelRatio(window.devicePixelRatio);
     composer.setSize(w, h);
 
-    effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
+    //effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
     window.scrollTo(0, 0);
   }, false);
 
