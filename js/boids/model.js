@@ -3,24 +3,24 @@ import { SkeletonUtils } from '/js/libs/threejs/models/SkeletonUtils.js';
 import * as Boids from '/js/boids/boid.js';
 
 // Cache
-let cachedModel, cachedParams;
+let cachedModel, appInfo;
 
 export function removeFishFromScene() {
-  const sel = cachedParams.selected;
+  const sel = appInfo.selected;
 
   // Find fish to remove
-  for (let boid of cachedParams.boids) {
+  for (let boid of appInfo.boids) {
     // Check if boid is selected - ignore if so
     if (boid == undefined || (sel != undefined && sel.obj == boid.obj))
       continue;
 
     // Fish is not selected - remove from boid
-    const toRemove = cachedParams.scene.getObjectByName(boid.obj.name);
-    cachedParams.scene.remove(toRemove);
+    const toRemove = appInfo.scene.getObjectByName(boid.obj.name);
+    appInfo.scene.remove(toRemove);
 
-    const index = cachedParams.boids.indexOf(boid);
-    cachedParams.boids.splice(index, 1);
-    cachedParams.spawned -= 1;
+    const index = appInfo.boids.indexOf(boid);
+    appInfo.boids.splice(index, 1);
+    appInfo.spawned -= 1;
     break;
   }
 }
@@ -59,24 +59,15 @@ export function addFishToScene() {
       });
 
       // Cache mesh for raycast selection
-      cachedParams.sceneObjects.push({
+      appInfo.sceneObjects.push({
         mesh: e,
         obj: fish
       });
     }
   });
 
-  const mixer = new THREE.AnimationMixer(fish);
-
-  // Start animation
-  for (let i = 0; i < 3; i++) {
-    const action = mixer.clipAction(cachedModel.animations[i]);
-    cachedParams.animations.push(mixer);
-    action.play();
-  }
-
   // Randomly position
-  const seed = cachedParams.spawned * 10;
+  const seed = appInfo.spawned * 10;
   const x = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
   const y = Math.round(Math.random()) + (Math.random() < 0.5 ? -seed : seed) - 300;
   const z = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
@@ -88,7 +79,7 @@ export function addFishToScene() {
   fish.castShadow = true;
 
   fish.updateMatrixWorld();
-  cachedParams.scene.add(fish);
+  appInfo.scene.add(fish);
 
   //debug
   //const directionPoint = new THREE.Mesh(new THREE.CubeGeometry(1, 25, 1));
@@ -98,8 +89,18 @@ export function addFishToScene() {
   directionPoint.position.set(x + 50, y, z);
   directionPoint.visible = false;
 
-  cachedParams.scene.add(directionPoint);
-  fish.attach(directionPoint, cachedParams.scene, fish);
+  appInfo.scene.add(directionPoint);
+  fish.attach(directionPoint, appInfo.scene, fish);
+
+  const mixer = new THREE.AnimationMixer(fish),
+    mixers = [];
+
+  // Start animation
+  for (let i = 0; i < 3; i++) {
+    const action = mixer.clipAction(cachedModel.animations[i]);
+    mixers.push(mixer);
+    action.play();
+  }
 
   // Create boid object
   var boid = new Boids.Entity({
@@ -108,11 +109,13 @@ export function addFishToScene() {
     z: z,
     obj: fish,
     child: directionPoint,
+    animations: mixers
   });
 
   // Store boid in array
-  cachedParams.boids.push(boid);
-  cachedParams.spawned += 1;
+  appInfo.boids.push(boid);
+  appInfo.spawned += 1;
+
 
 }
 
@@ -122,7 +125,7 @@ export function loadAnimatedModel(params) {
 
   loader.load('/resources/fish.fbx', (model) => {
     cachedModel = model;
-    cachedParams = params;
+    appInfo = params;
   }, onProgress, onError, null, false
   );
 }
@@ -130,7 +133,7 @@ export function loadAnimatedModel(params) {
 function onComplete() {
   setTimeout(function () {
     // Add in fish to scene
-    const toAdd = cachedParams.isMobile ? 40 : 100;
+    const toAdd = appInfo.isMobile ? 40 : 100;
 
     for (let added = 0; added < toAdd; added++) addFishToScene();
   }, 10);
