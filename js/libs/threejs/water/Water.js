@@ -95,13 +95,13 @@ var Water = function (geometry, options) {
 	this.material = new ShaderMaterial({
 		uniforms: UniformsUtils.merge([
 			UniformsLib['fog'],
-			shader.uniforms
+			shader.uniforms,
 		]),
 		vertexShader: shader.vertexShader,
 		fragmentShader: shader.fragmentShader,
 		transparent: true,
 		opacity: 0.01,
-		fog: true
+		fog: false
 	});
 
 

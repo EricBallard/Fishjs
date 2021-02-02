@@ -6,7 +6,7 @@ import {
 } from '/js/device.js';
 
 import {
-  createMaterialArray, createPathStrings
+  createRoom
 } from '/js/skybox.js';
 
 import {
@@ -30,7 +30,6 @@ export function initialize() {
   // Configure renderer
   const renderer = new THREE.WebGLRenderer({
     physicallyCorrectLights: true,
-    logarithmicDepthBuffer: true,
     antialias: true,
     alpha: true
   });
@@ -48,12 +47,8 @@ export function initialize() {
 
   // Create scene and camera
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, w / h, 60, 25000);
-  camera.position.set(-1000, 500, -2000);
-
-  //const loader = new THREE.TextureLoader();
-  // const bgTexture = loader.load('/resources/skybox/uw_up.jpg');
-  // scene.background = new THREE.Color('#026F8E');
+  const camera = new THREE.PerspectiveCamera(60, w / h, 1, 15000);
+  camera.position.set(-1000, 0, -2000);
 
   // Configure Post-processesing
   const composer = new THREE.EffectComposer(renderer);
@@ -84,7 +79,7 @@ export function initialize() {
 
   // Configure user-controls
   const controls = new THREE.OrbitControls(camera, sceneElement);
-  controls.enabled = false;
+  controls.enabled = true;
   controls.enablePan = true;
   controls.autoRotate = true;
 
@@ -154,50 +149,9 @@ export function initialize() {
     fps: fpsTracker,
   };
 
-  // Create skybox textured mesh and add to scene
-  const skyboxImagepaths = createPathStrings();
 
-  let index = 0;
-  skyboxImagepaths.map(image => {
-    const geo = new THREE.PlaneBufferGeometry(10000, 10000);
-    const mat = new THREE.MeshStandardMaterial({
-      map: new THREE.TextureLoader().load(image)
-    });
-
-    let plane = new THREE.Mesh(geo, mat);
-
-    // Position and rotate based on index
-    switch (index) {
-      case 0: // Front
-        plane.rotation.y = Math.PI * -0.5;
-        plane.position.set(5000, 0, 0);
-        break;
-      case 1:  // Back
-        plane.rotation.y = Math.PI * 0.5;
-        plane.position.set(-5000, 0, 0);
-        break;
-      case 2:  // Top
-        plane.rotation.x = Math.PI * 0.5;
-        plane.position.set(0, 5000, 0);
-        break;
-      case 3: // Bottom
-        plane.rotation.x = Math.PI * -0.5;
-        plane.rotation.x = Math.PI * -0.5;
-        plane.position.set(0, -5000, 0);
-        break;
-      case 4: // Left
-        plane.position.set(0, 0, -5000);
-        break;
-      case 5: // Right
-        plane.rotation.y = Math.PI * 1;
-        plane.position.set(0, 0, 5000);
-        break;
-    }
-
-    // Add to scene
-    scene.add(plane);
-    index++;
-  });
+  // Create skybox
+  createRoom(THREE, scene);
 
   // Add water-wave distortion effect
   const water = new Water(new THREE.PlaneBufferGeometry(8500, 8500));
@@ -209,18 +163,37 @@ export function initialize() {
   loadAnimatedModel(appInfo);
 
   // Add light to scene
-
-  // Ambient light
   const color = new THREE.Color('#088DB1');
+  scene.background = color;
+
+  // Center light
   let light = new THREE.PointLight(color, 1);
   light.distance = Infinity;
   light.power = 4;
   light.decay = 2;
   scene.add(light);
 
-  light = new THREE.AmbientLight(color, 0.15);
+  // 'Sun' light
+  light = new THREE.PointLight(0xffffff, 1);
+  light.position.set(1500, 4500, -1500)
+  light.distance = 3750;
+  light.power = 25;
+  light.decay = 2;
   scene.add(light);
 
+  // Ambient light
+  light = new THREE.AmbientLight(color, 0.1);
+  scene.add(light);
+
+
+  //lights
+  // TODO - animate between light colors
+  /*
+  let light = new THREE.PointLight(0xff0040, 2, 50);
+  light = new THREE.PointLight(0x0040ff, 2, 50);
+  light = new THREE.PointLight(0x80ff80, 2, 50);
+  light = new THREE.PointLight(0xffaa00, 2, 50);
+  */
 
   // Add cached element to DOM
   const body = document.body;
@@ -231,13 +204,13 @@ export function initialize() {
   audio.volume = 0.75;
   audio.loop = true;
 
+  window.addEventListener('focus', () => audio.paused ? audio.play() : true);
+  window.addEventListener('blur', () => audio.paused ? true : audio.pause());
+
   // Register selecting fish - ignores drags (supports pc and mobile)
   let startPos = new THREE.Vector3(0, 0, 0);
 
   window.addEventListener('pointerdown', () => {
-    if (audio.paused)
-      audio.play();
-
     const p = camera.position;
     startPos = new THREE.Vector3(p.x, p.y, p.z);
   }, false);
@@ -246,6 +219,9 @@ export function initialize() {
     // Register as selection if mouse hasn't majorily moved during click
     const p = camera.position;
     if (p == undefined) return;
+
+    if (audio.paused)
+      audio.play();
 
     if (Math.abs(p.x - startPos.x) <= 100 &&
       Math.abs(p.y - startPos.y) <= 100 &&
