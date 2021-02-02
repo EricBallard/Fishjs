@@ -112,7 +112,7 @@ export class Rotation {
         }
 
         // Rotate Y-axis (horizontal)
-        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset : offset * 2);
+        this.boid.obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.idleDir != undefined ? offset / 1.5  : offset * 2);
 
         // Rotate Z-axis (vertical)
         let y = this.boid.velocity.y,
