@@ -1,13 +1,11 @@
 // Utils
 import * as Screen from '/js/screen.js';
 
+import * as Skybox from '/js/skybox.js';
+
 import {
   isMobile
 } from '/js/device.js';
-
-import {
-  createRoom
-} from '/js/skybox.js';
 
 import {
   loadAnimatedModel
@@ -47,8 +45,8 @@ export function initialize() {
 
   // Create scene and camera
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, w / h, 1, 15000);
-  camera.position.set(-1000, 0, -2000);
+  const camera = new THREE.PerspectiveCamera(45, w / h, 1, 15000);
+  camera.position.set(-1000, -500, -2000);
 
   // Configure Post-processesing
   const composer = new THREE.EffectComposer(renderer);
@@ -58,7 +56,7 @@ export function initialize() {
   composer.addPass(renderPass);
 
   // Selection outline
-  const outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera);
+  let outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera);
   outlinePass.edgeThickness = 1.0;
   outlinePass.edgeStrength = 2.5;
   outlinePass.edgeGlow = 0.1;
@@ -96,11 +94,9 @@ export function initialize() {
 
   // Cache DOM elements
   const fpsTracker = document.getElementById('fpsCount'),
-    fishTracker = document.getElementById('fishCount');
-
-  // Selected fish info
-  const info = document.getElementById('info'),
-    selInfo = document.getElementById('selected_info');
+    fishTracker = document.getElementById('fishCount'),
+    selInfo = document.getElementById('selected_info'),
+    info = document.getElementById('info');
 
   // Format info in center for mobile
   if (usingMobile) {
@@ -115,43 +111,44 @@ export function initialize() {
 
   // Boid data
   let boids = [],
-    mixers = [],
     sceneObjects = [];
 
   // Cache app info as obj - allows refrencing variables in util
   const appInfo = {
+    // Device
     width: w,
     height: h,
     targetFPS: -1,
     isMobile: usingMobile,
 
+    // Controls
+    controls: controls,
+
+    // Scene
+    boids: boids,
     scene: scene,
+    element: sceneElement,
+    sceneObjects: sceneObjects,
+
+    // Render
     camera: camera,
     outLine: outlinePass,
     composer: composer,
     renderer: renderer,
 
-    controls: controls,
-    element: sceneElement,
-    sceneObjects: sceneObjects,
-
+    // Stats/info
     raycaster: raycaster,
     selected: selectedFish,
     selectedInfo: selInfo,
     info: info,
 
-    boids: boids,
-    animations: mixers,
-    particles: undefined,
-
     spawned: fishSpawned,
     fish: fishTracker,
-    fps: fpsTracker,
+    fps: fpsTracker
   };
 
-
   // Create skybox
-  createRoom(THREE, scene);
+  Skybox.createRoom(THREE, scene);
 
   // Add water-wave distortion effect
   const water = new Water(new THREE.PlaneBufferGeometry(8500, 8500));
@@ -159,45 +156,22 @@ export function initialize() {
   water.position.y = 1000;
   scene.add(water);
 
+  // Add particles
+  Skybox.addParticles(scene);
+
+  // Add light
+  Skybox.addLight(scene);
+
   // Add models to scene
   loadAnimatedModel(appInfo);
-
-  // Add light to scene
-  const color = new THREE.Color('#088DB1');
-  scene.background = color;
-
-  // Center light
-  let light = new THREE.PointLight(color, 1);
-  light.distance = Infinity;
-  light.power = 4;
-  light.decay = 2;
-  scene.add(light);
-
-  // 'Sun' light
-  light = new THREE.PointLight(0xffffff, 1);
-  light.position.set(1500, 4500, -1500)
-  light.distance = 3750;
-  light.power = 25;
-  light.decay = 2;
-  scene.add(light);
-
-  // Ambient light
-  light = new THREE.AmbientLight(color, 0.1);
-  scene.add(light);
-
-
-  //lights
-  // TODO - animate between light colors
-  /*
-  let light = new THREE.PointLight(0xff0040, 2, 50);
-  light = new THREE.PointLight(0x0040ff, 2, 50);
-  light = new THREE.PointLight(0x80ff80, 2, 50);
-  light = new THREE.PointLight(0xffaa00, 2, 50);
-  */
 
   // Add cached element to DOM
   const body = document.body;
   body.appendChild(sceneElement);
+
+  /*
+      !~* EVENT LISTENERS *~!
+  */
 
   // Audio
   const audio = new Audio('/resources/ambience_sound_compressed.mp3');
@@ -211,6 +185,9 @@ export function initialize() {
   let startPos = new THREE.Vector3(0, 0, 0);
 
   window.addEventListener('pointerdown', () => {
+    if (audio.paused)
+      audio.play();
+
     const p = camera.position;
     startPos = new THREE.Vector3(p.x, p.y, p.z);
   }, false);
@@ -219,9 +196,6 @@ export function initialize() {
     // Register as selection if mouse hasn't majorily moved during click
     const p = camera.position;
     if (p == undefined) return;
-
-    if (audio.paused)
-      audio.play();
 
     if (Math.abs(p.x - startPos.x) <= 100 &&
       Math.abs(p.y - startPos.y) <= 100 &&
@@ -243,16 +217,20 @@ export function initialize() {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
 
-    renderer.setSize(w, h);
-    renderer.setPixelRatio(window.devicePixelRatio);
     composer.setSize(w, h);
 
-    //effectFXAA.uniforms['resolution'].value.set(1 / w, 1 / h);
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
     window.scrollTo(0, 0);
   }, false);
 
   // Disable scrolling
   window.onscroll = (e) => e.preventDefault() && window.scrollTo(0, 0);
+
+  /*
+  
+  */
 
   // Load view counter data
   // getViews();

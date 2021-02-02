@@ -10,6 +10,7 @@ export class Entity {
         this.perception = 3000;
 
         // Momentum
+        this.speed = 0;
         this.maxSpeed = 5;
         this.maxForce = 0.5;
         this.acceleration = new THREE.Vector3(0, 0, 0);
@@ -59,6 +60,9 @@ export class Entity {
             facing: this.direction,
             desired: this.direction
         });
+
+        // Animation handler
+        this.animations = params.animations
     }
 
     getSeed() {
@@ -144,6 +148,10 @@ export class Entity {
     }
 
     move(boids) {
+        // Update speed
+        const speed = Movement.getSpeed(this.velocity);
+        this.speed = speed > this.maxSpeed ? this.maxSpeed : speed;
+
         if (this.bounceManager == undefined) {
             // Get percievable boids
             const others = this.getOthersInPerception(boids);
@@ -207,7 +215,7 @@ export class Entity {
         limitToMax(this.velocity, this.maxSpeed);
 
         // Apply momentum
-        this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
+        //this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
     }
 }
 
@@ -263,6 +271,12 @@ export function update(params) {
     for (let boid of params.boids) {
         boid.move(params.boids);
         boid.bounce();
-        boid.rotate();
+      //  boid.rotate();
+
+        // Update animations - TODO: update via gsap or remove gsap and write local util
+        const anims = boid.animations.length;
+        for (let i = 0; i < anims; i++) {
+            boid.animations[i].update(0.1);
+        }
     }
 }
