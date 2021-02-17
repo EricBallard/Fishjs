@@ -153,9 +153,6 @@ export class Bounce {
         this.desiredVX = params.x ? (v.x >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.x + (Math.random() < 0.5 ? Math.random() : -Math.random());
         this.desiredVY = params.y ? (v.y >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.y + (Math.random() < 0.5 ? Math.random() : -Math.random());
         this.desiredVZ = params.z ? (v.z >= 0 ? this.getSeed(true) : this.getSeed(false)) : v.z + (Math.random() < 0.5 ? Math.random() : -Math.random());
-
-
-
     }
 
     getSeed(negative) {

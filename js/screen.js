@@ -34,34 +34,52 @@ let loaded = true,
     hidLoadingScreen = false;
 
 // Process updates
-export function render(appInfo) {
+export function render(app) {
     if (!loaded) {
         if (!hidLoadingScreen) {
             // Hide loading identifier
             document.getElementById('loadStatus').style.display = 'none';
 
             // Fade in 3D scene
-            fade(appInfo.element, true, true);
+            fade(app.element, true, true);
             hidLoadingScreen = true;
-        } else if (appInfo.element.style.opacity >= 0.9) {
+        } else if (app.element.style.opacity >= 0.9) {
             // Fade in description
             fade(document.getElementById('desc'), true, true);
 
             // Init particle system
-            appInfo.controls.enabled = true;
+            app.controls.enabled = true;
             loaded = true;
         }
     }
 
-    // Auto-rotate/update controls and camera
-    appInfo.controls.update();
-
-    // Render scene with post-processing
-    appInfo.composer.render();
 
     // Update boids
     window.requestAnimationFrame(() => {
-        if (renderInterval != undefined) {
+        /*  Render camera/scene independetly
+
+        Boids, particles, and camera animation are update on fixed frame-rate which
+        is lower than native refresh rate - this is an optimization which allows
+        signficantly less logic calculation on render
+        */
+
+        // Auto-rotate/update controls and camera
+        app.controls.update();
+
+        // Render scene with post-processing
+        app.composer.render();
+
+        /*
+            Render on fixed frame-rate determined in countFPS()
+        */
+        if (renderInterval == undefined) {
+            // Init frame-rate detection
+            if (app.targetFPS != -1) {
+                safeInterval = Math.round((app.targetFPS / 20) * app.targetFPS / 30);
+                renderInterval = 1 / (app.targetFPS > 90 ? 60 : 30);
+                loaded = false;
+            }
+        } else {
             delta += clock.getDelta();
 
             // Update fishses' position
@@ -69,26 +87,24 @@ export function render(appInfo) {
                 delta = delta % renderInterval;
 
                 // Check if selected fished is visible
-                if (appInfo.selected != undefined)
-                    alignCameraToSelected(appInfo);
+                if (app.selected != undefined)
+                    alignCameraToSelected(app);
 
                 // Update boids
-                update(appInfo);
-            }
-        } else {
-            if (appInfo.targetFPS != -1) {
-                safeInterval = Math.round((appInfo.targetFPS / 20) * appInfo.targetFPS / 30);
-                renderInterval = 1 / (appInfo.targetFPS > 90 ? 60 : 30);
-                loaded = false;
+                update(app);
+
             }
         }
 
-
+        
+                // Update particles
+                app.particles.update(delta);
+                
         // FPS counter
-        countFPS(appInfo);
+        countFPS(app);
 
         // Loop
-        render(appInfo);
+        render(app);
     });
 }
 
@@ -115,23 +131,43 @@ function getSelectedInfo(boid) {
     return boid.obj.name.split('_')[0] +
         ' is ' + dir + ', moving at \n' + boid.speed.toFixed(2) +
         ' cm/s with ' + boid.othersInPerception +
+        // Grammar matters :')
         ' other' + (boid.othersInPerception == 1 ? '' : 's') +
         ' in perception!';
 }
 
-export function click(e, appInfo) {
+export function click(e, app) {
+    // const pp = app.boids[0].obj.position;
+    // const mousePos = toScreenXY(pp, app.camera, app.element);
+
+    // console.log('fish - x: ' + mousePos.x + ' y: ' + mousePos.y);
+    // console.log('click - x: ' + e.clientX + ' y: ' + e.clientY);
+
+    // let a = [];
+    // a.push(app.boids[0]);
+    // app.outLine.selectedObjects = a;
+    // const box = new THREE.Box3();
+    // box.setFromCenterAndSize(pp, new THREE.Vector3(100, 100, 100));
+
+    // const helper = new THREE.Box3Helper(box, 0xffff00);
+    // app.scene.add(helper);
+
+    // let x = Math.round((pp.x + 1) * app.w / 2),
+    //     y = Math.round((- pp.y + 1) * app.h / 2);
+
+
     // Prevent selected fish before fully loaded/presented
     if (!hidLoadingScreen || !loaded)
         return;
 
-    const pos = getPosition(e, appInfo.width, appInfo.height);
-    appInfo.raycaster.setFromCamera(pos, appInfo.camera);
+    const pos = getPosition(e, app.width, app.height);
+    app.raycaster.setFromCamera(pos, app.camera);
 
     const meshes = [];
-    for (let so of appInfo.sceneObjects)
+    for (let so of app.sceneObjects)
         meshes.push(so.mesh);
 
-    const intersects = appInfo.raycaster.intersectObjects(meshes, false);
+    const intersects = app.raycaster.intersectObjects(meshes, false);
     let selectedMesh;
 
     // If ray intersects with an object and that object is not currently selected
@@ -139,15 +175,15 @@ export function click(e, appInfo) {
         (selectedMesh = intersects[0].object) != undefined) {
 
         // Deselect current
-        if (appInfo.selected != undefined && appInfo.selected.mesh == selectedMesh) {
+        if (app.selected != undefined && app.selected.mesh == selectedMesh) {
             // Fade out selected in
-            fade(appInfo.info, false);
+            fade(app.info, false);
 
             // Set selected to undefined
-            appInfo.outLine.selectedObjects = [];
-            appInfo.selected = undefined;
+            app.outLine.selectedObjects = [];
+            app.selected = undefined;
 
-            appInfo.controls.autoRotate = true;
+            app.controls.autoRotate = true;
             return;
         }
 
@@ -156,7 +192,7 @@ export function click(e, appInfo) {
         array.push(selectedMesh);
         let selectedObj = undefined;
 
-        for (let so of appInfo.sceneObjects) {
+        for (let so of app.sceneObjects) {
             if (so.mesh == selectedMesh) {
                 selectedObj = so.obj;
                 break;
@@ -165,12 +201,12 @@ export function click(e, appInfo) {
 
         if (selectedObj == undefined) {
             console.log('Selection failed - unable to find related object and mesh!');
-            appInfo.selected = undefined;
+            app.selected = undefined;
             return;
         }
 
         let boid = undefined;
-        for (let b of appInfo.boids) {
+        for (let b of app.boids) {
             if (b.obj == selectedObj) {
                 boid = b;
                 break;
@@ -179,46 +215,46 @@ export function click(e, appInfo) {
 
         if (boid == undefined) {
             console.log('Selection failed - unable to find related boid!');
-            appInfo.selected = undefined;
+            app.selected = undefined;
             return;
         }
 
         // Set as selected
-        appInfo.selected = {
+        app.selected = {
             mesh: selectedMesh,
             obj: selectedObj,
             boid: boid
         };
 
-        appInfo.controls.autoRotate = false;
-        appInfo.outLine.selectedObjects = array;
-        appInfo.selectedInfo.innerText = getSelectedInfo(boid);
+        app.controls.autoRotate = false;
+        app.outLine.selectedObjects = array;
+        app.selectedInfo.innerText = getSelectedInfo(boid);
 
         // Fade in selected info
-        if (appInfo.info.style.opacity < 1)
-            fade(appInfo.info, true);
+        if (app.info.style.opacity < 1)
+            fade(app.info, true);
     }
 }
 
 // Rotate camera to selected fish
 let rotatingCamera = false;
 
-function alignCameraToSelected(appInfo) {
-    let pos = appInfo.selected.obj.position;
+function alignCameraToSelected(app) {
+    let pos = app.selected.obj.position;
 
     // Update camera projection
-    appInfo.camera.updateMatrix();
-    appInfo.camera.updateMatrixWorld();
+    app.camera.updateMatrix();
+    app.camera.updateMatrixWorld();
 
     // Define out view
     const frustum = new THREE.Frustum();
-    frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(appInfo.camera.projectionMatrix, appInfo.camera.matrixWorldInverse));
+    frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(app.camera.projectionMatrix, app.camera.matrixWorldInverse));
 
     if (!frustum.containsPoint(pos)) {
         if (!rotatingCamera) {
             // Selected is not visible - rotate camera
-            const controls = appInfo.controls,
-                camera = appInfo.camera;
+            const controls = app.controls,
+                camera = app.camera;
 
             // Disable controls while animating
             rotatingCamera = true;
@@ -256,22 +292,22 @@ function alignCameraToSelected(appInfo) {
 let framesRendered = 0,
     secondTracker = null;
 
-export function countFPS(appInfo) {
+export function countFPS(app) {
     const now = new Date().getTime();
     if (secondTracker == null) secondTracker = now;
     const newSecond = now - secondTracker >= 1000;
 
     if (newSecond) {
         // Update selected info
-        if (appInfo.selected != null)
-            appInfo.selectedInfo.innerText = getSelectedInfo(appInfo.selected.boid);
+        if (app.selected != null)
+            app.selectedInfo.innerText = getSelectedInfo(app.selected.boid);
 
         // Manage fps by removing/adding fish
-        manageFPS(appInfo, framesRendered);
+        manageFPS(app, framesRendered);
 
         // Update FPS
-        appInfo.fps.innerText = framesRendered;
-        appInfo.fish.innerText = appInfo.spawned;
+        app.fps.innerText = framesRendered;
+        app.fish.innerText = app.spawned;
         secondTracker = now;
         framesRendered = 0;
     }
@@ -284,14 +320,14 @@ let lastFPS = undefined,
 
 const commonFrateRates = [24, 29, 59, 74, 89, 119, 143];
 
-function manageFPS(appInfo, currentFPS) {
+function manageFPS(app, currentFPS) {
     /*
         Add/Remove fish from scene to maintain
         optimal fps with maximum visual display
     */
 
     // Detect optimal fps
-    if (appInfo.targetFPS == -1) {
+    if (app.targetFPS == -1) {
         if (lastFPS == undefined) {
             lastFPS = currentFPS;
         } else if (Math.abs(currentFPS - lastFPS) <= 2)
@@ -302,7 +338,8 @@ function manageFPS(appInfo, currentFPS) {
                 if (potentialTarget != undefined) {
                     if (potentialTarget == cfr) {
                         console.log('Target FPS: ' + cfr);
-                        appInfo.targetFPS = cfr;
+                        app.motionBlur.samples = cfr;
+                        app.targetFPS = cfr;
                         break;
                     }
                 }
@@ -315,9 +352,9 @@ function manageFPS(appInfo, currentFPS) {
     }
 
     // Add/remove fish to maintain optimal fps
-    if (currentFPS >= appInfo.targetFPS && lastFPS >= appInfo.targetFPS) {
+    if (currentFPS >= app.targetFPS && lastFPS >= app.targetFPS) {
         //addFishToScene();
-    } else if (currentFPS < lastFPS + 2 && currentFPS <= appInfo.targetFPS - safeInterval && lastFPS <= appInfo.targetFPS - safeInterval) {
+    } else if (currentFPS < lastFPS + 2 && currentFPS <= app.targetFPS - safeInterval && lastFPS <= app.targetFPS - safeInterval) {
         removeFishFromScene();
     }
 

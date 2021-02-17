@@ -1,23 +1,27 @@
 // Utils
 import * as Screen from '/js/screen.js';
 
-import * as Skybox from '/js/skybox.js';
+import * as World from '/js/world.js';
 
 import {
   isMobile
 } from '/js/device.js';
 
 import {
-  loadAnimatedModel
-} from '/js/boids/model.js';
-
-import {
-  Water
-} from '/js/libs/threejs/water/Water.js';
-
-import {
   OutlinePass
 } from '/js/libs/threejs/post/pass/OutlinePass.js';
+
+import {
+  MotionBlurPass
+} from '/js/libs/threejs/post/pass/MotionBlurPass.js';
+
+import {
+  Particles
+} from '/js/particles.js';
+
+import {
+  loadAnimatedModel
+} from '/js/boids/model.js';
 
 import {
   getViews
@@ -45,7 +49,7 @@ export function initialize() {
 
   // Create scene and camera
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, w / h, 1, 15000);
+  const camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 25000);
   camera.position.set(-1000, -500, -2000);
 
   // Configure Post-processesing
@@ -54,6 +58,19 @@ export function initialize() {
   // Render scene from camera perspective
   const renderPass = new THREE.RenderPass(scene, camera);
   composer.addPass(renderPass);
+
+  // Motion blur
+  const blurPass = new MotionBlurPass(scene, camera, {
+    samples: 15,
+    interpolateGeometry: 0.002,
+    expandGeometry: 0.002,
+    smearIntensity: 0.002,
+    blurTransparent: true,
+    renderCameraBlur: true
+  });
+
+  blurPass.renderToScreen = true;
+  composer.addPass(blurPass);
 
   // Selection outline
   let outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera);
@@ -65,7 +82,7 @@ export function initialize() {
 
   // Load selection outline texture
   const textureLoader = new THREE.TextureLoader();
-  textureLoader.load('/resources/tri_pattern.jpg', function (texture) {
+  textureLoader.load('/resources/tri_pattern.jpg', (texture) => {
     outlinePass.patternTexture = texture;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
@@ -79,7 +96,7 @@ export function initialize() {
   const controls = new THREE.OrbitControls(camera, sceneElement);
   controls.enabled = true;
   controls.enablePan = true;
-  controls.autoRotate = true;
+  controls.autoRotate = false;
 
   controls.rotateSpeed = 0.45;
   controls.autoRotateSpeed = 0.3;
@@ -113,8 +130,11 @@ export function initialize() {
   let boids = [],
     sceneObjects = [];
 
+  // Particles
+  let particles = new Particles(scene, camera);
+
   // Cache app info as obj - allows refrencing variables in util
-  const appInfo = {
+  const app = {
     // Device
     width: w,
     height: h,
@@ -127,15 +147,16 @@ export function initialize() {
     // Scene
     boids: boids,
     scene: scene,
+    particles: particles,
     element: sceneElement,
     sceneObjects: sceneObjects,
 
     // Render
     camera: camera,
-    outLine: outlinePass,
-    composer: composer,
     renderer: renderer,
-
+    composer: composer,
+    outLine: outlinePass,
+    motionBlur: blurPass,
     // Stats/info
     raycaster: raycaster,
     selected: selectedFish,
@@ -147,23 +168,17 @@ export function initialize() {
     fps: fpsTracker
   };
 
+  // Add models to scene
+  loadAnimatedModel(app);
+
   // Create skybox
-  Skybox.createRoom(THREE, scene);
+  World.createRoom(THREE, scene);
 
-  // Add water-wave distortion effect
-  const water = new Water(new THREE.PlaneBufferGeometry(8500, 8500));
-  water.rotation.x = Math.PI * 0.5;
-  water.position.y = 1000;
-  scene.add(water);
-
-  // Add particles
-  Skybox.addParticles(scene);
+  // Add water particles
+  World.addParticles(particles);
 
   // Add light
-  Skybox.addLight(scene);
-
-  // Add models to scene
-  loadAnimatedModel(appInfo);
+  World.addLight(scene);
 
   // Add cached element to DOM
   const body = document.body;
@@ -200,7 +215,7 @@ export function initialize() {
     if (Math.abs(p.x - startPos.x) <= 100 &&
       Math.abs(p.y - startPos.y) <= 100 &&
       Math.abs(p.z - startPos.z) <= 100)
-      Screen.click(e, appInfo);
+      Screen.click(e, app);
   }, false);
 
   // Register resize listener
@@ -211,8 +226,8 @@ export function initialize() {
     let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
     let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
 
-    appInfo.width = w;
-    appInfo.height = h;
+    app.width = w;
+    app.height = h;
 
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -236,7 +251,7 @@ export function initialize() {
   // getViews();
 
   // Render-loop
-  Screen.render(appInfo);
+  Screen.render(app);
 }
 
 // Init app

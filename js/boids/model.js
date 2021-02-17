@@ -3,24 +3,24 @@ import { SkeletonUtils } from '/js/libs/threejs/models/SkeletonUtils.js';
 import * as Boids from '/js/boids/boid.js';
 
 // Cache
-let cachedModel, appInfo;
+let cachedModel, app;
 
 export function removeFishFromScene() {
-  const sel = appInfo.selected;
+  const sel = app.selected;
 
   // Find fish to remove
-  for (let boid of appInfo.boids) {
+  for (let boid of app.boids) {
     // Check if boid is selected - ignore if so
     if (boid == undefined || (sel != undefined && sel.obj == boid.obj))
       continue;
 
     // Fish is not selected - remove from boid
-    const toRemove = appInfo.scene.getObjectByName(boid.obj.name);
-    appInfo.scene.remove(toRemove);
+    const toRemove = app.scene.getObjectByName(boid.obj.name);
+    app.scene.remove(toRemove);
 
-    const index = appInfo.boids.indexOf(boid);
-    appInfo.boids.splice(index, 1);
-    appInfo.spawned -= 1;
+    const index = app.boids.indexOf(boid);
+    app.boids.splice(index, 1);
+    app.spawned -= 1;
     break;
   }
 }
@@ -32,54 +32,58 @@ const names = ['Angel', 'Boss', 'Charlie', 'Don', 'Eric', 'Finn',
   'Veronica', 'Weston', 'Xavier', 'Yoana', 'Zen',
 ];
 
-const getRandomColor = () => {
-  const color = THREE.Color();
-  color.setStyle();
-  return THREE.Color()
-}
-
-
 export function addFishToScene() {
   // Clone model, bones, and anims
-  const fish = SkeletonUtils.clone(cachedModel);
-  const size = Number(Math.random() * 2 + 1);
+  const fish = SkeletonUtils.clone(cachedModel.scene);
+  const size = Number(Math.random() * 200 + 200);
   fish.scale.set(size, size, size);
 
-  // Apply texture and cache mesh for fish selection
+  // Apply material and cache mesh for fish selection 
   fish.traverse((e) => {
-    if (e.isMesh) {
+    if (e.isSkinnedMesh) {
       // Set mesh to random color
       e.material = new THREE.MeshPhysicalMaterial({
         color: Math.random() * 0xffffff,
+        clearcoatRoughness: 0,
         roughness: 0,
         metalness: 0,
         reflectivity: 1,
         clearcoat: 1,
-        clearcoatRoughness: 0
+        skinning: true,
+        map: e.material.map
       });
 
+      e.size = size;
+
       // Cache mesh for raycast selection
-      appInfo.sceneObjects.push({
+      app.sceneObjects.push({
         mesh: e,
         obj: fish
       });
     }
   });
 
+  // Add animations
+  const mixer = new THREE.AnimationMixer(fish),
+    clip = mixer.clipAction(cachedModel.animations[1]);
+
+    clip.play();
+
+
   // Randomly position
-  const seed = appInfo.spawned * 10;
+  const seed = app.spawned * 10;
   const x = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
   const y = Math.round(Math.random()) + (Math.random() < 0.5 ? -seed : seed) - 300;
   const z = Math.round(Math.random() * 2000) + (Math.random() < 0.5 ? -seed : seed);
 
   fish.name = names[Math.floor(Math.random() * names.length)] + '_' + Math.random() * 1000;
-
   fish.position.set(x, y, z);
   fish.receiveShadow = true;
   fish.castShadow = true;
 
   fish.updateMatrixWorld();
-  appInfo.scene.add(fish);
+  fish.motionBlur = { renderTransparent: true }
+  app.scene.add(fish);
 
   //debug
   //const directionPoint = new THREE.Mesh(new THREE.CubeGeometry(1, 25, 1));
@@ -89,52 +93,40 @@ export function addFishToScene() {
   directionPoint.position.set(x + 50, y, z);
   directionPoint.visible = false;
 
-  appInfo.scene.add(directionPoint);
-  fish.attach(directionPoint, appInfo.scene, fish);
-
-  const mixer = new THREE.AnimationMixer(fish),
-    mixers = [];
-
-  // Start animation
-  for (let i = 0; i < 3; i++) {
-    const action = mixer.clipAction(cachedModel.animations[i]);
-    mixers.push(mixer);
-    action.play();
-  }
+  app.scene.add(directionPoint);
+  fish.attach(directionPoint, app.scene, fish);
 
   // Create boid object
-  var boid = new Boids.Entity({
+  let boid = new Boids.Entity({
     x: x,
     y: y,
     z: z,
     obj: fish,
     child: directionPoint,
-    animations: mixers
+    animations: mixer
   });
 
   // Store boid in array
-  appInfo.boids.push(boid);
-  appInfo.spawned += 1;
-
-
+  app.boids.push(boid);
+  app.spawned += 1;
 }
 
 export function loadAnimatedModel(params) {
   var manager = new THREE.LoadingManager(onComplete);
-  var loader = new THREE.FBXLoader(manager);
+  var loader = new THREE.GLTFLoader(manager);
+  THREE.Cache.enabled = true;
 
-  loader.load('/resources/fish.fbx', (model) => {
+
+  loader.load('/resources/fish.glb', (model) => {
     cachedModel = model;
-    appInfo = params;
-  }, onProgress, onError, null, false
-  );
+    app = params;
+  }, onProgress, onError, null, false);
 }
 
 function onComplete() {
   setTimeout(function () {
     // Add in fish to scene
-    const toAdd = appInfo.isMobile ? 40 : 100;
-
+    const toAdd = app.isMobile ? 40 : 100;
     for (let added = 0; added < toAdd; added++) addFishToScene();
   }, 10);
 }
