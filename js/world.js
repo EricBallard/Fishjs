@@ -2,6 +2,11 @@ import {
     getStringPaths
 } from '/js/textures.js';
 
+
+import {
+    Water
+} from '/js/libs/threejs/water/Water.js';
+
 export function createRoom(THREE, scene) {
     let index = 0;
 
@@ -48,65 +53,48 @@ export function createRoom(THREE, scene) {
         scene.add(plane);
         index++;
     });
+
+    // Add water-wave distortion effect
+    const water = new Water(new THREE.PlaneBufferGeometry(8500, 8500));
+    water.rotation.x = Math.PI * 0.5;
+    water.position.y = 1000;
+    scene.add(water);
 }
 
-const randomGreyscaleColor = () => {
-    var value = Math.random() * 0xFF | 0;
-    var grayscale = (value << 16) | (value << 8) | value;
-    return '#' + grayscale.toString(16);
+let getSeed = () => {
+    let seed = (Math.random() * 10) + 50;
+    return Math.random() < 0.5 ? seed - (seed * 2) : seed;
 }
-
-export function addParticles(scene) {
-    // Points geomtry/material
-    const geometry = new THREE.BufferGeometry(),
-        loader = new THREE.TextureLoader();
-
-    // Load textures and generate random particle traits (color, size)
-    const traits = [],
-        vertices = [];
+export function addParticles(particles) {
+    // cache textures
+    const loader = new THREE.TextureLoader();
+    let textures = [];
 
     getStringPaths(false).forEach(image => {
-        traits.push({
-            color: new THREE.Color(randomGreyscaleColor()),
-            size: Math.random() * 10,
-            sprite: loader.load(image)
+        const mat = new THREE.MeshStandardMaterial({
+            map: loader.load(image),
+            fog: false
         });
+
+        textures.push(loader.load(image));
     });
 
-    // Randomly generate point vertice positions
-    for (let i = 0; i < 100; i++) {
-        const x = Math.random() * 2000 - 1000,
-            y = Math.random() * 2000 - 1000,
-            z = Math.random() * 2000 - 1000;
+    // Spawn 200 particle debris
+    for (let i = 0; i < 500; i++) {
+        const seed = getSeed();
 
-        vertices.push(x, y, z);
-    }
+        let x = Math.random() * 4000 - 2000,
+            y = Math.random() * 1900 - 1000 - i,
+            z = Math.random() * 4000 - 2000;
 
-    // Apply to geomtry
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-
-
-    // Apply traits to point geomtry material
-    for (let i = 0; i < 9; i++) {
-        const trait = traits[i];
-
-        const material = new THREE.PointsMaterial({
-            color: trait.color,
-            map: trait.sprite,
-            size: trait.size,
-            depthTest: true,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            morphTargets: true
+        particles.group.push({
+            position: new THREE.Vector3(x, y, z),
+            size: Math.random() * 40 + 10,
+            colour: new THREE.Color(),
+            alpha: Math.random() / 3,
+            rotation: Math.random() * 2.0 * Math.PI,
+            velocity: new THREE.Vector3(seed, getSeed(), seed)
         });
-
-
-        const particles = new THREE.Points(geometry, material);
-        particles.rotation.x = Math.random() * 6;
-        particles.rotation.y = Math.random() * 6;
-        particles.rotation.z = Math.random() * 6;
-
-        scene.add(particles);
     }
 }
 
@@ -116,7 +104,7 @@ export function addLight(scene) {
     scene.background = color;
 
     // Center light
-    let light = new THREE.PointLight(color, 1);
+    let light = new THREE.PointLight(color, 8);
     light.distance = Infinity;
     light.power = 4;
     light.decay = 2;
@@ -131,7 +119,7 @@ export function addLight(scene) {
     scene.add(light);
 
     // Ambient light
-    light = new THREE.AmbientLight(color, 0.1);
+    light = new THREE.AmbientLight(color, 0.6);
     scene.add(light);
 
 

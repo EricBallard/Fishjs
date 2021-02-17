@@ -62,7 +62,7 @@ export class Entity {
         });
 
         // Animation handler
-        this.animations = params.animations
+        this.animations = params.animations;
     }
 
     getSeed() {
@@ -215,7 +215,7 @@ export class Entity {
         limitToMax(this.velocity, this.maxSpeed);
 
         // Apply momentum
-        //this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
+        this.obj.applyMatrix4(new THREE.Matrix4().makeTranslation(this.velocity.x, this.velocity.y, this.velocity.z));
     }
 }
 
@@ -269,14 +269,9 @@ function isMovingOutBounds(boid, offset) {
 // Update boids
 export function update(params) {
     for (let boid of params.boids) {
+        boid.animations.update((boid.speed / 100) + 0.01);
         boid.move(params.boids);
         boid.bounce();
-      //  boid.rotate();
-
-        // Update animations - TODO: update via gsap or remove gsap and write local util
-        const anims = boid.animations.length;
-        for (let i = 0; i < anims; i++) {
-            boid.animations[i].update(0.1);
-        }
+        boid.rotate();
     }
 }
