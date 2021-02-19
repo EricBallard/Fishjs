@@ -1,6 +1,6 @@
 import {
     getStringPaths
-} from '/js/textures.js';
+} from '/js/world/textures.js';
 
 
 import {
@@ -65,7 +65,7 @@ let getSeed = () => {
     let seed = (Math.random() * 10) + 50;
     return Math.random() < 0.5 ? seed - (seed * 2) : seed;
 }
-export function addParticles(particles) {
+export function addParticles(THREE, scene) {
     // cache textures
     const loader = new THREE.TextureLoader();
     let textures = [];
@@ -80,21 +80,38 @@ export function addParticles(particles) {
     });
 
     // Spawn 200 particle debris
-    for (let i = 0; i < 500; i++) {
-        const seed = getSeed();
+    // for (let i = 0; i < 500; i++) {
+    //     const seed = getSeed();
 
+    //     let x = Math.random() * 4000 - 2000,
+    //         y = Math.random() * 1900 - 1000 - i,
+    //         z = Math.random() * 4000 - 2000;
+
+    //     particles.group.push({
+    //         position: new THREE.Vector3(x, y, z),
+    //         size: Math.random() * 40 + 10,
+    //         colour: new THREE.Color(),
+    //         alpha: Math.random() / 3,
+    //         rotation: Math.random() * 2.0 * Math.PI,
+    //         velocity: new THREE.Vector3(seed, getSeed(), seed)
+    //     });
+    // }
+
+    const geometry = new THREE.PlaneBufferGeometry * (100, 100);
+
+    const material = new THREE.MeshPhongMaterial({
+        transparent: true,
+        map: textures[0]
+    });
+
+    for (let i = 0; i < 10; i++) {
         let x = Math.random() * 4000 - 2000,
             y = Math.random() * 1900 - 1000 - i,
             z = Math.random() * 4000 - 2000;
 
-        particles.group.push({
-            position: new THREE.Vector3(x, y, z),
-            size: Math.random() * 40 + 10,
-            colour: new THREE.Color(),
-            alpha: Math.random() / 3,
-            rotation: Math.random() * 2.0 * Math.PI,
-            velocity: new THREE.Vector3(seed, getSeed(), seed)
-        });
+        let mesh = new THREE.InstancedMesh(geometry, material);
+        mesh.position.set(x, y, z);
+     //   scene.add(mesh);
     }
 }
 

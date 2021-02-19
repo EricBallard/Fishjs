@@ -1,7 +1,7 @@
 // Utils
 import * as Screen from '/js/screen.js';
 
-import * as World from '/js/world.js';
+import * as World from '/js/world/world.js';
 
 import {
   isMobile
@@ -64,7 +64,7 @@ export function initialize() {
     samples: 15,
     interpolateGeometry: 0.002,
     expandGeometry: 0.002,
-    smearIntensity: 0.002,
+    smearIntensity: 0.001,
     blurTransparent: true,
     renderCameraBlur: true
   });
@@ -175,7 +175,7 @@ export function initialize() {
   World.createRoom(THREE, scene);
 
   // Add water particles
-  World.addParticles(particles);
+  World.addParticles(THREE, scene);
 
   // Add light
   World.addLight(scene);
