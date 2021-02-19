@@ -85,7 +85,7 @@ export class Particles {
             p.position.add(p.velocity.clone().multiplyScalar(timeElapsed));
             p.rotation += timeElapsed * 0.5;
             p.currentSize = p.size;
-            p.alpha = p.alpha;
+            //p.alpha = p.alpha;
 
             // Limit position
             const pp = p.position;
@@ -96,10 +96,10 @@ export class Particles {
             p.position.set(x, y, z);
 
             // Reflect alpha based on distance
-            //const dis = (Math.floor(getDistance(p.position) / 100 / 2) / 2) / 10;
-            // p.alpha = dis;
+            const dis = (Math.floor(getDistance(p.position) / 100 / 2) / 2) / 10;
+            p.alpha = dis;
 
-            //            console.log('alpga: ' + dis);
+            //  console.log('alpga: ' + dis);
 
             // Cache update
             positions.push(p.position.x, p.position.y, p.position.z);
