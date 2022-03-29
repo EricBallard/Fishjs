@@ -126,7 +126,8 @@ export function loadAnimatedModel(params) {
 function onComplete() {
   setTimeout(function () {
     // Add in fish to scene
-    const toAdd = app.isMobile ? 40 : 100;
+   // const toAdd = app.isMobile ? 40 : 100;
+    const toAdd = 1;
     for (let added = 0; added < toAdd; added++) addFishToScene();
   }, 10);
 }

@@ -1,4 +1,6 @@
 <?php
+
+// Connect
 require 'connect.php';
 
 // Cache user ip
@@ -32,5 +34,3 @@ echo "$result";
 // Update db with new view
 mysqli_query($dbc, $query);
 mysqli_close($dbc);
-
-?>

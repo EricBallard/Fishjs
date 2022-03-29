@@ -243,12 +243,8 @@ export function initialize() {
   // Disable scrolling
   window.onscroll = (e) => e.preventDefault() && window.scrollTo(0, 0);
 
-  /*
-  
-  */
-
   // Load view counter data
-  // getViews();
+  getViews();
 
   // Render-loop
   Screen.render(app);

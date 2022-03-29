@@ -1,0 +1,15 @@
+
+# Define database info as env vars
+
+SetEnv mysql_host 127.0.0.1
+SetEnv mysql_db visitors
+SetEnv mysql_user root
+SetEnv mysql_pass password
+
+# Re-route unknown request to index
+
+RewriteEngine on
+RewriteCond %{REQUEST_URI} !\.(png|jpe?g|gif|css|js|php)$ [NC]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.html?url=$1 [QSA,L]

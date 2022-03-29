@@ -1,89 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<meta name="HandheldFriendly" content="true" />
 
-<head>
-    <title>Fishjs</title>
-    <link rel="stylesheet" href="style.css" type="text/css">
-    <link rel="icon" href="/resources/favicon.ico" type="image/x-icon">
-</head>
+    <html lang="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="HandheldFriendly" content="true" />
 
-<body>
-    <!-- Loading Identifier -->
-    <div id="loadStatus" class="loader">
-        <h1>Loading</h1>
-        <div class="status"></div>
-    </div>
+    <head>
+        <title>Fishjs</title>
+        <link rel="stylesheet" href="style.css" type="text/css">
+        <link rel="icon" href="/resources/favicon.ico" type="image/x-icon">
+    </head>
 
-    <!-- Description -->
-    <div id="desc" class="desc">
-        <!-- Boid/FPS counter -->
-        <br>
-        <br>
-        At this moment, you're watching
-        <br>
-        <t id="fishCount" class="fishCount">0</t>
-        fish being simulated at
-        <t id="fpsCount" class="fpsCount">0</t>
-        fps.
-        <br>
-        </p>
-
-        <!-- View counter -->
-        <t id="total_count">0</t>
-        total individuals have sojourn
-        <br>
-        here - you have visited
-        <t id="local_count">0</t>.
-        <br>
-        <br>
-
-        <!-- Source link -->
-        <a href="https://github.com/EricBallard/Fishjs" class="link">Source on GitHub</a>
-
-        <h1>Fishjs</h1>
-
-        <div class="debug">
-            <br> <!-- debug -->
-            <h5 id='x'></h5>
-            <h5 id='y'></h5>
-            <h5 id='z'></h5>
+    <body>
+        <!-- Loading Identifier -->
+        <div id="loadStatus" class="loader">
+            <h1>Loading</h1>
+            <div class="status"></div>
         </div>
-    </div>
 
-
-    <div id="info" class="info">
-        <!-- Info -->
-        <p>
-            <u>Selected</u>
+        <!-- Description -->
+        <div id="desc" class="desc">
+            <!-- Boid/FPS counter -->
             <br>
-            <t id="selected_info" class="selected_info">undefined</t>
-        </p>
-    </div>
+            <br>
+            At this moment, you're watching
+            <br>
+            <t id="fishCount" class="fishCount">0</t>
+            fish being simulated at
+            <t id="fpsCount" class="fpsCount">0</t>
+            fps.
+            <br>
+            </p>
 
-    <!-- Three.js API and Util (https://threejs.org/) -->
-    <script src="/js/libs/threejs/three.min.js"></script>
-    <script src="/js/libs/threejs/controls/OrbitControls.js"></script>
+            <!-- View counter -->
+            <t id="total_count">0</t>
+            total individuals have sojourn
+            <br>
+            here - you have visited
+            <t id="local_count">0</t>.
+            <br>
+            <br>
 
-    <!-- Post Processing -->
-    <script type="module" src="/js/libs/threejs/post/shader/CopyShader.js"></script>
-    <script type="module" src="/js/libs/threejs/post/pass/ShaderPass.js"></script>
-    <script type="module" src="/js/libs/threejs/post/pass/RenderPass.js"></script>
-    <script src="/js/libs/threejs/post/EffectComposer.js"></script>
+            <!-- Source link -->
+            <a href="https://github.com/EricBallard/Fishjs" class="link">Source on GitHub</a>
 
-    <!-- Model -->
-    <script src="/js/libs/threejs/models/GLTFLoader.js"></script>
+            <h1>Fishjs</h1>
 
-    <!-- GSAP API (https://greensock.com/gsap/) -->
-    <script src="/js/libs/gsap.min.js"></script>
+            <div class="debug">
+                <br> <!-- debug -->
+                <h5 id='x'></h5>
+                <h5 id='y'></h5>
+                <h5 id='z'></h5>
+            </div>
+        </div>
 
-    <!-- p5 API (https://p5js.org/) -->
-    <script src="/js/libs/p5.min.js"></script>
-    <script src="/js/sketch.js"></script>
 
-    <!-- App -->
-    <script type="module" src="/js/test.js"></script>
-</body>
+        <div id="info" class="info">
+            <!-- Info -->
+            <p>
+                <u>Selected</u>
+                <br>
+                <t id="selected_info" class="selected_info">undefined</t>
+            </p>
+        </div>
 
+        <!-- Three.js API and Util (https://threejs.org/) -->
+        <script src="/js/libs/threejs/three.min.js"></script>
+        <script src="/js/libs/threejs/controls/OrbitControls.js"></script>
+
+        <!-- Post Processing -->
+        <script type="module" src="/js/libs/threejs/post/shader/CopyShader.js"></script>
+        <script type="module" src="/js/libs/threejs/post/pass/ShaderPass.js"></script>
+        <script type="module" src="/js/libs/threejs/post/pass/RenderPass.js"></script>
+        <script src="/js/libs/threejs/post/EffectComposer.js"></script>
+
+        <!-- Model -->
+        <script src="/js/libs/threejs/models/GLTFLoader.js"></script>
+
+        <!-- GSAP API (https://greensock.com/gsap/) -->
+        <script src="/js/libs/gsap.min.js"></script>
+
+        <!-- p5 API (https://p5js.org/) -->
+        <script src="/js/libs/p5.min.js"></script>
+        <script src="/js/sketch.js"></script>
+
+        <!-- App -->
+        <script type="module" src="/js/index.js"></script>
+    </body>
+    
 </html>

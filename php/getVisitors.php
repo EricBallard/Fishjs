@@ -1,4 +1,6 @@
 <?php
+
+// Connect
 require 'connect.php';
 
 // Get total vistors in db
@@ -7,5 +9,3 @@ $vistors = mysqli_num_rows($result);
 
 echo "$vistors";
 mysqli_close($dbc);
-
-?>
