@@ -6,6 +6,7 @@
 
     <head>
         <title>Fishjs</title>
+
         <link rel="stylesheet" href="style.css" type="text/css">
         <link rel="icon" href="/resources/favicon.ico" type="image/x-icon">
     </head>
@@ -13,7 +14,7 @@
     <body>
         <!-- Loading Identifier -->
         <div id="loadStatus" class="loader">
-            <h1>Loading</h1>
+            <h1>LOADING</h1>
             <div class="status"></div>
         </div>
 
@@ -64,24 +65,24 @@
         </div>
 
         <!-- Three.js API and Util (https://threejs.org/) -->
-        <script src="/js/libs/threejs/three.min.js"></script>
-        <script src="/js/libs/threejs/controls/OrbitControls.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.min.js"></script>
+        <script src="/js/libs/controls/OrbitControls.js"></script>
 
         <!-- Post Processing -->
-        <script type="module" src="/js/libs/threejs/post/shader/CopyShader.js"></script>
-        <script type="module" src="/js/libs/threejs/post/pass/ShaderPass.js"></script>
-        <script type="module" src="/js/libs/threejs/post/pass/RenderPass.js"></script>
-        <script src="/js/libs/threejs/post/EffectComposer.js"></script>
+        <script src="/js/libs/post/pass/Pass.js"></script>
+        
+        <script src="/js/libs/post/MotionBlurShaderChunks.js"></script>
+        <script src="/js/libs/post/shader/CopyShader.js"></script>
+        <script src="/js/libs/post/pass/ShaderPass.js"></script>
+        <script src="/js/libs/post/pass/RenderPass.js"></script>
+        
+        <script src="/js/libs/post/EffectComposer.js"></script>
 
         <!-- Model -->
-        <script src="/js/libs/threejs/models/GLTFLoader.js"></script>
+        <script src="/js/libs/models/GLTFLoader.js"></script>
 
         <!-- GSAP API (https://greensock.com/gsap/) -->
-        <script src="/js/libs/gsap.min.js"></script>
-
-        <!-- p5 API (https://p5js.org/) -->
-        <script src="/js/libs/p5.min.js"></script>
-        <script src="/js/sketch.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
 
         <!-- App -->
         <script type="module" src="/js/index.js"></script>

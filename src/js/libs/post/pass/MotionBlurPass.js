@@ -3,30 +3,17 @@
  *
  *  Approach from http://john-chapman-graphics.blogspot.com/2013/01/per-object-motion-blur.html
  */
-import {
-    Frustum,
-    Color,
-    WebGLRenderTarget,
-    LinearFilter,
-    RGBFormat,
-    HalfFloatType,
-    Matrix4,
-    DataTexture,
-    RGBAFormat,
-    FloatType,
-    ShaderMaterial,
-    RepeatWrapping,
-} from '/js/libs/threejs/three.module.js';
-import { Pass } from '/js/libs/threejs/post/pass/Pass.js';
 
-import { VelocityShader } from '/js/libs/threejs/post/shader/VelocityShader.js';
-import { GeometryShader } from '/js/libs/threejs/post/shader/GeometryShader.js';
-import { CompositeShader } from '/js/libs/threejs/post/shader/CompositeShader.js';
 
-import { BlueNoiseGenerator } from '/js/libs/threejs/post/BlueNoiseGenerator.js';
-import { RendererState } from '/js/libs/threejs/post/RendererState.js';
 
-const _blackColor = new Color(0, 0, 0);
+import { VelocityShader } from '/js/libs/post/shader/VelocityShader.js';
+import { GeometryShader } from '/js/libs/post/shader/GeometryShader.js';
+import { CompositeShader } from '/js/libs/post/shader/CompositeShader.js';
+
+import { BlueNoiseGenerator } from '/js/libs/post/BlueNoiseGenerator.js';
+import { RendererState } from '/js/libs/post/RendererState.js';
+
+const _blackColor = new THREE.Color(0, 0, 0);
 const _defaultOverrides = {};
 const _rendererState = new RendererState();
 
@@ -51,12 +38,12 @@ for (let i = 0, l = 1; i < l; i++) {
 }
 
 // TODO: Why won't RedFormat work here?
-const blueNoiseTex = new DataTexture(data, generator.size, generator.size, RGBFormat);
-blueNoiseTex.wrapS = RepeatWrapping;
-blueNoiseTex.wrapT = RepeatWrapping;
-blueNoiseTex.minFilter = LinearFilter;
+const blueNoiseTex = new THREE.DataTexture(data, generator.size, generator.size, THREE.RGBFormat);
+blueNoiseTex.wrapS = THREE.RepeatWrapping;
+blueNoiseTex.wrapT = THREE.RepeatWrapping;
+blueNoiseTex.minFilter = THREE.LinearFilter;
 
-export class MotionBlurPass extends Pass {
+export class MotionBlurPass extends THREE.Pass {
 
     get enabled() {
 
@@ -108,26 +95,26 @@ export class MotionBlurPass extends Pass {
         // list of positions from previous frames
         this._prevPosMap = new Map();
         this._currentFrameMod = 0;
-        this._frustum = new Frustum();
-        this._projScreenMatrix = new Matrix4();
+        this._frustum = new THREE.Frustum();
+        this._projScreenMatrix = new THREE.Matrix4();
         this._cameraMatricesNeedInitializing = true;
 
-        this._prevCamProjection = new Matrix4();
-        this._prevCamWorldInverse = new Matrix4();
+        this._prevCamProjection = new THREE.Matrix4();
+        this._prevCamWorldInverse = new THREE.Matrix4();
 
         // render targets
         this._velocityBuffer =
-            new WebGLRenderTarget(256, 256, {
-                minFilter: LinearFilter,
-                magFilter: LinearFilter,
-                format: RGBAFormat,
-                type: HalfFloatType
+            new THREE.WebGLRenderTarget(256, 256, {
+                minFilter: THREE.LinearFilter,
+                magFilter: THREE.LinearFilter,
+                format: THREE.RGBAFormat,
+                type: THREE.HalfFloatType
             });
         this._velocityBuffer.texture.name = "MotionBlurPass.Velocity";
         this._velocityBuffer.texture.generateMipmaps = false;
 
-        this._compositeMaterial = new ShaderMaterial(CompositeShader);
-        this._compositeQuad = new Pass.FullScreenQuad(this._compositeMaterial);
+        this._compositeMaterial = new THREE.ShaderMaterial(CompositeShader);
+        this._compositeQuad = new THREE.Pass.FullScreenQuad(this._compositeMaterial);
 
     }
 
@@ -245,8 +232,8 @@ export class MotionBlurPass extends Pass {
 
                 lastUsedFrame: - 1,
                 matrixWorld: obj.matrixWorld.clone(),
-                geometryMaterial: new ShaderMaterial(GeometryShader),
-                velocityMaterial: new ShaderMaterial(VelocityShader),
+                geometryMaterial: new THREE.ShaderMaterial(GeometryShader),
+                velocityMaterial: new THREE.ShaderMaterial(VelocityShader),
                 boneMatrices: null,
                 boneTexture: null,
 
@@ -270,7 +257,7 @@ export class MotionBlurPass extends Pass {
             data.boneMatrices = boneMatrices;
 
             const size = Math.sqrt(skeleton.boneMatrices.length / 4);
-            const boneTexture = new DataTexture(boneMatrices, size, size, RGBAFormat, FloatType);
+            const boneTexture = new THREE.DataTexture(boneMatrices, size, size, THREE.RGBAFormat, THREE.FloatType);
             boneTexture.needsUpdate = true;
 
             data.geometryMaterial.uniforms.prevBoneTexture.value = boneTexture;

@@ -9,11 +9,11 @@ import {
 
 import {
   OutlinePass
-} from '/js/libs/threejs/post/pass/OutlinePass.js';
+} from '/js/libs/post/pass/OutlinePass.js';
 
 import {
   MotionBlurPass
-} from '/js/libs/threejs/post/pass/MotionBlurPass.js';
+} from '/js/libs/post/pass/MotionBlurPass.js';
 
 import {
   Particles

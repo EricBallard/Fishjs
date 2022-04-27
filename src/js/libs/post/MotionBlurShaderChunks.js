@@ -1,8 +1,7 @@
-import { ShaderChunk } from '/js/libs/threejs/three.module.js';
 
-// Modified ShaderChunk.skinning_pars_vertex to handle
+// Modified THREE.ShaderChunk.skinning_pars_vertex to handle
 // a second set of bone information from the previou frame
-export const prev_skinning_pars_vertex =
+THREE.prev_skinning_pars_vertex =
 	`
 		#ifdef USE_SKINNING
 		#ifdef BONE_TEXTURE
@@ -33,22 +32,22 @@ export const prev_skinning_pars_vertex =
 
 // Returns the body of the vertex shader for the velocity buffer and
 // outputs the position of the current and last frame positions
-export const velocity_vertex =
+THREE.velocity_vertex =
 	`
 		vec3 transformed;
 		// Get the normal
-		${ ShaderChunk.skinbase_vertex }
-		${ ShaderChunk.beginnormal_vertex }
-		${ ShaderChunk.skinnormal_vertex }
-		${ ShaderChunk.defaultnormal_vertex }
+		${ THREE.ShaderChunk.skinbase_vertex }
+		${ THREE.ShaderChunk.beginnormal_vertex }
+		${ THREE.ShaderChunk.skinnormal_vertex }
+		${ THREE.ShaderChunk.defaultnormal_vertex }
 		// Get the current vertex position
 		transformed = vec3( position );
-		${ ShaderChunk.skinning_vertex }
+		${ THREE.ShaderChunk.skinning_vertex }
 		newPosition = modelViewMatrix * vec4(transformed, 1.0);
 		// Get the previous vertex position
 		transformed = vec3( position );
-		${ ShaderChunk.skinbase_vertex.replace( /mat4 /g, '' ).replace( /getBoneMatrix/g, 'getPrevBoneMatrix' ) }
-		${ ShaderChunk.skinning_vertex.replace( /vec4 /g, '' ) }
+		${ THREE.ShaderChunk.skinbase_vertex.replace( /mat4 /g, '' ).replace( /getBoneMatrix/g, 'getPrevBoneMatrix' ) }
+		${ THREE.ShaderChunk.skinning_vertex.replace( /vec4 /g, '' ) }
 		prevPosition = prevModelViewMatrix * vec4(transformed, 1.0);
 		// The delta between frames
 		vec3 delta = newPosition.xyz - prevPosition.xyz;

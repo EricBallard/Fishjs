@@ -1,22 +1,6 @@
-import {
-	Color,
-	LinearFilter,
-	MathUtils,
-	Matrix4,
-	Mesh,
-	PerspectiveCamera,
-	Plane,
-	RGBFormat,
-	ShaderMaterial,
-	UniformsUtils,
-	Vector3,
-	Vector4,
-	WebGLRenderTarget
-} from "/js/libs/threejs/three.module.js";
-
 var Reflector = function ( geometry, options ) {
 
-	Mesh.call( this, geometry );
+	THREE.Mesh.call( this, geometry );
 
 	this.type = 'Reflector';
 
@@ -24,7 +8,7 @@ var Reflector = function ( geometry, options ) {
 
 	options = options || {};
 
-	var color = ( options.color !== undefined ) ? new Color( options.color ) : new Color( 0x7F7F7F );
+	var color = ( options.color !== undefined ) ? new THREE.Color( options.color ) : new THREE.Color( 0x7F7F7F );
 	var textureWidth = options.textureWidth || 512;
 	var textureHeight = options.textureHeight || 512;
 	var clipBias = options.clipBias || 0;
@@ -32,37 +16,37 @@ var Reflector = function ( geometry, options ) {
 
 	//
 
-	var reflectorPlane = new Plane();
-	var normal = new Vector3();
-	var reflectorWorldPosition = new Vector3();
-	var cameraWorldPosition = new Vector3();
-	var rotationMatrix = new Matrix4();
-	var lookAtPosition = new Vector3( 0, 0, - 1 );
-	var clipPlane = new Vector4();
+	var reflectorPlane = new THREE.Plane();
+	var normal = new THREE.Vector3();
+	var reflectorWorldPosition = new THREE.Vector3();
+	var cameraWorldPosition = new THREE.Vector3();
+	var rotationMatrix = new THREE.Matrix4();
+	var lookAtPosition = new THREE.Vector3( 0, 0, - 1 );
+	var clipPlane = new THREE.Vector4();
 
-	var view = new Vector3();
-	var target = new Vector3();
-	var q = new Vector4();
+	var view = new THREE.Vector3();
+	var target = new THREE.Vector3();
+	var q = new THREE.Vector4();
 
-	var textureMatrix = new Matrix4();
-	var virtualCamera = new PerspectiveCamera();
+	var textureMatrix = new THREE.Matrix4();
+	var virtualCamera = new THREE.PerspectiveCamera();
 
 	var parameters = {
-		minFilter: LinearFilter,
-		magFilter: LinearFilter,
-		format: RGBFormat
+		minFilter: THREE.LinearFilter,
+		magFilter: THREE.LinearFilter,
+		format: THREE.RGBFormat
 	};
 
-	var renderTarget = new WebGLRenderTarget( textureWidth, textureHeight, parameters );
+	var renderTarget = new THREE.WebGLRenderTarget( textureWidth, textureHeight, parameters );
 
-	if ( ! MathUtils.isPowerOfTwo( textureWidth ) || ! MathUtils.isPowerOfTwo( textureHeight ) ) {
+	if ( ! THREE.MathUtils.isPowerOfTwo( textureWidth ) || ! THREE.MathUtils.isPowerOfTwo( textureHeight ) ) {
 
 		renderTarget.texture.generateMipmaps = false;
 
 	}
 
-	var material = new ShaderMaterial( {
-		uniforms: UniformsUtils.clone( shader.uniforms ),
+	var material = new THREE.ShaderMaterial( {
+		uniforms: THREE.UniformsUtils.clone( shader.uniforms ),
 		fragmentShader: shader.fragmentShader,
 		vertexShader: shader.vertexShader,
 		clipping: true,
@@ -198,7 +182,7 @@ var Reflector = function ( geometry, options ) {
 
 };
 
-Reflector.prototype = Object.create( Mesh.prototype );
+Reflector.prototype = Object.create( THREE.Mesh.prototype );
 Reflector.prototype.constructor = Reflector;
 
 Reflector.ReflectorShader = {

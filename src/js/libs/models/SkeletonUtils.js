@@ -1,26 +1,13 @@
-import {
-	AnimationClip,
-	AnimationMixer,
-	Euler,
-	Matrix4,
-	Quaternion,
-	QuaternionKeyframeTrack,
-	SkeletonHelper,
-	Vector2,
-	Vector3,
-	VectorKeyframeTrack
-} from "/js/libs/threejs/three.module.js";
-
 var SkeletonUtils = {
 
 	retarget: function () {
 
-		var pos = new Vector3(),
-			quat = new Quaternion(),
-			scale = new Vector3(),
-			bindBoneMatrix = new Matrix4(),
-			relativeMatrix = new Matrix4(),
-			globalMatrix = new Matrix4();
+		var pos = new THREE.Vector3(),
+			quat = new THREE.Quaternion(),
+			scale = new THREE.Vector3(),
+			bindBoneMatrix = new THREE.Matrix4(),
+			relativeMatrix = new THREE.Matrix4(),
+			globalMatrix = new THREE.Matrix4();
 
 		return function ( target, source, options ) {
 
@@ -94,7 +81,7 @@ var SkeletonUtils = {
 
 						bone.matrix.multiply( options.offsets[ name ] );
 
-						bone.matrix.decompose( bone.position, bone.quaternion, bone.scale );
+						bone.matrix.decompose( bone.position, bone.THREE.Quaternion, bone.scale );
 
 						bone.updateMatrixWorld();
 
@@ -137,7 +124,7 @@ var SkeletonUtils = {
 
 					// apply to global matrix
 
-					globalMatrix.makeRotationFromQuaternion( quat.setFromRotationMatrix( relativeMatrix ) );
+					globalMatrix.makeRotationFromTHREE.Quaternion( quat.setFromRotationMatrix( relativeMatrix ) );
 
 					if ( target.isObject3D ) {
 
@@ -169,7 +156,7 @@ var SkeletonUtils = {
 
 				}
 
-				bone.matrix.decompose( bone.position, bone.quaternion, bone.scale );
+				bone.matrix.decompose( bone.position, bone.THREE.Quaternion, bone.scale );
 
 				bone.updateMatrixWorld();
 
@@ -289,7 +276,7 @@ var SkeletonUtils = {
 
 					boneData.quat.times[ i ] = time;
 
-					bone.quaternion.toArray( boneData.quat.values, i * 4 );
+					bone.THREE.Quaternion.toArray( boneData.quat.values, i * 4 );
 
 				}
 
@@ -317,8 +304,8 @@ var SkeletonUtils = {
 
 				}
 
-				convertedTracks.push( new QuaternionKeyframeTrack(
-					".bones[" + boneData.bone.name + "].quaternion",
+				convertedTracks.push( new THREE.QuaternionKeyframeTrack(
+					".bones[" + boneData.bone.name + "].THREE.Quaternion",
 					boneData.quat.times,
 					boneData.quat.values
 				) );
@@ -344,12 +331,12 @@ var SkeletonUtils = {
 
 	getSkeletonOffsets: function () {
 
-		var targetParentPos = new Vector3(),
-			targetPos = new Vector3(),
-			sourceParentPos = new Vector3(),
-			sourcePos = new Vector3(),
-			targetDir = new Vector2(),
-			sourceDir = new Vector2();
+		var targetParentPos = new THREE.Vector3(),
+			targetPos = new THREE.Vector3(),
+			sourceParentPos = new THREE.Vector3(),
+			sourcePos = new THREE.Vector3(),
+			targetDir = new THREE.Vector2(),
+			sourceDir = new THREE.Vector2();
 
 		return function ( target, source, options ) {
 
@@ -395,18 +382,18 @@ var SkeletonUtils = {
 					sourcePos.setFromMatrixPosition( boneTo.matrixWorld );
 
 					targetDir.subVectors(
-						new Vector2( targetPos.x, targetPos.y ),
-						new Vector2( targetParentPos.x, targetParentPos.y )
+						new THREE.Vector2( targetPos.x, targetPos.y ),
+						new THREE.Vector2( targetParentPos.x, targetParentPos.y )
 					).normalize();
 
 					sourceDir.subVectors(
-						new Vector2( sourcePos.x, sourcePos.y ),
-						new Vector2( sourceParentPos.x, sourceParentPos.y )
+						new THREE.Vector2( sourcePos.x, sourcePos.y ),
+						new THREE.Vector2( sourceParentPos.x, sourceParentPos.y )
 					).normalize();
 
 					var laterialAngle = targetDir.angle() - sourceDir.angle();
 
-					var offset = new Matrix4().makeRotationFromEuler(
+					var offset = new THREE.Matrix4().makeRotationFromEuler(
 						new Euler(
 							0,
 							0,
@@ -416,7 +403,7 @@ var SkeletonUtils = {
 
 					bone.matrix.multiply( offset );
 
-					bone.matrix.decompose( bone.position, bone.quaternion, bone.scale );
+					bone.matrix.decompose( bone.position, bone.THREE.Quaternion, bone.scale );
 
 					bone.updateMatrixWorld();
 

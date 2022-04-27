@@ -1,10 +1,5 @@
-import {
-	OrthographicCamera,
-	PlaneBufferGeometry,
-	Mesh
-} from "/js/libs/threejs/three.module.js";
 
-function Pass() {
+THREE.Pass = function Pass() {
 
 	// if set to true, the pass is processed by the composer
 	this.enabled = true;
@@ -20,7 +15,7 @@ function Pass() {
 
 }
 
-Object.assign( Pass.prototype, {
+Object.assign( THREE.Pass.prototype, {
 
 	setSize: function ( /* width, height */ ) {},
 
@@ -38,14 +33,14 @@ Object.assign( Pass.prototype, {
 // done to make examples/js code work. Normally, FullScreenQuad should be exported
 // from this module like Pass.
 
-Pass.FullScreenQuad = ( function () {
+THREE.Pass.FullScreenQuad = ( function () {
 
-	var camera = new OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
-	var geometry = new PlaneBufferGeometry( 2, 2 );
+	var camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+	var geometry = new THREE.PlaneBufferGeometry( 2, 2 );
 
 	var FullScreenQuad = function ( material ) {
 
-		this._mesh = new Mesh( geometry, material );
+		this._mesh = new THREE.Mesh( geometry, material );
 
 	};
 
@@ -85,4 +80,4 @@ Pass.FullScreenQuad = ( function () {
 
 } )();
 
-export { Pass };
+//export { Pass };

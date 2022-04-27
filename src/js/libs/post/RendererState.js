@@ -1,13 +1,11 @@
-import { Color, LinearEncoding } from '/js/libs/threejs/three.module.js';
-
 export class RendererState {
 
 	constructor() {
 
 		this.clearAlpha = 0;
-		this.clearColor = new Color();
+		this.clearColor = new THREE.Color();
 		this.renderTarget = null;
-		this.outputEncoding = LinearEncoding;
+		this.outputEncoding = THREE.LinearEncoding;
 		this.overrideMaterial = null;
 		this.shadowsEnabled = false;
 
@@ -26,7 +24,7 @@ export class RendererState {
 		if ( renderer ) {
 
 			this.clearAlpha = renderer.getClearAlpha();
-			this.clearColor = renderer.getClearColor();
+			this.clearColor = renderer.getClearColor(new THREE.Color());
 			this.renderTarget = renderer.getRenderTarget();
 
 			this.shadowsEnabled = renderer.shadowMap.enabled;

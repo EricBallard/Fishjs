@@ -1,6 +1,4 @@
 
-import { Matrix4, ShaderChunk } from '/js/libs/threejs/three.module.js';
-import { prev_skinning_pars_vertex, velocity_vertex } from '/js/libs/threejs/post/MotionBlurShaderChunks.js';
 
 export const GeometryShader = {
 
@@ -8,13 +6,13 @@ export const GeometryShader = {
 
 		prevProjectionMatrix: {
 
-			value: new Matrix4()
+			value: new THREE.Matrix4()
 
 		},
 
 		prevModelViewMatrix: {
 
-			value: new Matrix4()
+			value: new THREE.Matrix4()
 
 		},
 
@@ -46,8 +44,8 @@ export const GeometryShader = {
 
 	vertexShader:
 		`
-			${ ShaderChunk.skinning_pars_vertex }
-			${ prev_skinning_pars_vertex }
+			${ THREE.ShaderChunk.skinning_pars_vertex }
+			${ THREE.prev_skinning_pars_vertex }
 			uniform mat4 prevProjectionMatrix;
 			uniform mat4 prevModelViewMatrix;
 			uniform float expandGeometry;
@@ -56,7 +54,7 @@ export const GeometryShader = {
 			varying vec4 newPosition;
 			varying vec3 color;
 			void main() {
-				${ velocity_vertex }
+				${ THREE.velocity_vertex }
 				color = (modelViewMatrix * vec4(normal.xyz, 0)).xyz;
 				color = normalize(color);
 			}
