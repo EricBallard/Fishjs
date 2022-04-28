@@ -1,4 +1,4 @@
-export function getViews() {
+export function getStats() {
   query('getViews', 'local_count')
   query('getVisitors', 'total_count')
 }

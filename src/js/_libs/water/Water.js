@@ -1,9 +1,9 @@
 import {
 	Reflector
-} from "/js/libs/water/Reflector.js";
+} from "/js/_libs/water/Reflector.js";
 import {
 	Refractor
-} from "/js/libs/water/Refractor.js";
+} from "/js/_libs/water/Refractor.js";
 
 /**
  * References:

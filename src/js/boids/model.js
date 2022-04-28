@@ -1,4 +1,4 @@
-import { SkeletonUtils } from '/js/libs/models/SkeletonUtils.js'
+import { SkeletonUtils } from '/js/_libs/models/SkeletonUtils.js'
 
 import * as Boids from '/js/boids/boid.js'
 

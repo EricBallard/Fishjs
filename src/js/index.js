@@ -1,19 +1,20 @@
+import { OutlinePass } from '/js/_libs/post/pass/OutlinePass.js'
+
+import { MotionBlurPass } from '/js/_libs/post/pass/MotionBlurPass.js'
+
 // Utils
-import * as Screen from '/js/screen.js'
+import { getStats } from '/js/stats.js'
+
+import { isMobile } from '/js/device/device.js'
+
+import * as Screen from '/js/device/screen.js'
 
 import * as World from '/js/world/world.js'
 
-import { isMobile } from '/js/device.js'
-
-import { OutlinePass } from '/js/libs/post/pass/OutlinePass.js'
-
-import { MotionBlurPass } from '/js/libs/post/pass/MotionBlurPass.js'
-
-import { Particles } from '/js/particles.js'
+import { Particles } from '/js/world/particles.js'
 
 import { loadAnimatedModel } from '/js/boids/model.js'
 
-import { getViews } from '/js/views.js'
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -41,7 +42,7 @@ async function setLoadProgress(progress, status) {
 
   for (var i = 0; i < change; i++) {
     adjLoadProgress(currentProgress + 1)
-    await sleep(10)
+    await sleep(1)
   }
 }
 
@@ -281,7 +282,7 @@ export async function initialize() {
 
   // Load view counter data
   await setLoadProgress(90, 'Getting Stats')
-  getViews()
+  getStats()
 
   // Render-loop
   await setLoadProgress(100, 'LOADED')

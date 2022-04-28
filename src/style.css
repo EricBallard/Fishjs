@@ -128,15 +128,6 @@
   color: white;
 }
 
-.debug {
-  right: 0px;
-  bottom: 0px;
-
-  color: white;
-  position: absolute;
-  touch-action: none;
-}
-
 .fpsCount,
 .fishCount {
   font-size: 1.25rem;

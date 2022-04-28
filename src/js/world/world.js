@@ -5,7 +5,7 @@ import {
 
 import {
     Water
-} from '/js/libs/water/Water.js';
+} from '/js/_libs/water/Water.js';
 
 export function createRoom(THREE, scene) {
     let index = 0;
