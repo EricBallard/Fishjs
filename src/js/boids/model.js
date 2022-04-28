@@ -138,8 +138,8 @@ export function loadAnimatedModel(params) {
   THREE.Cache.enabled = true
 
   loader.load(
-    //'/resources/fish.glb',
-    'https://storage.googleapis.com/fishjs_bucket/fish.glb',
+    '/resources/fish.glb',
+    //'https://storage.googleapis.com/fishjs_bucket/fish.glb',
     model => {
       cachedModel = model
       app = params
@@ -153,9 +153,9 @@ export function loadAnimatedModel(params) {
 
 function onComplete() {
   setTimeout(function () {
-    // Add in fish to scene
-    // const toAdd = app.isMobile ? 40 : 100;
-    const toAdd = 1
+    // Add initial fish to scene - starting amount
+    app.targetFish = app.isMobile ? 40 : 80
+    const toAdd = app.isMobile ? 20 : 40;
     for (let added = 0; added < toAdd; added++) addFishToScene()
   }, 10)
 }

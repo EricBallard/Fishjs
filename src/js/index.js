@@ -29,8 +29,7 @@ const adjLoadProgress = progress => {
   loadProgress.innerText = progress + '%'
 
   // Animate loading line + update status text
-  loadLine.style.width = (progress / 20) + 'vw'
-  loadLine.style.minWidth = (progress * 2.75).toFixed(3) + 'px'
+  loadLine.style.width = (progress * 2.75).toFixed(3) + 'px'
 
   /* (275 - (width * 2.75)) / 2 */
   loadLine.style.left = -((275 - progress * 2.75) / 2) + 'px'
@@ -161,6 +160,7 @@ export async function initialize() {
     width: w,
     height: h,
     targetFPS: -1,
+    targetFish: -1,
     isMobile: usingMobile,
 
     // Controls

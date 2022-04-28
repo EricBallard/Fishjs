@@ -310,8 +310,8 @@ function manageFPS(app, currentFPS) {
 
   // Add/remove fish to maintain optimal fps
   if (currentFPS >= app.targetFPS && lastFPS >= app.targetFPS) {
-    //addFishToScene();
-  } else if (currentFPS < lastFPS + 2 && currentFPS <= app.targetFPS && lastFPS <= app.targetFPS) {
+    if (app.spawned < app.targetFish) addFishToScene()
+  } else if (currentFPS < lastFPS + 2 && currentFPS < app.targetFPS - 5 && lastFPS < app.targetFPS - 5) {
     removeFishFromScene()
   }
 

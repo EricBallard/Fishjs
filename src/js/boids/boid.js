@@ -126,25 +126,25 @@ export class Entity {
     }
 
     getAlignment(alignment) {
-        alignment.div(this.othersInPerception);
-        alignment.setMag(this.maxSpeed);
-        alignment.sub(this.velocity);
-        alignment.limit(this.maxForce);
+        alignment.divideScalar(this.othersInPerception);
+        //alignment.setMag(this.maxSpeed);
+        alignment.subScalar(this.velocity);
+        alignment.clampScalar(this.maxForce);
     }
 
     getCohesion(cohesion) {
-        cohesion.div(this.othersInPerception);
-        cohesion.sub(this.obj.position);
-        cohesion.setMag(this.maxSpeed);
-        cohesion.sub(this.velocity);
-        cohesion.limit(this.maxForce);
+        cohesion.divideScalar(this.othersInPerception);
+        cohesion.subScalar(this.obj.position);
+       // cohesion.setMag(this.maxSpeed);
+        cohesion.subScalar(this.velocity);
+        cohesion.clampScalar(this.maxForce);
     }
 
     getSeparation(separation) {
-        separation.div(this.othersInPerception);
-        separation.setMag(this.maxSpeed);
-        separation.sub(this.velocity);
-        separation.limit(this.maxForce);
+        separation.divideScalar(this.othersInPerception);
+       // separation.setMag(this.maxSpeed);
+        separation.subScalar(this.velocity);
+        separation.clampScalar(this.maxForce);
     }
 
     move(boids) {
@@ -160,9 +160,9 @@ export class Entity {
                 // Update momentum
                 const pos = this.obj.position;
 
-                let alignment = createVector(),
-                    cohesion = createVector(),
-                    separation = createVector();
+                let alignment = new THREE.Vector3(),
+                    cohesion = new THREE.Vector3(),
+                    separation = new THREE.Vector3();
 
                 // Cache sum of other's position and velocity
                 for (const other of others) {
@@ -170,20 +170,20 @@ export class Entity {
                         op = other.obj.position;
 
                     // Add to sum of percievable velocity
-                    alignment.add(ov.x, ov.y, ov.z);
+                    alignment.addVectors(alignment, ov);
 
                     // Add to sum of percievable position
-                    cohesion.add(op.x, op.y, op.z);
+                    cohesion.addVectors(cohesion, op);
 
                     // Add to sum of the average percievable position
-                    let diff = createVector(pos.x, pos.y, pos.z);
-                    diff.sub(op.x, op.y, op.z);
+                    let diff = new THREE.Vector3(pos.x, pos.y, pos.z);
+                    diff.subVectors(diff, op);
 
                     const dist = op.distanceTo(pos),
                         dist2 = dist * dist;
 
                     if (dist2 != 0 && !isNaN(dist2)) {
-                        diff.div(dist2, dist2, dist2);
+                        diff.divideScalar(dist2);
                         separation.add(diff);
                     }
                 }

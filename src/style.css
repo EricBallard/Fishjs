@@ -36,19 +36,13 @@
   position: relative;
   top: -50px;
 
-  /* Load 'progress' - Fully loaded = 20vw */
-  width: 1vw;
-
   /* NOTE: Fully loaded min-wdith = 275px */
-  min-width: 2.75px;
+  width: 2.75px;
   
   /* (275 - (width * 2.75)) / 2 */
   left: -136.125px;
 
-  max-width: 350px;
-
   height: 5px;
-
   background-color: aquamarine;
 }
 
@@ -56,12 +50,7 @@
   position: relative;
   top: -45px;
 
-  width: 20vw;
-
-  /* NOTE: Fully loaded min-wdith = 275px */
-  min-width: 275px;
-  max-width: 350px;
-
+  width: 275px;
   height: 5px;
 
   background-color: #252525;
