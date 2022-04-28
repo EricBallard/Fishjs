@@ -1,63 +1,83 @@
 // Utils
-import * as Screen from '/js/screen.js';
+import * as Screen from '/js/screen.js'
 
-import * as World from '/js/world/world.js';
+import * as World from '/js/world/world.js'
 
-import {
-  isMobile
-} from '/js/device.js';
+import { isMobile } from '/js/device.js'
 
-import {
-  OutlinePass
-} from '/js/libs/post/pass/OutlinePass.js';
+import { OutlinePass } from '/js/libs/post/pass/OutlinePass.js'
 
-import {
-  MotionBlurPass
-} from '/js/libs/post/pass/MotionBlurPass.js';
+import { MotionBlurPass } from '/js/libs/post/pass/MotionBlurPass.js'
 
-import {
-  Particles
-} from '/js/particles.js';
+import { Particles } from '/js/particles.js'
 
-import {
-  loadAnimatedModel
-} from '/js/boids/model.js';
+import { loadAnimatedModel } from '/js/boids/model.js'
 
-import {
-  getViews
-} from '/js/views.js';
+import { getViews } from '/js/views.js'
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-export function initialize() {
+// Cache loading elements from DOM
+const loadProgress = document.getElementById('loadProgress'),
+  loadStatus = document.getElementById('loadStatus'),
+  loadLine = document.getElementById('loadLine')
+
+var currentProgress = 0
+
+const adjLoadProgress = progress => {
+  currentProgress = progress
+  loadProgress.innerText = progress + '%'
+
+  // Animate loading line + update status text
+  loadLine.style.width = (progress / 20) + 'vw'
+  loadLine.style.minWidth = (progress * 2.75).toFixed(3) + 'px'
+
+  /* (275 - (width * 2.75)) / 2 */
+  loadLine.style.left = -((275 - progress * 2.75) / 2) + 'px'
+}
+
+async function setLoadProgress(progress, status) {
+  var change = progress - currentProgress
+  loadStatus.innerText = status
+
+  for (var i = 0; i < change; i++) {
+    adjLoadProgress(currentProgress + 1)
+    await sleep(10)
+  }
+}
+
+export async function initialize() {  
+  await setLoadProgress(1, 'Configuring Scene')
+
   // Configure renderer
   const renderer = new THREE.WebGLRenderer({
     physicallyCorrectLights: true,
     antialias: true,
-    alpha: true
-  });
+    alpha: true,
+  })
 
   // Cache device traits
-  const usingMobile = isMobile.any() != undefined;
-  let isLandScape = window.innerWidth > window.innerHeight;
-  let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
-  let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
+  const usingMobile = isMobile.any() != undefined
+  let isLandScape = window.innerWidth > window.innerHeight
+  let h = usingMobile ? (isLandScape ? screen.width : screen.height) : window.innerHeight
+  let w = usingMobile ? (isLandScape ? screen.height : screen.width) : window.innerWidth
 
   // Apply to renderer
-  renderer.setSize(w, h);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setSize(w, h)
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   // Create scene and camera
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 25000);
-  camera.position.set(-1000, -500, -2000);
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 25000)
+  camera.position.set(-1000, -500, -2000)
 
   // Configure Post-processesing
-  const composer = new THREE.EffectComposer(renderer);
+  const composer = new THREE.EffectComposer(renderer)
 
   // Render scene from camera perspective
-  const renderPass = new THREE.RenderPass(scene, camera);
-  composer.addPass(renderPass);
+  const renderPass = new THREE.RenderPass(scene, camera)
+  composer.addPass(renderPass)
 
   // Motion blur
   const blurPass = new MotionBlurPass(scene, camera, {
@@ -66,72 +86,74 @@ export function initialize() {
     expandGeometry: 0.002,
     smearIntensity: 0.001,
     blurTransparent: true,
-    renderCameraBlur: true
-  });
+    renderCameraBlur: true,
+  })
 
-  blurPass.renderToScreen = true;
-  composer.addPass(blurPass);
+  blurPass.renderToScreen = true
+  composer.addPass(blurPass)
 
   // Selection outline
-  let outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera);
-  outlinePass.edgeThickness = 1.0;
-  outlinePass.edgeStrength = 2.5;
-  outlinePass.edgeGlow = 0.1;
-  outlinePass.pulsePeriod = 0;
-  composer.addPass(outlinePass);
+  let outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera)
+  outlinePass.edgeThickness = 1.0
+  outlinePass.edgeStrength = 2.5
+  outlinePass.edgeGlow = 0.1
+  outlinePass.pulsePeriod = 0
+  composer.addPass(outlinePass)
 
   // Load selection outline texture
-  const textureLoader = new THREE.TextureLoader();
-  textureLoader.load('/resources/tri_pattern.jpg', (texture) => {
-    outlinePass.patternTexture = texture;
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-  });
+  await setLoadProgress(20, 'Preparing Data')
+
+  const textureLoader = new THREE.TextureLoader()
+  textureLoader.load('/resources/tri_pattern.jpg', texture => {
+    outlinePass.patternTexture = texture
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+  })
 
   // Set scene to opaque so we can fade in after loading
-  const sceneElement = renderer.domElement;
-  sceneElement.style.opacity = 0.0;
+  const sceneElement = renderer.domElement
+  sceneElement.style.opacity = 0.0
 
   // Configure user-controls
-  const controls = new THREE.OrbitControls(camera, sceneElement);
-  controls.enabled = true;
-  controls.enablePan = true;
-  controls.autoRotate = false;
+  const controls = new THREE.OrbitControls(camera, sceneElement)
+  controls.enabled = true
+  controls.enablePan = true
+  controls.autoRotate = false
 
-  controls.rotateSpeed = 0.45;
-  controls.autoRotateSpeed = 0.3;
+  controls.rotateSpeed = 0.45
+  controls.autoRotateSpeed = 0.3
 
-  controls.minDistance = 0;
-  controls.maxDistance = 1500;
+  controls.minDistance = 0
+  controls.maxDistance = 1500
 
   // Create raycaster used for selecting fish to focus
-  const raycaster = new THREE.Raycaster();
-  raycaster.far = 25000;
-  raycaster.near = 60;
+  const raycaster = new THREE.Raycaster()
+  raycaster.far = 25000
+  raycaster.near = 60
 
   // Cache DOM elements
   const fpsTracker = document.getElementById('fpsCount'),
     fishTracker = document.getElementById('fishCount'),
     selInfo = document.getElementById('selected_info'),
-    info = document.getElementById('info');
+    info = document.getElementById('info')
 
   // Format info in center for mobile
   if (usingMobile) {
-    info.style.top = '75vh';
-    info.style.textAlign = 'center';
-    info.style.left = isLandScape ? '35vw' : '17.5vw';
+    info.style.top = '75vh'
+    info.style.textAlign = 'center'
+    info.style.left = isLandScape ? '35vw' : '17.5vw'
   }
 
   // Stats & Info
   let fishSpawned = 0,
-    selectedFish = undefined;
+    selectedFish = undefined
 
   // Boid data
   let boids = [],
-    sceneObjects = [];
+    sceneObjects = []
 
   // Particles
-  let particles = new Particles(scene, camera);
+  let particles = new Particles(scene, camera)
 
   // Cache app info as obj - allows refrencing variables in util
   const app = {
@@ -165,90 +187,107 @@ export function initialize() {
 
     spawned: fishSpawned,
     fish: fishTracker,
-    fps: fpsTracker
-  };
+    fps: fpsTracker,
+  }
+
+  await setLoadProgress(40, 'Detecting Framerate')
+  Screen.detectNativeFrameRate(app)
 
   // Add models to scene
-  loadAnimatedModel(app);
+  await setLoadProgress(50, 'Creating World')
+  loadAnimatedModel(app)
 
   // Create skybox
-  World.createRoom(THREE, scene);
+  World.createRoom(THREE, scene)
 
   // Add water particles
-  World.addParticles(THREE, scene);
+  //World.addParticles(THREE, scene)
 
   // Add light
-  World.addLight(scene);
+  World.addLight(scene)
 
   // Add cached element to DOM
-  const body = document.body;
-  body.appendChild(sceneElement);
+  document.body.appendChild(sceneElement)
 
   /*
       !~* EVENT LISTENERS *~!
   */
 
-  // Audio
-  const audio = new Audio('/resources/ambience_sound_compressed.mp3');
-  audio.volume = 0.75;
-  audio.loop = true;
+  await setLoadProgress(70, 'Registering Listeners')
 
-  window.addEventListener('focus', () => audio.paused ? audio.play() : true);
-  window.addEventListener('blur', () => audio.paused ? true : audio.pause());
+  // Audio
+  const audio = new Audio('/resources/ambience_sound_compressed.mp3')
+  audio.volume = 0.75
+  audio.loop = true
+
+  //window.addEventListener('focus', () => (audio.paused ? audio.play() : true))
+  window.addEventListener('blur', () => (audio.paused ? true : audio.pause()))
 
   // Register selecting fish - ignores drags (supports pc and mobile)
-  let startPos = new THREE.Vector3(0, 0, 0);
+  let startPos = new THREE.Vector3(0, 0, 0)
 
-  window.addEventListener('pointerdown', () => {
-    if (audio.paused)
-      audio.play();
+  window.addEventListener(
+    'pointerdown',
+    () => {
+      if (audio.paused) audio.play()
 
-    const p = camera.position;
-    startPos = new THREE.Vector3(p.x, p.y, p.z);
-  }, false);
+      const p = camera.position
+      startPos = new THREE.Vector3(p.x, p.y, p.z)
+    },
+    false
+  )
 
-  window.addEventListener('pointerup', (e) => {
-    // Register as selection if mouse hasn't majorily moved during click
-    const p = camera.position;
-    if (p == undefined) return;
+  window.addEventListener(
+    'pointerup',
+    e => {
+      // Register as selection if mouse hasn't majorily moved during click
+      const p = camera.position
+      if (p == undefined) return
 
-    if (Math.abs(p.x - startPos.x) <= 100 &&
-      Math.abs(p.y - startPos.y) <= 100 &&
-      Math.abs(p.z - startPos.z) <= 100)
-      Screen.click(e, app);
-  }, false);
+      if (Math.abs(p.x - startPos.x) <= 100 && Math.abs(p.y - startPos.y) <= 100 && Math.abs(p.z - startPos.z) <= 100)
+        Screen.click(e, app)
+    },
+    false
+  )
 
   // Register resize listener
-  window.addEventListener('resize', () => {
-    isLandScape = window.innerWidth > window.innerHeight;
-    info.style.left = isLandScape ? '35vw' : '17.5vw';
+  window.addEventListener(
+    'resize',
+    () => {
+      isLandScape = window.innerWidth > window.innerHeight
+      info.style.left = isLandScape ? '35vw' : '17.5vw'
 
-    let h = usingMobile ? isLandScape ? screen.width : screen.height : window.innerHeight;
-    let w = usingMobile ? isLandScape ? screen.height : screen.width : window.innerWidth;
+      let h = usingMobile ? (isLandScape ? screen.width : screen.height) : window.innerHeight
+      let w = usingMobile ? (isLandScape ? screen.height : screen.width) : window.innerWidth
 
-    app.width = w;
-    app.height = h;
+      app.width = w
+      app.height = h
 
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+      camera.aspect = w / h
+      camera.updateProjectionMatrix()
 
-    composer.setSize(w, h);
+      composer.setSize(w, h)
 
-    renderer.setSize(w, h);
-    renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(w, h)
+      renderer.setPixelRatio(window.devicePixelRatio)
 
-    window.scrollTo(0, 0);
-  }, false);
+      window.scrollTo(0, 0)
+    },
+    false
+  )
 
   // Disable scrolling
-  window.onscroll = (e) => e.preventDefault() && window.scrollTo(0, 0);
+  window.onscroll = e => e.preventDefault() && window.scrollTo(0, 0)
 
   // Load view counter data
-  getViews();
+  await setLoadProgress(90, 'Getting Stats')
+  getViews()
 
   // Render-loop
-  Screen.render(app);
+  await setLoadProgress(100, 'LOADED')
+  Screen.render(app)
+ 
 }
 
 // Init app
-initialize();
+initialize()

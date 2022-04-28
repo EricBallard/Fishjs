@@ -13,9 +13,12 @@
 
     <body>
         <!-- Loading Identifier -->
-        <div id="loadStatus" class="loader">
-            <h1>LOADING</h1>
-            <div class="status"></div>
+        <div id="loader" class="loader">
+            <h2 class="progress" id="loadProgress">0%</h2>
+            <div class="track"></div>
+            
+            <div class="line" id="loadLine"></div>
+            <p class="status" id="loadStatus">Initializing</p>
         </div>
 
         <!-- Description -->
