@@ -138,7 +138,7 @@ export function loadAnimatedModel(params) {
   THREE.Cache.enabled = true
 
   loader.load(
-    '/resources/fish.glb',
+    '/_resources/fish.glb',
     //'https://storage.googleapis.com/fishjs_bucket/fish.glb',
     model => {
       cachedModel = model

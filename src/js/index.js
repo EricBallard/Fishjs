@@ -104,7 +104,7 @@ export async function initialize() {
   await setLoadProgress(20, 'Preparing Data')
 
   const textureLoader = new THREE.TextureLoader()
-  textureLoader.load('/resources/tri_pattern.jpg', texture => {
+  textureLoader.load('/_resources/tri_pattern.jpg', texture => {
     outlinePass.patternTexture = texture
     texture.wrapS = THREE.RepeatWrapping
     texture.wrapT = THREE.RepeatWrapping
@@ -217,7 +217,7 @@ export async function initialize() {
   await setLoadProgress(70, 'Registering Listeners')
 
   // Audio
-  const audio = new Audio('/resources/ambience_sound_compressed.mp3')
+  const audio = new Audio('/_resources/ambience_sound_compressed.mp3')
   audio.volume = 0.75
   audio.loop = true
 

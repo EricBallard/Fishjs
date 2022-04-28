@@ -41,7 +41,7 @@ export class Particles {
         // Uniforms (Passed to shader)
         const uniforms = {
             diffuseTexture: {
-                value: new THREE.TextureLoader().load('/resources/particles/particle_0.png'),
+                value: new THREE.TextureLoader().load('/_resources/particles/particle_0.png'),
                 h: 1.0 / scene.width
             },
             // Screen off-set for vertices
