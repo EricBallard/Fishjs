@@ -3,7 +3,7 @@ import { OutlinePass } from '/js/_libs/post/pass/OutlinePass.js'
 import { MotionBlurPass } from '/js/_libs/post/pass/MotionBlurPass.js'
 
 // Utils
-import { getStats } from '/js/stats.js'
+import { setLoadProgress } from '/js/loader.js'
 
 import { isMobile } from '/js/device/device.js'
 
@@ -11,42 +11,15 @@ import * as Screen from '/js/device/screen.js'
 
 import * as World from '/js/world/world.js'
 
+import { getStats } from '/js/world/stats.js'
+
 import { Particles } from '/js/world/particles.js'
 
 import { loadAnimatedModel } from '/js/boids/model.js'
 
+import { detectNativeFrameRate } from '/js/device/frame-rate.js'
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-// Cache loading elements from DOM
-const loadProgress = document.getElementById('loadProgress'),
-  loadStatus = document.getElementById('loadStatus'),
-  loadLine = document.getElementById('loadLine')
-
-var currentProgress = 0
-
-const adjLoadProgress = progress => {
-  currentProgress = progress
-  loadProgress.innerText = progress + '%'
-
-  // Animate loading line + update status text
-  loadLine.style.width = (progress * 2.75).toFixed(3) + 'px'
-
-  /* (275 - (width * 2.75)) / 2 */
-  loadLine.style.left = -((275 - progress * 2.75) / 2) + 'px'
-}
-
-async function setLoadProgress(progress, status) {
-  var change = progress - currentProgress
-  loadStatus.innerText = status
-
-  for (var i = 0; i < change; i++) {
-    adjLoadProgress(currentProgress + 1)
-    await sleep(1)
-  }
-}
-
-export async function initialize() {  
+export async function initialize() {
   await setLoadProgress(1, 'Configuring Scene')
 
   // Configure renderer
@@ -92,6 +65,7 @@ export async function initialize() {
   blurPass.renderToScreen = true
   composer.addPass(blurPass)
 
+  /*
   // Selection outline
   let outlinePass = new OutlinePass(new THREE.Vector2(w, h), scene, camera)
   outlinePass.edgeThickness = 1.0
@@ -101,14 +75,15 @@ export async function initialize() {
   composer.addPass(outlinePass)
 
   // Load selection outline texture
-  await setLoadProgress(20, 'Preparing Data')
-
   const textureLoader = new THREE.TextureLoader()
   textureLoader.load('/_resources/tri_pattern.jpg', texture => {
     outlinePass.patternTexture = texture
     texture.wrapS = THREE.RepeatWrapping
     texture.wrapT = THREE.RepeatWrapping
   })
+  */
+
+  await setLoadProgress(20, 'Configuring Scene')
 
   // Set scene to opaque so we can fade in after loading
   const sceneElement = renderer.domElement
@@ -125,6 +100,13 @@ export async function initialize() {
 
   controls.minDistance = 0
   controls.maxDistance = 1500
+
+  controls.minPolarAngle = Math.PI * 0.15
+  controls.maxPolarAngle = Math.PI * 0.75
+
+  controls.maxAzimuthAngle = THREE.Math.degToRad(107)
+  controls.minAzimuthAngle = THREE.Math.degToRad(-7)
+
 
   // Create raycaster used for selecting fish to focus
   const raycaster = new THREE.Raycaster()
@@ -157,28 +139,28 @@ export async function initialize() {
 
   // Cache app info as obj - allows refrencing variables in util
   const app = {
+    // Debug toggle
+    debug: true,
     // Device
     width: w,
     height: h,
     targetFPS: -1,
     targetFish: -1,
+    renderInterval: -1,
     isMobile: usingMobile,
-
     // Controls
     controls: controls,
-
     // Scene
     boids: boids,
     scene: scene,
     particles: particles,
     element: sceneElement,
     sceneObjects: sceneObjects,
-
     // Render
     camera: camera,
     renderer: renderer,
     composer: composer,
-    outLine: outlinePass,
+    //outLine: outlinePass,
     motionBlur: blurPass,
     // Stats/info
     raycaster: raycaster,
@@ -192,7 +174,7 @@ export async function initialize() {
   }
 
   await setLoadProgress(40, 'Detecting Framerate')
-  Screen.detectNativeFrameRate(app)
+  detectNativeFrameRate(app)
 
   // Add models to scene
   await setLoadProgress(50, 'Creating World')
@@ -225,19 +207,20 @@ export async function initialize() {
   window.addEventListener('blur', () => (audio.paused ? true : audio.pause()))
 
   // Register selecting fish - ignores drags (supports pc and mobile)
-  let startPos = new THREE.Vector3(0, 0, 0)
+  //let startPos = new THREE.Vector3(0, 0, 0)
 
+  // Play
   window.addEventListener(
     'pointerdown',
     () => {
       if (audio.paused) audio.play()
-
-      const p = camera.position
-      startPos = new THREE.Vector3(p.x, p.y, p.z)
+      //const p = camera.position
+      //startPos = new THREE.Vector3(p.x, p.y, p.z)
     },
     false
   )
 
+  /* Fish Selection - SCRAPPED
   window.addEventListener(
     'pointerup',
     e => {
@@ -250,6 +233,10 @@ export async function initialize() {
     },
     false
   )
+  */
+
+  // Disable scrolling
+  window.onscroll = e => e.preventDefault() && window.scrollTo(0, 0)
 
   // Register resize listener
   window.addEventListener(
@@ -277,9 +264,6 @@ export async function initialize() {
     false
   )
 
-  // Disable scrolling
-  window.onscroll = e => e.preventDefault() && window.scrollTo(0, 0)
-
   // Load view counter data
   await setLoadProgress(90, 'Getting Stats')
   getStats()
@@ -287,7 +271,6 @@ export async function initialize() {
   // Render-loop
   await setLoadProgress(100, 'LOADED')
   Screen.render(app)
- 
 }
 
 // Init app
