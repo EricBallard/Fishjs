@@ -1,7 +1,7 @@
 /*
     Render Scene
 */
-import { debug } from '/js/debug.js'
+import { initDebug, debug } from '/js/debug.js'
 
 import { update } from '/js/boids/boid.js'
 
@@ -42,15 +42,16 @@ export function render(app) {
       // Fade in 3D scene
       fade(app.element, true, true)
       hidLoadingScreen = true
+
+      if (app.debug) initDebug(app)
     } else if (app.element.style.opacity >= 0.9) {
       // Fade in description
       fade(document.getElementById('desc'), true, true)
-
-      // Init particle system
       app.controls.enabled = true
       loaded = true
     }
   }
+  
 
   // Update boids
   window.requestAnimationFrame(() => {

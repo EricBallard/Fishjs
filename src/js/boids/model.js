@@ -51,7 +51,7 @@ const names = [
   'Weston',
   'Xavier',
   'Yoana',
-  'Zen',
+  'Zhin',
 ]
 
 export function addFishToScene() {
@@ -114,8 +114,27 @@ export function addFishToScene() {
   directionPoint.position.set(x + 50, y, z)
   directionPoint.visible = false
 
+  // NOTE- obj must be added to scene before attaching
   app.scene.add(directionPoint)
   fish.attach(directionPoint, app.scene, fish)
+
+  // DEBUG - add 'capsule' to visualize detection radius
+  var geometry = new THREE.SphereGeometry(size)
+  const wireframe = new THREE.WireframeGeometry(geometry)
+
+  const lines = new THREE.LineSegments(wireframe)
+  lines.receiveShadow = false
+  lines.castShadow = false
+
+  lines.material.opacity = 0.10
+  lines.material.transparent = true
+
+  lines.position.set(x, y, z)
+
+
+  // NOTE- obj must be added to scene before attaching
+  app.scene.add(lines)
+  fish.attach(lines, app.scene, fish)
 
   // Create boid object
   let boid = new Boids.Entity({
@@ -154,8 +173,8 @@ export function loadAnimatedModel(params) {
 function onComplete() {
   setTimeout(function () {
     // Add initial fish to scene - starting amount
-    app.targetFish = app.isMobile ? 40 : 80
-    const toAdd = app.isMobile ? 20 : 40;
+    app.targetFish = app.debug ? 1 : -app.isMobile ? 40 : 80
+    const toAdd = app.debug ? 1 : app.isMobile ? 20 : 40
     for (let added = 0; added < toAdd; added++) addFishToScene()
   }, 10)
 }

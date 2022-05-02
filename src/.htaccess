@@ -3,7 +3,7 @@
 
 SetEnv mysql_host 127.0.0.1
 SetEnv mysql_db visitors
-SetEnv mysql_user root
+SetEnv mysql_user user
 SetEnv mysql_pass password
 
 # Re-route unknown request to index

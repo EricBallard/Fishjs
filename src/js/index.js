@@ -92,26 +92,16 @@ export async function initialize() {
   // Configure user-controls
   const controls = new THREE.OrbitControls(camera, sceneElement)
   controls.enabled = true
-  controls.enablePan = true
   controls.autoRotate = false
-
-  controls.rotateSpeed = 0.45
-  controls.autoRotateSpeed = 0.3
+  controls.rotateSpeed = 0.25
 
   controls.minDistance = 0
   controls.maxDistance = 1500
 
-  controls.minPolarAngle = Math.PI * 0.15
-  controls.maxPolarAngle = Math.PI * 0.75
-
-  controls.maxAzimuthAngle = THREE.Math.degToRad(107)
-  controls.minAzimuthAngle = THREE.Math.degToRad(-7)
-
-
   // Create raycaster used for selecting fish to focus
-  const raycaster = new THREE.Raycaster()
-  raycaster.far = 25000
-  raycaster.near = 60
+  //const raycaster = new THREE.Raycaster()
+  //raycaster.far = 25000
+  //raycaster.near = 60
 
   // Cache DOM elements
   const fpsTracker = document.getElementById('fpsCount'),
@@ -140,7 +130,7 @@ export async function initialize() {
   // Cache app info as obj - allows refrencing variables in util
   const app = {
     // Debug toggle
-    debug: true,
+    debug: false,
     // Device
     width: w,
     height: h,
@@ -163,7 +153,7 @@ export async function initialize() {
     //outLine: outlinePass,
     motionBlur: blurPass,
     // Stats/info
-    raycaster: raycaster,
+    //raycaster: raycaster,
     selected: selectedFish,
     selectedInfo: selInfo,
     info: info,
@@ -172,6 +162,18 @@ export async function initialize() {
     fish: fishTracker,
     fps: fpsTracker,
   }
+
+  if (!app.debug) {
+    controls.enablePan = false
+
+    // Vertical restrictions
+    controls.minPolarAngle = Math.PI * 0.15
+    controls.maxPolarAngle = Math.PI * 0.75
+
+    // Horizontal restrictions
+    controls.maxAzimuthAngle = THREE.Math.degToRad(109)
+    controls.minAzimuthAngle = THREE.Math.degToRad(-8)
+  } else controls.enablePan = true
 
   await setLoadProgress(40, 'Detecting Framerate')
   detectNativeFrameRate(app)
@@ -266,7 +268,7 @@ export async function initialize() {
 
   // Load view counter data
   await setLoadProgress(90, 'Getting Stats')
-  getStats()
+  if (!app.debug) getStats()
 
   // Render-loop
   await setLoadProgress(100, 'LOADED')
