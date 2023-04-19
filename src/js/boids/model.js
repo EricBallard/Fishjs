@@ -45,6 +45,7 @@ const names = [
   'Quinn',
   'Rose',
   'Sarah',
+  'Starri',
   'Trevor',
   'Urijah',
   'Veronica',
@@ -119,22 +120,23 @@ export function addFishToScene() {
   fish.attach(directionPoint, app.scene, fish)
 
   // DEBUG - add 'capsule' to visualize detection radius
-  var geometry = new THREE.SphereGeometry(size)
-  const wireframe = new THREE.WireframeGeometry(geometry)
+  if (app.debug) {
+    var geometry = new THREE.SphereGeometry(size)
+    const wireframe = new THREE.WireframeGeometry(geometry)
 
-  const lines = new THREE.LineSegments(wireframe)
-  lines.receiveShadow = false
-  lines.castShadow = false
+    const lines = new THREE.LineSegments(wireframe)
+    lines.receiveShadow = false
+    lines.castShadow = false
 
-  lines.material.opacity = 0.10
-  lines.material.transparent = true
+    lines.material.opacity = 0.1
+    lines.material.transparent = true
 
-  lines.position.set(x, y, z)
+    lines.position.set(x, y, z)
 
-
-  // NOTE- obj must be added to scene before attaching
-  app.scene.add(lines)
-  fish.attach(lines, app.scene, fish)
+    // NOTE- obj must be added to scene before attaching
+    app.scene.add(lines)
+    fish.attach(lines, app.scene, fish)
+  }
 
   // Create boid object
   let boid = new Boids.Entity({
