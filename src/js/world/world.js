@@ -1,11 +1,11 @@
 import {
     getStringPaths
-} from '/js/world/textures.js';
+} from './textures.js';
 
 
 import {
     Water
-} from '/js/_libs/water/Water.js';
+} from '../_libs/water/Water.js';
 
 export function createRoom(THREE, scene) {
     let index = 0;

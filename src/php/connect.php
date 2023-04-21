@@ -10,10 +10,10 @@ if (!$ajax) {
 
 // Create connection
 $dbc = new mysqli(
-    getenv("mysql_host"),
-    getenv("mysql_user"),
-    getenv("mysql_pass"),
-    getenv("mysql_db")
+    $_SERVER["mysql_host"],
+    $_SERVER["mysql_user"],
+    $_SERVER["mysql_pass"],
+    $_SERVER["mysql_db"]
 );
 
 // Check connection
@@ -23,9 +23,11 @@ if ($dbc->connect_errno) {
 }
 
 // Validate table
+/*
 $initTable = "CREATE TABLE IF NOT EXISTS `fishjs_vistors` (
     `ip` TEXT NOT NULL,
     `views` INT DEFAULT 1
 );";
 
 mysqli_query($dbc, $initTable) or die("Bad Query: $initTable");
+*/

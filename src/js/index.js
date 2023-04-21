@@ -1,23 +1,23 @@
-import { OutlinePass } from '/js/_libs/post/pass/OutlinePass.js'
+import { OutlinePass } from './_libs/post/pass/OutlinePass.js'
 
-import { MotionBlurPass } from '/js/_libs/post/pass/MotionBlurPass.js'
+import { MotionBlurPass } from './_libs/post/pass/MotionBlurPass.js'
 
 // Utils
-import { setLoadProgress } from '/js/loader.js'
+import { setLoadProgress } from './loader.js'
 
-import { isMobile } from '/js/device/device.js'
+import { isMobile } from './device/device.js'
 
-import * as Screen from '/js/device/screen.js'
+import * as Screen from './device/screen.js'
 
-import * as World from '/js/world/world.js'
+import * as World from './world/world.js'
 
-import { getStats } from '/js/world/stats.js'
+import { getStats } from './world/stats.js'
 
-import { Particles } from '/js/world/particles.js'
+import { Particles } from './world/particles.js'
 
-import { loadAnimatedModel } from '/js/boids/model.js'
+import { loadAnimatedModel } from './boids/model.js'
 
-import { detectNativeFrameRate } from '/js/device/frame-rate.js'
+import { detectNativeFrameRate } from './device/frame-rate.js'
 
 export async function initialize() {
   await setLoadProgress(1, 'Configuring Scene')
@@ -201,7 +201,7 @@ export async function initialize() {
   await setLoadProgress(70, 'Registering Listeners')
 
   // Audio
-  const audio = new Audio('/_resources/ambience_sound_compressed.mp3')
+  const audio = new Audio('./_resources/ambience_sound_compressed.mp3')
   audio.volume = 0.75
   audio.loop = true
 

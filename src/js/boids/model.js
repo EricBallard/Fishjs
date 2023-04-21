@@ -1,6 +1,6 @@
-import { SkeletonUtils } from '/js/_libs/models/SkeletonUtils.js'
+import { SkeletonUtils } from '../_libs/models/SkeletonUtils.js'
 
-import * as Boids from '/js/boids/boid.js'
+import * as Boids from './boid.js'
 
 // Cache
 let cachedModel, app
@@ -159,7 +159,7 @@ export function loadAnimatedModel(params) {
   THREE.Cache.enabled = true
 
   loader.load(
-    '/_resources/fish.glb',
+    './js/_resources/fish.glb',
     //'https://storage.googleapis.com/fishjs_bucket/fish.glb',
     model => {
       cachedModel = model

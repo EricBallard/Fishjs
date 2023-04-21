@@ -1,4 +1,4 @@
-import * as Movement from '/js/boids/movement.js'
+import * as Movement from './movement.js'
 
 export class Rotation {
   constructor(params) {

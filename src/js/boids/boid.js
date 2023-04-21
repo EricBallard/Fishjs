@@ -1,5 +1,5 @@
-import * as Managers from '/js/boids/managers.js';
-import * as Movement from '/js/boids/movement.js';
+import * as Managers from './managers.js';
+import * as Movement from './movement.js';
 
 export class Entity {
     constructor(params) {

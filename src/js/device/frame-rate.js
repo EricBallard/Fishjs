@@ -1,4 +1,4 @@
-import { addFishToScene, removeFishFromScene } from '/js/boids/model.js'
+import { addFishToScene, removeFishFromScene } from '../boids/model.js'
 
 /*
     Frame-rate

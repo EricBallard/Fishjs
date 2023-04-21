@@ -1,9 +1,9 @@
 import {
 	Reflector
-} from "/js/_libs/water/Reflector.js";
+} from "./Reflector.js";
 import {
 	Refractor
-} from "/js/_libs/water/Refractor.js";
+} from "./Refractor.js";
 
 /**
  * References:
@@ -37,10 +37,10 @@ var Water = function (geometry, options) {
 
 	var flowMap = options.flowMap || undefined;
 
-	var normalMap0 = options.normalMap0 || textureLoader.load('/_resources/water/Water_1_M_Normal.jpg');
+	var normalMap0 = options.normalMap0 || textureLoader.load('./js/_resources/water/Water_1_M_Normal.jpg');
 	//var normalMap0 = options.normalMap0 || textureLoader.load('https://storage.googleapis.com/fishjs_bucket/water/Water_1_M_Normal.jpg');
 
-	var normalMap1 = options.normalMap1 || textureLoader.load('/_resources/water/Water_2_M_Normal.jpg');
+	var normalMap1 = options.normalMap1 || textureLoader.load('./js/_resources/water/Water_2_M_Normal.jpg');
 	//var normalMap1 = options.normalMap1 || textureLoader.load('https://storage.googleapis.com/fishjs_bucket/water/Water_2_M_Normal.jpg');
 
 	var cycle = 0.15; // a cycle of a flow map phase

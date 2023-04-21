@@ -6,12 +6,12 @@
 
 
 
-import { VelocityShader } from '/js/_libs/post/shader/VelocityShader.js';
-import { GeometryShader } from '/js/_libs/post/shader/GeometryShader.js';
-import { CompositeShader } from '/js/_libs/post/shader/CompositeShader.js';
+import { VelocityShader } from '../shader/VelocityShader.js';
+import { GeometryShader } from '../shader/GeometryShader.js';
+import { CompositeShader } from '../shader/CompositeShader.js';
 
-import { BlueNoiseGenerator } from '/js/_libs/post/BlueNoiseGenerator.js';
-import { RendererState } from '/js/_libs/post/RendererState.js';
+import { BlueNoiseGenerator } from '../BlueNoiseGenerator.js';
+import { RendererState } from '../RendererState.js';
 
 const _blackColor = new THREE.Color(0, 0, 0);
 const _defaultOverrides = {};

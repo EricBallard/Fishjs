@@ -1,11 +1,11 @@
 /*
     Render Scene
 */
-import { initDebug, debug } from '/js/debug.js'
+import { initDebug, debug } from '../debug.js'
 
-import { update } from '/js/boids/boid.js'
+import { update } from '../boids/boid.js'
 
-import { countFPS } from '/js/device/frame-rate.js'
+import { countFPS } from './frame-rate.js'
 
 //Util
 function fade(element, fadeIn) {

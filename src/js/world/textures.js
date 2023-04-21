@@ -1,5 +1,5 @@
 export function getStringPaths(skybox) {
-  const baseFilename = skybox ? '/_resources/skybox/uw_' : '/_resources/particles/particle_';
+  const baseFilename = skybox ? './js/_resources/skybox/uw_' : './js/_resources/particles/particle_';
   
   //const baseFilename = skybox
   //  ? 'https://storage.googleapis.com/fishjs_bucket/skybox/uw_'

@@ -14,6 +14,6 @@ function query(path, id) {
   }
 
   // Submit request
-  xmlhttp.open('GET', '/php/' + path + '.php?ajax=1', true)
+  xmlhttp.open('GET', './php/' + path + '.php?ajax=1', true)
   xmlhttp.send()
 }
