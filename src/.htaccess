@@ -2,7 +2,7 @@
 # Define database info as env vars
 
 SetEnv mysql_host 127.0.0.1
-SetEnv mysql_db visitors
+SetEnv mysql_db fishjs
 SetEnv mysql_user user
 SetEnv mysql_pass password
 
@@ -13,3 +13,6 @@ RewriteCond %{REQUEST_URI} !\.(png|jpe?g|gif|css|js|php)$ [NC]
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.html?url=$1 [QSA,L]
+
+#NOTE: Requires mod_rewrite module
+# https://stackoverflow.com/questions/5373334/500-internal-server-error-when-using-htaccess-with-rewriteengine

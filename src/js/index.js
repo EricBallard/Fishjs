@@ -201,7 +201,7 @@ export async function initialize() {
   await setLoadProgress(70, 'Registering Listeners')
 
   // Audio
-  const audio = new Audio('./_resources/ambience_sound_compressed.mp3')
+  const audio = new Audio('./js/_resources/ambience_sound_compressed.mp3')
   audio.volume = 0.75
   audio.loop = true
 
